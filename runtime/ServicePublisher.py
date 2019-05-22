@@ -33,7 +33,7 @@ service_type = '_PYRO._tcp.local.'
 
 class ServicePublisher(object):
     def __init__(self):
-        # type: fully qualified service type name
+        ## type: fully qualified service type name
         self.serviceproperties = {'description': 'Beremiz remote PLC'}
 
         self.name = None
