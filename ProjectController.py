@@ -124,8 +124,7 @@ class Iec2CSettings(object):
 
     def findLibPath(self):
         paths = [
-            os.path.join(base_folder, "matiec", "lib"),
-            "/usr/lib/matiec"
+            os.path.join(base_folder, "matiec", "lib"), "/usr/lib/matiec", "d:\\src\\matiec"
         ]
         path = self.findObject(paths, lambda p: os.path.isfile(os.path.join(p, "ieclib.txt")))
         return path
