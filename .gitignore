@@ -20,3 +20,6 @@
 doc/build/*
 
 build
+doc
+/.hg_archival.txt
+/revision
