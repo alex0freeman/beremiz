@@ -270,8 +270,7 @@ class _RequestPlugTest(object):
        </xsd:schema>
        """
     CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
-    # TODO: Replace with CTNType !!!
-    PlugType = "ModbusTCPNode"
+    #PlugType = "ModbusTCPNode"
 
     def GetNodeCount(self):
         return (1, 0, 0, 0)
@@ -294,7 +293,7 @@ class _RequestPlugTest(object):
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
         for element in infos:
-            if element["name"] == "ModbusRequest":
+            if element["name"] == "ModbusRequestTest":
                 for child in element["children"]:
                     if child["name"] == "Function":
                         list = modbus_function_dict.keys()
@@ -1103,27 +1102,27 @@ class RootClass(object):
                 client_nodeid += 1
                 #
                 #
-                if child.PlugType == "ModbusTCPclientTest":
+                if child.PlugType == "ModbusTCPNode":
                     tcpclient_reqs_count += len(child.IECSortedChildren())
                     new_node = GetTCPClientNodePrinted(self, child)
                     if new_node is None:
                         return [], "", False
                     client_node_list.append(new_node)
-                    for subchild in child.IECSortedChildren():
-                        new_req = GetClientRequestPrinted(self, subchild, client_nodeid)
-                        if new_req is None:
-                            return [], "", False
-                        client_request_list.append(new_req)
-                        for iecvar in subchild.GetLocations():
-                            # absloute address - start address
-                            relative_addr = iecvar["LOC"][3] - int(GetCTVal(subchild, 3))
-                            # test if relative address in request specified range
-                            if relative_addr in xrange(int(GetCTVal(subchild, 2))):
-                                if str(iecvar["NAME"]) not in loc_vars_list:
-                                    loc_vars.append("u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (
-                                        client_requestid, relative_addr))
-                                    loc_vars_list.append(str(iecvar["NAME"]))
-                        client_requestid += 1
+                    # for subchild in child.IECSortedChildren():
+                    #     new_req = GetClientRequestPrinted(self, subchild, client_nodeid)
+                    #     if new_req is None:
+                    #         return [], "", False
+                    #     client_request_list.append(new_req)
+                    #     for iecvar in subchild.GetLocations():
+                    #         # absloute address - start address
+                    #         relative_addr = iecvar["LOC"][3] - int(GetCTVal(subchild, 3))
+                    #         # test if relative address in request specified range
+                    #         if relative_addr in xrange(int(GetCTVal(subchild, 2))):
+                    #             if str(iecvar["NAME"]) not in loc_vars_list:
+                    #                 loc_vars.append("u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (
+                    #                     client_requestid, relative_addr))
+                    #                 loc_vars_list.append(str(iecvar["NAME"]))
+                    #    client_requestid += 1
                     tcpclient_node_count += 1
                     client_nodeid += 1
                 #
@@ -1134,20 +1133,22 @@ class RootClass(object):
         loc_dict["server_nodes_params"] = ",\n\n".join(server_node_list)
         loc_dict["client_nodes_params"] = ",\n\n".join(client_node_list)
         loc_dict["client_req_params"] = ",\n\n".join(client_request_list)
+
         loc_dict["tcpclient_reqs_count"] = str(tcpclient_reqs_count)
         loc_dict["tcpclient_node_count"] = str(tcpclient_node_count)
         loc_dict["tcpserver_node_count"] = str(tcpserver_node_count)
+
         loc_dict["rtuclient_reqs_count"] = str(rtuclient_reqs_count)
         loc_dict["rtuclient_node_count"] = str(rtuclient_node_count)
         loc_dict["rtuserver_node_count"] = str(rtuserver_node_count)
         loc_dict["ascclient_reqs_count"] = str(ascclient_reqs_count)
         loc_dict["ascclient_node_count"] = str(ascclient_node_count)
         loc_dict["ascserver_node_count"] = str(ascserver_node_count)
+
         loc_dict["total_tcpnode_count"] = str(total_node_count[0])
         loc_dict["total_rtunode_count"] = str(total_node_count[1])
         loc_dict["total_ascnode_count"] = str(total_node_count[2])
-        loc_dict["max_remote_tcpclient"] = int(
-            self.GetParamsAttributes()[0]["children"][0]["value"])
+        loc_dict["max_remote_tcpclient"] = int(self.GetParamsAttributes()[0]["children"][0]["value"])
 
         # get template file content into a string, format it with dict
         # and write it to proper .h file
