@@ -104,13 +104,13 @@ ScriptDirectory = paths.AbsDir(__file__)
 
 def GetUneditableNames():
     _ = NoTranslate
-    return [_("User-defined POUs"), _("Functions"), _("Function Blocks"),
+    return [_("User-defined Templates"),_("User-defined POUs"), _("Functions"), _("Function Blocks"),
             _("Programs"), _("Data Types"), _("Transitions"), _("Actions"),
             _("Configurations"), _("Resources"), _("Properties")]
 
 
 UNEDITABLE_NAMES = GetUneditableNames()
-[USER_DEFINED_POUS, FUNCTIONS, FUNCTION_BLOCKS, PROGRAMS,
+[USER_DEFINED_TEMPLATES, USER_DEFINED_POUS, FUNCTIONS, FUNCTION_BLOCKS, PROGRAMS,
  DATA_TYPES, TRANSITIONS, ACTIONS, CONFIGURATIONS,
  RESOURCES, PROPERTIES] = UNEDITABLE_NAMES
 
@@ -1682,6 +1682,13 @@ class PLCControler(object):
                 for category in self.TotalTypes]
             blocktypes.append({
                 "name": USER_DEFINED_POUS,
+                "list": [pou.getblockInfos()
+                         for pou in project.getpous(name, filter)
+                         if (name is None or
+                             len(self.GetInstanceList(pou, name, debug)) == 0)]
+            })
+            blocktypes.append({
+                "name": USER_DEFINED_TEMPLATES,
                 "list": [pou.getblockInfos()
                          for pou in project.getpous(name, filter)
                          if (name is None or

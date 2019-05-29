@@ -3451,6 +3451,10 @@ msgstr "Пользовательский тип"
 msgid "User-defined POUs"
 msgstr "Пользовательские POU"
 
+#: ../PLCControler.py:99
+msgid "User-defined Templates"
+msgstr "Пользовательские Шаблоны"
+
 #: ../dialogs/ActionBlockDialog.py:39
 msgid "Value"
 msgstr "Значение"
