@@ -60,6 +60,7 @@ from PLCControler import \
     LOCATION_CONFNODE, \
     LOCATION_MODULE, \
     LOCATION_GROUP, \
+    LOCATION_REGISTR, \
     LOCATION_VAR_INPUT, \
     LOCATION_VAR_OUTPUT, \
     LOCATION_VAR_MEMORY, \
@@ -433,6 +434,7 @@ class Beremiz(IDEFrame):
                 ("CONFIGURATION", LOCATION_CONFNODE),
                 ("RESOURCE",      LOCATION_MODULE),
                 ("PROGRAM",       LOCATION_GROUP),
+               # ("REGISTR",       LOCATION_REGISTR),
                 ("VAR_INPUT",     LOCATION_VAR_INPUT),
                 ("VAR_OUTPUT",    LOCATION_VAR_OUTPUT),
                 ("VAR_LOCAL",     LOCATION_VAR_MEMORY)]:

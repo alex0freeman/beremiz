@@ -95,9 +95,10 @@ POU_TYPES = {
 LOCATIONS_ITEMS = [LOCATION_CONFNODE,
                    LOCATION_MODULE,
                    LOCATION_GROUP,
+                   LOCATION_REGISTR,
                    LOCATION_VAR_INPUT,
                    LOCATION_VAR_OUTPUT,
-                   LOCATION_VAR_MEMORY] = range(6)
+                   LOCATION_VAR_MEMORY] = range(7)
 
 ScriptDirectory = paths.AbsDir(__file__)
 

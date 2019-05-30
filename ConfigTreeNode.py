@@ -382,6 +382,7 @@ class ConfigTreeNode(object):
         children = []
         for child in self.IECSortedChildren():
             children.append(child.GetVariableLocationTree())
+
         return {"name": self.BaseParams.getName(),
                 "type": LOCATION_CONFNODE,
                 "location": self.GetFullIEC_Channel(),

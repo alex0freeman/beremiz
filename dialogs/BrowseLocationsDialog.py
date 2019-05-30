@@ -28,7 +28,14 @@ from __future__ import absolute_import
 import wx
 
 from plcopen.structures import LOCATIONDATATYPES
-from PLCControler import LOCATION_CONFNODE, LOCATION_MODULE, LOCATION_GROUP, LOCATION_VAR_INPUT, LOCATION_VAR_OUTPUT, LOCATION_VAR_MEMORY
+from PLCControler import \
+    LOCATION_CONFNODE, \
+    LOCATION_MODULE, \
+    LOCATION_GROUP,  \
+    LOCATION_REGISTR, \
+    LOCATION_VAR_INPUT,\
+    LOCATION_VAR_OUTPUT, \
+    LOCATION_VAR_MEMORY
 from util.BitmapLibrary import GetBitmap
 from util.TranslationCatalogs import NoTranslate
 
@@ -138,6 +145,7 @@ class BrowseLocationsDialog(wx.Dialog):
                 ("CONFIGURATION", LOCATION_CONFNODE),
                 ("RESOURCE",      LOCATION_MODULE),
                 ("PROGRAM",       LOCATION_GROUP),
+                #("REGISTR",       LOCATION_REGISTR),
                 ("VAR_INPUT",     LOCATION_VAR_INPUT),
                 ("VAR_OUTPUT",    LOCATION_VAR_OUTPUT),
                 ("VAR_LOCAL",     LOCATION_VAR_MEMORY)]:
@@ -187,7 +195,9 @@ class BrowseLocationsDialog(wx.Dialog):
         item, root_cookie = self.LocationsTree.GetFirstChild(root)
         for loc_infos in locations:
             infos = loc_infos.copy()
-            if infos["type"] in [LOCATION_CONFNODE, LOCATION_MODULE, LOCATION_GROUP] or\
+            if infos["type"] in [LOCATION_CONFNODE, LOCATION_MODULE, LOCATION_GROUP
+                                    #,  LOCATION_REGISTR
+                                 ] or\
                infos["type"] in self.DirFilter and self.FilterType(infos["IEC_type"], infos["size"]):
                 children = [child for child in infos.pop("children")]
                 if not item.IsOk():
@@ -208,7 +218,9 @@ class BrowseLocationsDialog(wx.Dialog):
 
     def OnLocationsTreeItemActivated(self, event):
         infos = self.LocationsTree.GetPyData(event.GetItem())
-        if infos["type"] not in [LOCATION_CONFNODE, LOCATION_MODULE, LOCATION_GROUP]:
+        if infos["type"] not in [LOCATION_CONFNODE, LOCATION_MODULE, LOCATION_GROUP
+                #,  LOCATION_REGISTR
+                 ]:
             wx.CallAfter(self.EndModal, wx.ID_OK)
         event.Skip()
 
@@ -225,7 +237,9 @@ class BrowseLocationsDialog(wx.Dialog):
         var_infos = None
         if selected.IsOk():
             var_infos = self.LocationsTree.GetPyData(selected)
-        if var_infos is None or var_infos["type"] in [LOCATION_CONFNODE, LOCATION_MODULE, LOCATION_GROUP]:
+        if var_infos is None or var_infos["type"] in [LOCATION_CONFNODE, LOCATION_MODULE, LOCATION_GROUP
+                                                        #,  LOCATION_REGISTR
+                                                      ]:
             dialog = wx.MessageDialog(self, _("A location must be selected!"), _("Error"), wx.OK | wx.ICON_ERROR)
             dialog.ShowModal()
             dialog.Destroy()
