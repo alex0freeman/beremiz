@@ -113,47 +113,6 @@ modbus_serial_baudrate_list = [
 modbus_serial_stopbits_list = ["1", "2"]
 modbus_serial_parity_dict = {"none": 0, "odd": 1, "even": 2}
 
-
-def GetRTUSlaveNodePrinted(self, child):
-    """
-    Outputs a string to be used on C files
-    params: child - the correspondent subplugin in Beremiz
-    """
-    node_init_template = '''/*node %(locnodestr)s*/
-{"%(locnodestr)s", %(slaveid)s, {naf_rtu, {.rtu = {"%(device)s", %(baud)s /*baud*/, %(parity)s /*parity*/, 8 /*data bits*/, %(stopbits)s, 0 /* ignore echo */}}}, -1 /* mb_nd */, 0 /* init_state */}'''
-
-    location = ".".join(map(str, child.GetCurrentLocation()))
-    device, baud, parity, stopbits, slaveid = GetCTVals(child, range(5))
-
-    node_dict = {"locnodestr": location,
-                 "device": device,
-                 "baud": baud,
-                 "parity": modbus_serial_parity_dict[parity],
-                 "stopbits": stopbits,
-                 "slaveid": slaveid}
-    return node_init_template % node_dict
-
-
-def GetRTUClientNodePrinted(self, child):
-    """
-    Outputs a string to be used on C files
-    params: child - the correspondent subplugin in Beremiz
-    """
-    node_init_template = '''/*node %(locnodestr)s*/
-{"%(locnodestr)s", {naf_rtu, {.rtu = {"%(device)s", %(baud)s /*baud*/, %(parity)s /*parity*/, 8 /*data bits*/, %(stopbits)s, 0 /* ignore echo */}}}, -1 /* mb_nd */, 0 /* init_state */, %(coms_period)s /* communication period */}'''
-
-    location = ".".join(map(str, child.GetCurrentLocation()))
-    device, baud, parity, stopbits, coms_period = GetCTVals(child, range(5))
-
-    node_dict = {"locnodestr": location,
-                 "device": device,
-                 "baud": baud,
-                 "parity": modbus_serial_parity_dict[parity],
-                 "stopbits": stopbits,
-                 "coms_period": coms_period}
-    return node_init_template % node_dict
-
-
 def GetTCPClientNodePrinted(self, child):
     """
     Outputs a string to be used on C files
