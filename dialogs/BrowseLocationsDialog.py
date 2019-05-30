@@ -127,7 +127,7 @@ class BrowseLocationsDialog(wx.Dialog):
         self.VarType = var_type
         self.BaseVarType = self.Controller.GetBaseType(self.VarType)
         self.VarTypeSize = LOCATION_SIZES[self.BaseVarType]
-        self.Locations = self.Controller.GetVariableLocationTree()
+        self.Locations = self.Controller.GetVariableLocationTree() ## tree load here
 
         # Define Tree item icon list
         self.TreeImageList = wx.ImageList(16, 16)
