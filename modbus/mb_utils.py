@@ -40,6 +40,7 @@ modbus_function_dict = {
     "15 - Write Multiple Coils":     ('15', 'req_output', 1968, "BOOL",  1, "Q", "X", "Coil"),
     "16 - Write Multiple Registers": ('16', 'req_output',  123, "WORD", 16, "Q", "W", "Holding Register")}
 
+signallist = []
 
 # Configuration tree value acces helper
 def GetCTVal(child, index):

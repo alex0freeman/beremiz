@@ -358,11 +358,8 @@ class _NodeListCTN(NodeList):
         nodeindexes = self.SlaveNodes.keys()
         nodeindexes.sort()
         children = []
-        children += [GetSlaveLocationTree(self.Manager.GetCurrentNodeCopy(),
-                                          current_location,
-                                          _("Local entries"))]
-        children += [GetSlaveLocationTree(self.SlaveNodes[nodeid]["Node"],
-                                          current_location + (nodeid,),
+        children += [GetSlaveLocationTree(self.Manager.GetCurrentNodeCopy(),current_location, _("Local entries"))]
+        children += [GetSlaveLocationTree(self.SlaveNodes[nodeid]["Node"], current_location + (nodeid,),
                                           self.SlaveNodes[nodeid]["Name"]) for nodeid in nodeindexes]
 
         return {
