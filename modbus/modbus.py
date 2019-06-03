@@ -133,6 +133,7 @@ class _RequestSignal(object):
 
         dataname = vraiableTree[0]['name']
         address = vraiableTree[0]['address']
+        datatacc = vraiableTree[0]['datatacc']
 
         entries = []
 
@@ -140,11 +141,11 @@ class _RequestSignal(object):
         entries.append({
             "name": dataname + "_" + str(address) +"." + str(bit), #+ "_" + str(address)
             "type": LOCATION_VAR_MEMORY,
-            "size": 1,
-            "IEC_type": "BOOL",
+            "size": 16,
+            "IEC_type": "WORD",
             "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(address) + "." + str(bit), # добавляет список в ветку дерева
             #для нас 0.0.                                           0   .          8000      .       1
-            "location": ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # представление в дереве выбора источников, ?
+            "location": datatacc +  ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # представление в дереве выбора источников, ?
             "description": "description",
             "children": []})
 
@@ -252,6 +253,7 @@ class _ModbusFunction(object):
             entries.append({
                         "name": dataname ,
                         "address": address,
+                        "datatacc": datatacc,
                         "type": LOCATION_VAR_MEMORY,
                         "size": datasize,
                         "IEC_type": datatype,
@@ -1245,8 +1247,8 @@ class RootClass(object):
                     client_request_list.append(new_req)
                     for iecvar in subchild.GetLocations():
 
-                        # absloute address - start address
-                        relative_addr = iecvar["LOC"][3] - int(GetCTVal(subchild, 3))
+                        # absloute address - start address -- absloute address [4] in dictionary
+                        relative_addr = iecvar["LOC"][4] - int(GetCTVal(subchild, 3))
                         # test if relative address in request specified range
                         if relative_addr in xrange(int(GetCTVal(subchild, 2))):
                             if str(iecvar["NAME"]) not in loc_vars_list:
