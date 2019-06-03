@@ -264,7 +264,7 @@ class _ModbusFunction(object):
         return entries
 
     # def GetNodeCount(self):
-    #     return (1, 0, 0 )
+    #     return (0, 1, 0 )
 
 
 
@@ -985,7 +985,7 @@ class _ModbusTCPNode(object):
     # Return the number of (modbus library) nodes this specific TCP client will need
     #   return type: (tcp nodes, rtu nodes, ascii nodes)
     def GetNodeCount(self):
-        return (1, 0, 0 )
+        return (1, 0, 0, 0 )
 
     def CTNGenerate_C(self, buildpath, locations):
         """
@@ -1262,12 +1262,14 @@ class RootClass(object):
             nodeid += 1
 
         loc_dict["loc_vars"] = "\n".join(loc_vars)
-        # loc_dict["server_nodes_params"] = ",\n\n".join(server_node_list)
-        # loc_dict["client_nodes_params"] = ",\n\n".join(client_node_list)
-        # loc_dict["client_req_params"] = ",\n\n".join(client_request_list)
+        loc_dict["server_nodes_params"] = ",\n\n".join(server_node_list)
+        loc_dict["client_nodes_params"] = ",\n\n".join(client_node_list)
+        loc_dict["client_req_params"] = ",\n\n".join(client_request_list)
 
         loc_dict["tcpclient_reqs_count"] = str(tcpclient_reqs_count)
+
         loc_dict["tcpclient_node_count"] = str(tcpclient_node_count)
+
         loc_dict["tcpserver_node_count"] = str(tcpserver_node_count)
 
         loc_dict["rtuclient_reqs_count"] = str(rtuclient_reqs_count)
