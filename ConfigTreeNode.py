@@ -289,8 +289,7 @@ class ConfigTreeNode(object):
             new_location = CTNChild.GetCurrentLocation()
             # How deep are we in the tree ?
             depth = len(new_location)
-            _LocationCFilesAndCFLAGS, _LDFLAGS, _extra_files = \
-                CTNChild._Generate_C(
+            _LocationCFilesAndCFLAGS, _LDFLAGS, _extra_files = CTNChild._Generate_C(
                     # keep the same path
                     buildpath,
                     # filter locations that start with current IEC location
