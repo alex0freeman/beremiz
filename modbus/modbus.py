@@ -262,7 +262,7 @@ class _ModbusFunction(object):
         return entries
 
     def GetNodeCount(self):
-        return (1, 0, 0, 0)
+        return (1, 0, 0 )
 
 
 
@@ -343,8 +343,8 @@ class _ModbusFunction(object):
     CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
     #PlugType = "ModbusTCPNode"
 
-    def GetNodeCount(self):
-        return (1, 0, 0, 0)
+    # def GetNodeCount(self):
+    #     return (1, 0, 0, 0)
 
     # def GetVariableLocationTree(self):
     #     current_location = self.GetCurrentLocation()
@@ -1071,7 +1071,7 @@ class RootClass(object):
         #   IPServer_port_numbers = [(location ,IPserver_port_number), ...]
         #       location: tuple similar to (0, 3, 1) representing the location in the configuration tree "0.3.1.x"
         # IPserver_port_number: a number (i.e. port number used by the Modbus/IP server)
-        total_node_count = (0, 0, 0 )
+        total_node_count = (0, 0, 0, 0 )
         IPServer_port_numbers = []
         for CTNInstance in self.GetCTRoot().IterChildren():
             if CTNInstance.CTNType == "modbus":
