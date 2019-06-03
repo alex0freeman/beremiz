@@ -92,6 +92,7 @@ class LocationCellControl(wx.PyControl):
             infos = None
         dialog.Destroy()
 
+# наше Select a variable class:
         if infos is not None:
             location = infos["location"]
             # set the location
