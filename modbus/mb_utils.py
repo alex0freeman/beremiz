@@ -41,7 +41,7 @@ modbus_function_dict = {
     "16 - Write Multiple Registers": ('16', 'req_output',  123, "WORD", 16, "Q", "W", "Holding Register")}
 
 signallist = []
-
+vraiableTree = []
 # Configuration tree value acces helper
 def GetCTVal(child, index):
     return child.GetParamsAttributes()[0]["children"][index]["value"]
