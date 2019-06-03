@@ -1244,6 +1244,7 @@ class RootClass(object):
                     new_req = GetClientRequestPrinted(self, subchild, client_nodeid)
                     if new_req is None:
                         return [], "", False
+
                     client_request_list.append(new_req)
                     for iecvar in subchild.GetLocations():
 
@@ -1252,6 +1253,7 @@ class RootClass(object):
                         # test if relative address in request specified range
                         if relative_addr in xrange(int(GetCTVal(subchild, 2))):
                             if str(iecvar["NAME"]) not in loc_vars_list:
+                                #TODO сделать тут разбивку на биты или на стороне Си кода
                                 loc_vars.append("u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (client_requestid, relative_addr))
                                 loc_vars_list.append(str(iecvar["NAME"]))
                     client_requestid += 1
