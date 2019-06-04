@@ -295,153 +295,153 @@ class _ModbusFunction(object):
         return infos
 
 
-class _ModbusFunction(object):
-    XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
-       <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-         <xsd:element name="ModbusFunction">
-           <xsd:complexType>
-             <xsd:attribute name="Function" type="xsd:string" use="optional" default="01 - Read Coils"/>
-
-             <xsd:attribute name="SlaveID" use="optional" default="1">
-               <xsd:simpleType>
-                   <xsd:restriction base="xsd:integer">
-                       <xsd:minInclusive value="0"/>
-                       <xsd:maxInclusive value="255"/>
-                   </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
-
-             <xsd:attribute name="Nr_of_Channels" use="optional" default="1">
-               <xsd:simpleType>
-                   <xsd:restriction base="xsd:integer">
-                       <xsd:minInclusive value="1"/>
-                       <xsd:maxInclusive value="2000"/>
-                   </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
-
-             <xsd:attribute name="Start_Address" use="optional" default="0">
-               <xsd:simpleType>
-                   <xsd:restriction base="xsd:integer">
-                       <xsd:minInclusive value="0"/>
-                       <xsd:maxInclusive value="65535"/>
-                   </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
-
-             <xsd:attribute name="Timeout_in_ms" use="optional" default="10">
-               <xsd:simpleType>
-                   <xsd:restriction base="xsd:integer">
-                       <xsd:minInclusive value="1"/>
-                       <xsd:maxInclusive value="100000"/>
-                   </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
-
-           </xsd:complexType>
-         </xsd:element>
-       </xsd:schema>
-       """
-    CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
-    #PlugType = "ModbusTCPNode"
-
-    # def GetNodeCount(self):
-    #     return (1, 0, 0, 0)
-
-    # def GetVariableLocationTree(self):
-    #     current_location = self.GetCurrentLocation()
-    #     name = self.BaseParams.getName()
-    #     address = self.GetParamsAttributes()[0]["children"][3]["value"]
-    #     count = self.GetParamsAttributes()[0]["children"][2]["value"]
-    #     function = self.GetParamsAttributes()[0]["children"][0]["value"]
-    #     # 'BOOL' or 'WORD'
-    #     datatype = modbus_function_dict[function][3]
-    #     # 1 or 16
-    #     datasize = modbus_function_dict[function][4]
-    #     # 'Q' for coils and holding registers, 'I' for input discretes and input registers
-    #     # datazone = modbus_function_dict[function][5]
-    #     # 'X' for bits, 'W' for words
-    #     datatacc = modbus_function_dict[function][6]
-    #     # 'Coil', 'Holding Register', 'Input Discrete' or 'Input Register'
-    #     dataname = modbus_function_dict[function][7]
-    #     entries = []
-    #
-    #
-    #     for offset in range(address, address + count):
-    #         entries.append({
-    #             "name": dataname + " " + str(offset),
-    #             "type": LOCATION_GROUP,
-    #            # "size": datasize,
-    #            # "IEC_type": datatype,
-    #            # "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(offset),
-    #            # "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
-    #             "description": "description",
-    #             "children": []})
-
-       # return {"name": ""}
-
-
-    def CTNGenerate_C(self, buildpath, locations):
-        """
-        Generate C code
-        @param current_location: Tupple containing plugin IEC location : %I0.0.4.5 => (0,0,4,5)
-        @param locations: List of complete variables locations \
-            [{"IEC_TYPE" : the IEC type (i.e. "INT", "STRING", ...)
-            "NAME" : name of the variable (generally "__IW0_1_2" style)
-            "DIR" : direction "Q","I" or "M"
-            "SIZE" : size "X", "B", "W", "D", "L"
-            "LOC" : tuple of interger for IEC location (0,1,2,...)
-            }, ...]
-        @return: [(C_file_name, CFLAGS),...] , LDFLAGS_TO_APPEND
-        """
-        return [], "", False
-
-    def GetParamsAttributes(self, path=None):
-        infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
-        for element in infos:
-            if element["name"] == "ModbusFunction":
-                for child in element["children"]:
-                    if child["name"] == "Function":
-                        list = modbus_function_dict.keys()
-                        list.sort()
-                        child["type"] = list
-        return infos
-
-
-    # def GetVariableLocationTree(self):
-    #     current_location = self.GetCurrentLocation()
-    #     name = self.BaseParams.getName()
-    #     address = self.GetParamsAttributes()[0]["children"][3]["value"]
-    #     count = self.GetParamsAttributes()[0]["children"][2]["value"]
-    #     function = self.GetParamsAttributes()[0]["children"][0]["value"]
-    #     # 'BOOL' or 'WORD'
-    #     datatype = modbus_function_dict[function][3]
-    #     # 1 or 16
-    #     datasize = modbus_function_dict[function][4]
-    #     # 'Q' for coils and holding registers, 'I' for input discretes and input registers
-    #     # datazone = modbus_function_dict[function][5]
-    #     # 'X' for bits, 'W' for words
-    #     datatacc = modbus_function_dict[function][6]
-    #     # 'Coil', 'Holding Register', 'Input Discrete' or 'Input Register'
-    #     dataname = modbus_function_dict[function][7]
-    #     entries = []
-    #
-    #
-    #     for offset in range(address, address + count):
-    #         entries.append({
-    #             "name": dataname + " " + str(offset),
-    #             "type": LOCATION_GROUP,
-    #            # "size": datasize,
-    #            # "IEC_type": datatype,
-    #            # "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(offset),
-    #            # "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
-    #             "description": "description",
-    #             "children": []})
-    #
-    #     return {"name": name,
-    #             "type": LOCATION_GROUP,
-    #             "location": ".".join([str(i) for i in current_location]) + ".x",
-    #             "children": entries}
+# class _ModbusFunction(object):
+#     XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
+#        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+#          <xsd:element name="ModbusFunction">
+#            <xsd:complexType>
+#              <xsd:attribute name="Function" type="xsd:string" use="optional" default="01 - Read Coils"/>
+#
+#              <xsd:attribute name="SlaveID" use="optional" default="1">
+#                <xsd:simpleType>
+#                    <xsd:restriction base="xsd:integer">
+#                        <xsd:minInclusive value="0"/>
+#                        <xsd:maxInclusive value="255"/>
+#                    </xsd:restriction>
+#                </xsd:simpleType>
+#              </xsd:attribute>
+#
+#              <xsd:attribute name="Nr_of_Channels" use="optional" default="1">
+#                <xsd:simpleType>
+#                    <xsd:restriction base="xsd:integer">
+#                        <xsd:minInclusive value="1"/>
+#                        <xsd:maxInclusive value="2000"/>
+#                    </xsd:restriction>
+#                </xsd:simpleType>
+#              </xsd:attribute>
+#
+#              <xsd:attribute name="Start_Address" use="optional" default="0">
+#                <xsd:simpleType>
+#                    <xsd:restriction base="xsd:integer">
+#                        <xsd:minInclusive value="0"/>
+#                        <xsd:maxInclusive value="65535"/>
+#                    </xsd:restriction>
+#                </xsd:simpleType>
+#              </xsd:attribute>
+#
+#              <xsd:attribute name="Timeout_in_ms" use="optional" default="10">
+#                <xsd:simpleType>
+#                    <xsd:restriction base="xsd:integer">
+#                        <xsd:minInclusive value="1"/>
+#                        <xsd:maxInclusive value="100000"/>
+#                    </xsd:restriction>
+#                </xsd:simpleType>
+#              </xsd:attribute>
+#
+#            </xsd:complexType>
+#          </xsd:element>
+#        </xsd:schema>
+#        """
+#     CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
+#     #PlugType = "ModbusTCPNode"
+#
+#     # def GetNodeCount(self):
+#     #     return (1, 0, 0, 0)
+#
+#     # def GetVariableLocationTree(self):
+#     #     current_location = self.GetCurrentLocation()
+#     #     name = self.BaseParams.getName()
+#     #     address = self.GetParamsAttributes()[0]["children"][3]["value"]
+#     #     count = self.GetParamsAttributes()[0]["children"][2]["value"]
+#     #     function = self.GetParamsAttributes()[0]["children"][0]["value"]
+#     #     # 'BOOL' or 'WORD'
+#     #     datatype = modbus_function_dict[function][3]
+#     #     # 1 or 16
+#     #     datasize = modbus_function_dict[function][4]
+#     #     # 'Q' for coils and holding registers, 'I' for input discretes and input registers
+#     #     # datazone = modbus_function_dict[function][5]
+#     #     # 'X' for bits, 'W' for words
+#     #     datatacc = modbus_function_dict[function][6]
+#     #     # 'Coil', 'Holding Register', 'Input Discrete' or 'Input Register'
+#     #     dataname = modbus_function_dict[function][7]
+#     #     entries = []
+#     #
+#     #
+#     #     for offset in range(address, address + count):
+#     #         entries.append({
+#     #             "name": dataname + " " + str(offset),
+#     #             "type": LOCATION_GROUP,
+#     #            # "size": datasize,
+#     #            # "IEC_type": datatype,
+#     #            # "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(offset),
+#     #            # "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
+#     #             "description": "description",
+#     #             "children": []})
+#
+#        # return {"name": ""}
+#
+#
+#     def CTNGenerate_C(self, buildpath, locations):
+#         """
+#         Generate C code
+#         @param current_location: Tupple containing plugin IEC location : %I0.0.4.5 => (0,0,4,5)
+#         @param locations: List of complete variables locations \
+#             [{"IEC_TYPE" : the IEC type (i.e. "INT", "STRING", ...)
+#             "NAME" : name of the variable (generally "__IW0_1_2" style)
+#             "DIR" : direction "Q","I" or "M"
+#             "SIZE" : size "X", "B", "W", "D", "L"
+#             "LOC" : tuple of interger for IEC location (0,1,2,...)
+#             }, ...]
+#         @return: [(C_file_name, CFLAGS),...] , LDFLAGS_TO_APPEND
+#         """
+#         return [], "", False
+#
+#     def GetParamsAttributes(self, path=None):
+#         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
+#         for element in infos:
+#             if element["name"] == "ModbusFunction":
+#                 for child in element["children"]:
+#                     if child["name"] == "Function":
+#                         list = modbus_function_dict.keys()
+#                         list.sort()
+#                         child["type"] = list
+#         return infos
+#
+#
+#     # def GetVariableLocationTree(self):
+#     #     current_location = self.GetCurrentLocation()
+#     #     name = self.BaseParams.getName()
+#     #     address = self.GetParamsAttributes()[0]["children"][3]["value"]
+#     #     count = self.GetParamsAttributes()[0]["children"][2]["value"]
+#     #     function = self.GetParamsAttributes()[0]["children"][0]["value"]
+#     #     # 'BOOL' or 'WORD'
+#     #     datatype = modbus_function_dict[function][3]
+#     #     # 1 or 16
+#     #     datasize = modbus_function_dict[function][4]
+#     #     # 'Q' for coils and holding registers, 'I' for input discretes and input registers
+#     #     # datazone = modbus_function_dict[function][5]
+#     #     # 'X' for bits, 'W' for words
+#     #     datatacc = modbus_function_dict[function][6]
+#     #     # 'Coil', 'Holding Register', 'Input Discrete' or 'Input Register'
+#     #     dataname = modbus_function_dict[function][7]
+#     #     entries = []
+#     #
+#     #
+#     #     for offset in range(address, address + count):
+#     #         entries.append({
+#     #             "name": dataname + " " + str(offset),
+#     #             "type": LOCATION_GROUP,
+#     #            # "size": datasize,
+#     #            # "IEC_type": datatype,
+#     #            # "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(offset),
+#     #            # "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
+#     #             "description": "description",
+#     #             "children": []})
+#     #
+#     #     return {"name": name,
+#     #             "type": LOCATION_GROUP,
+#     #             "location": ".".join([str(i) for i in current_location]) + ".x",
+#     #             "children": entries}
 
 
 class _RequestPlug(object):
@@ -1108,10 +1108,11 @@ class RootClass(object):
                         relative_addr = iecvar["LOC"][4] - int(GetCTVal(subchild, 3))
                         # test if relative address in request specified range
                         if relative_addr in xrange(int(GetCTVal(subchild, 2))):
-                            if str(iecvar["NAME"]) not in loc_vars_list:
+                            iecvarname = iecvar["NAME"]
+                            if str(iecvarname) not in loc_vars_list:
                                 #TODO сделать тут разбивку на биты или на стороне Си кода
-                                loc_vars.append("u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (client_requestid, relative_addr))
-                                loc_vars_list.append(str(iecvar["NAME"]))
+                                loc_vars.append("u16 *" + str(iecvarname) + " = (&client_requests[%d].plcv_buffer[%d] >> %d) & 1;" % (client_requestid, relative_addr, int(iecvarname[-1]) - 1)) # подставляем наши значение в индексы массива client_requests
+                                loc_vars_list.append(str(iecvarname))
                     client_requestid += 1
                 tcpclient_node_count += 1
                 client_nodeid += 1
