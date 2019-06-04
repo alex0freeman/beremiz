@@ -32,7 +32,7 @@
 #define MAX_MODBUS_ERROR_CODE 11
 static const char *modbus_error_messages[MAX_MODBUS_ERROR_CODE+1] = {
     /* 0 */ "",                             /* un-used -> no error! */
-    /* 1 */ "illegal/unsuported function",
+    /* 1 */ "illegal/unsupported function",
     /* 2 */ "illegal data address",
     /* 3 */ "illegal data value",
     /* 4 */ "slave device failure",
@@ -41,7 +41,7 @@ static const char *modbus_error_messages[MAX_MODBUS_ERROR_CODE+1] = {
     /* 7 */ "negative acknowledge",
     /* 8 */ "memory parity error",
     /* 9 */ "",                             /* undefined by Modbus */
-    /* 10*/ "gateway path unavalilable",
+    /* 10*/ "gateway path unavailable",
     /* 11*/ "gateway target device failed to respond"
 };    
 
@@ -76,15 +76,16 @@ static int __execute_mb_request(int request_id){
 
 	case  3: /* read holding registers */
 		return read_output_words(client_requests[request_id].slave_id,
-					client_requests[request_id].address,
-					client_requests[request_id].count,
-					client_requests[request_id].coms_buffer,
-					(int) client_requests[request_id].count,
-					client_nodes[client_requests[request_id].client_node_id].mb_nd,
-					client_requests[request_id].retries,
-					&(client_requests[request_id].error_code),
-					&(client_requests[request_id].resp_timeout),
-					&(client_requests[request_id].coms_buf_mutex));
+								client_requests[request_id].address,
+								client_requests[request_id].count,
+								client_requests[request_id].coms_buffer,
+								(int) client_requests[request_id].count,
+
+								client_nodes[client_requests[request_id].client_node_id].mb_nd,
+								client_requests[request_id].retries,
+								&(client_requests[request_id].error_code),
+								&(client_requests[request_id].resp_timeout),
+								&(client_requests[request_id].coms_buf_mutex));
 	
 	case  4: /* read input registers */
 		return read_input_words(client_requests[request_id].slave_id,
@@ -110,13 +111,14 @@ static int __execute_mb_request(int request_id){
 
 	case  6: /* write single register */
 		return write_output_word(client_requests[request_id].slave_id,
-					client_requests[request_id].address,
-					client_requests[request_id].coms_buffer[0],
-					client_nodes[client_requests[request_id].client_node_id].mb_nd,
-					client_requests[request_id].retries,
-					&(client_requests[request_id].error_code),
-					&(client_requests[request_id].resp_timeout),
-					&(client_requests[request_id].coms_buf_mutex));
+								client_requests[request_id].address,
+								client_requests[request_id].coms_buffer[0],
+
+								client_nodes[client_requests[request_id].client_node_id].mb_nd,
+								client_requests[request_id].retries,
+								&(client_requests[request_id].error_code),
+								&(client_requests[request_id].resp_timeout),
+								&(client_requests[request_id].coms_buf_mutex));
 
 	case  7: break; /* function not yet supported */
 	case  8: break; /* function not yet supported */
@@ -140,14 +142,15 @@ static int __execute_mb_request(int request_id){
 
 	case 16: /* write multiple registers */
 		return write_output_words(client_requests[request_id].slave_id,
-					client_requests[request_id].address,
-					client_requests[request_id].count,
-					client_requests[request_id].coms_buffer,
-					client_nodes[client_requests[request_id].client_node_id].mb_nd,
-					client_requests[request_id].retries,
-					&(client_requests[request_id].error_code),
-					&(client_requests[request_id].resp_timeout),
-					&(client_requests[request_id].coms_buf_mutex));
+								client_requests[request_id].address,
+								client_requests[request_id].count,
+								client_requests[request_id].coms_buffer,
+
+								client_nodes[client_requests[request_id].client_node_id].mb_nd,
+								client_requests[request_id].retries,
+								&(client_requests[request_id].error_code),
+								&(client_requests[request_id].resp_timeout),
+								&(client_requests[request_id].coms_buf_mutex));
 	
 	default: break;  /* should never occur, if file generation is correct */
 	}
@@ -270,7 +273,7 @@ static void *__mb_server_thread(void *_server_node)  {
 			(void *)&(server_node->mem_area)
 			};  
 	
-	// Enable thread cancelation. Enabled is default, but set it anyway to be safe.
+	// Enable thread cancellation. Enabled is default, but set it anyway to be safe.
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
 	// mb_slave_run() should never return!
@@ -296,7 +299,7 @@ static void *__mb_client_thread(void *_index)  {
 	int period_sec  =  client_nodes[client_node_id].comm_period / 1000;          /* comm_period is in ms */
 	int period_nsec = (client_nodes[client_node_id].comm_period %%1000)*1000000; /* comm_period is in ms */
 
-	// Enable thread cancelation. Enabled is default, but set it anyway to be safe.
+	// Enable thread cancellation. Enabled is default, but set it anyway to be safe.
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	
 	// get the current time
@@ -401,7 +404,7 @@ int __init_%(locstr)s (int argc, char **argv){
 	for (index=0; index < NUMBER_OF_CLIENT_NODES;index++)
 		client_nodes[index].mb_nd = -1;
 	for (index=0; index < NUMBER_OF_SERVER_NODES;index++)
-		// mb_nd with negative numbers indicate how far it has been initialised (or not)
+		// mb_nd with negative numbers indicate how far it has been initialized (or not)
 		//   -2  --> no modbus node created;  no thread  created
 		//   -1  -->    modbus node created!; no thread  created
 		//  >=0  -->    modbus node created!;    thread  created!
@@ -412,11 +415,11 @@ int __init_%(locstr)s (int argc, char **argv){
 	 *  extension currently in the user's project. This file (MB_xx.c) is handling only one instance,
 	 *  but must initialize the library for all instances. Only the first call to mb_slave_and_master_init()
 	 *  will result in memory being allocated. All subsequent calls (by other MB_xx,c files) will be ignored
-	 *  by the mb_slave_and_master_init() funtion, as long as they are called with the same arguments.
+	 *  by the mb_slave_and_master_init() function, as long as they are called with the same arguments.
 	 */
 	if (mb_slave_and_master_init(TOTAL_TCPNODE_COUNT, TOTAL_RTUNODE_COUNT, TOTAL_ASCNODE_COUNT) <0) {
 		fprintf(stderr, "Modbus plugin: Error starting modbus library\n");
-		// return imediately. Do NOT goto error_exit, as we did not get to
+		// return immediately. Do NOT goto error_exit, as we did not get to
 		//  start the modbus library!
 		return -1;
 	}
