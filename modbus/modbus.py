@@ -1026,35 +1026,35 @@ class RootClass(object):
             # print ">>>>>>>>>>>>>"
             #
 
-            if child.PlugType == "ModbusTCPserver":
-                tcpserver_node_count += 1
-                new_node = GetTCPServerNodePrinted(self, child)
-                if new_node is None:
-                    return [], "", False
-                server_node_list.append(new_node)
-                #
-                for subchild in child.IECSortedChildren():
-                    new_memarea = GetTCPServerMemAreaPrinted(
-                        self, subchild, nodeid)
-                    if new_memarea is None:
-                        return [], "", False
-                    server_memarea_list.append(new_memarea)
-                    function = subchild.GetParamsAttributes()[0]["children"][0]["value"]
-                    # 'ro_bits', 'rw_bits', 'ro_words' or 'rw_words'
-                    memarea = modbus_memtype_dict[function][1]
-                    for iecvar in subchild.GetLocations():
-                        # print repr(iecvar)
-                        absloute_address = iecvar["LOC"][3]
-                        start_address = int(GetCTVal(subchild, 2))
-                        relative_addr = absloute_address - start_address
-                        # test if relative address in request specified range
-                        if relative_addr in xrange(int(GetCTVal(subchild, 1))):
-                            if str(iecvar["NAME"]) not in loc_vars_list:
-                                loc_vars.append("u16 *" + str(iecvar["NAME"]) + " = &server_nodes[%d].mem_area.%s[%d];" % (
-                                    server_id, memarea, absloute_address))
-                                loc_vars_list.append(str(iecvar["NAME"]))
-                server_id += 1
-            #
+            # if child.PlugType == "ModbusTCPserver":
+            #     tcpserver_node_count += 1
+            #     new_node = GetTCPServerNodePrinted(self, child)
+            #     if new_node is None:
+            #         return [], "", False
+            #     server_node_list.append(new_node)
+            #     #
+            #     for subchild in child.IECSortedChildren():
+            #         new_memarea = GetTCPServerMemAreaPrinted(
+            #             self, subchild, nodeid)
+            #         if new_memarea is None:
+            #             return [], "", False
+            #         server_memarea_list.append(new_memarea)
+            #         function = subchild.GetParamsAttributes()[0]["children"][0]["value"]
+            #         # 'ro_bits', 'rw_bits', 'ro_words' or 'rw_words'
+            #         memarea = modbus_memtype_dict[function][1]
+            #         for iecvar in subchild.GetLocations():
+            #             # print repr(iecvar)
+            #             absloute_address = iecvar["LOC"][3]
+            #             start_address = int(GetCTVal(subchild, 2))
+            #             relative_addr = absloute_address - start_address
+            #             # test if relative address in request specified range
+            #             if relative_addr in xrange(int(GetCTVal(subchild, 1))):
+            #                 if str(iecvar["NAME"]) not in loc_vars_list:
+            #                     loc_vars.append("u16 *" + str(iecvar["NAME"]) + " = &server_nodes[%d].mem_area.%s[%d];" % (
+            #                         server_id, memarea, absloute_address))
+            #                     loc_vars_list.append(str(iecvar["NAME"]))
+            #     server_id += 1
+            # #
 
 
             if child.PlugType == "ModbusTCPclient":
@@ -1111,7 +1111,7 @@ class RootClass(object):
                             iecvarname = iecvar["NAME"]
                             if str(iecvarname) not in loc_vars_list:
                                 #TODO сделать тут разбивку на биты или на стороне Си кода
-                                loc_vars.append("u16 *" + str(iecvarname) + " = (&client_requests[%d].plcv_buffer[%d] >> %d) & 1;" % (client_requestid, relative_addr, int(iecvarname[-1]) - 1)) # подставляем наши значение в индексы массива client_requests
+                                loc_vars.append("u16 *" + str(iecvarname) + " = &client_requests[%d].plcv_buffer[%d]  ;" % (client_requestid, relative_addr, int(iecvarname[-1]) - 1)) # подставляем наши значение в индексы массива client_requests
                                 loc_vars_list.append(str(iecvarname))
                     client_requestid += 1
                 tcpclient_node_count += 1

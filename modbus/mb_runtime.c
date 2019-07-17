@@ -12,7 +12,7 @@
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser
  * General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
@@ -43,13 +43,12 @@ static const char *modbus_error_messages[MAX_MODBUS_ERROR_CODE+1] = {
     /* 9 */ "",                             /* undefined by Modbus */
     /* 10*/ "gateway path unavailable",
     /* 11*/ "gateway target device failed to respond"
-};    
-
+};
 
 /* Execute a modbus client transaction/request */
 static int __execute_mb_request(int request_id){
 	switch (client_requests[request_id].mb_function){
-	
+
 	case  1: /* read coils */
 		return read_output_bits(client_requests[request_id].slave_id,
 					client_requests[request_id].address,
@@ -86,7 +85,7 @@ static int __execute_mb_request(int request_id){
 								&(client_requests[request_id].error_code),
 								&(client_requests[request_id].resp_timeout),
 								&(client_requests[request_id].coms_buf_mutex));
-	
+
 	case  4: /* read input registers */
 		return read_input_words(client_requests[request_id].slave_id,
 					client_requests[request_id].address,
@@ -128,7 +127,7 @@ static int __execute_mb_request(int request_id){
 	case 12: break; /* function not yet supported */
 	case 13: break; /* function not yet supported */
 	case 14: break; /* function not yet supported */
-	
+
 	case 15: /* write multiple coils */
 		return write_output_bits(client_requests[request_id].slave_id,
 					 client_requests[request_id].address,
@@ -151,7 +150,7 @@ static int __execute_mb_request(int request_id){
 								&(client_requests[request_id].error_code),
 								&(client_requests[request_id].resp_timeout),
 								&(client_requests[request_id].coms_buf_mutex));
-	
+
 	default: break;  /* should never occur, if file generation is correct */
 	}
 
@@ -168,7 +167,7 @@ static inline int __pack_bits(u16 *unpacked_data, u16 start_addr, u16 bit_count,
 
   if ((0 == bit_count) || (65535-start_addr < bit_count-1))
     return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
-  
+
   for( byte = 0, coils_processed = 0; coils_processed < bit_count; byte++) {
     packed_data[byte] = 0;
     for( bit = 0x01; (bit & 0xFF) && (coils_processed < bit_count); bit <<= 1, coils_processed++ ) {
@@ -177,6 +176,8 @@ static inline int __pack_bits(u16 *unpacked_data, u16 start_addr, u16 bit_count,
       else  packed_data[byte] &= ~bit; /* reset bit */
     }
   }
+
+  //__savelogs_("pack bits");
   return 0;
 }
 
@@ -188,13 +189,15 @@ static inline int __unpack_bits(u16 *unpacked_data, u16 start_addr, u16 bit_coun
 
   if ((0 == bit_count) || (65535-start_addr < bit_count-1))
     return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
-  
+
   for(byte = 0, coils_processed = 0; coils_processed < bit_count; byte++) {
     temp = packed_data[byte] ;
     for(bit = 0x01; (bit & 0xff) && (coils_processed < bit_count); bit <<= 1, coils_processed++) {
       unpacked_data[start_addr + coils_processed] = (temp & bit)?1:0;
     }
   }
+
+   //__savelogs_("UNpack bits");
   return 0;
 }
 
@@ -217,6 +220,8 @@ static int __read_inwords  (void *mem_map, u16 start_addr, u16 word_count, u16 *
   memcpy(/* dest */ (void *)data_words,
          /* src  */ (void *)&(((server_mem_t *)mem_map)->ro_words[start_addr]),
          /* size */ word_count * 2);
+
+ // __savelogs_("read input word");
   return 0;
 }
 
@@ -231,6 +236,8 @@ static int __read_outwords (void *mem_map, u16 start_addr, u16 word_count, u16 *
   memcpy(/* dest */ (void *)data_words,
          /* src  */ (void *)&(((server_mem_t *)mem_map)->rw_words[start_addr]),
          /* size */ word_count * 2);
+
+  //__savelogs_("read out word");
   return 0;
 }
 
@@ -253,6 +260,8 @@ static int __write_outwords(void *mem_map, u16 start_addr, u16 word_count, u16 *
   memcpy(/* dest */ (void *)&(((server_mem_t *)mem_map)->rw_words[start_addr]),
          /* src  */ (void *)data_words,
          /* size */ word_count * 2);
+
+  //__savelogs_("save out word");
   return 0;
 }
 
@@ -263,7 +272,7 @@ static int __write_outwords(void *mem_map, u16 start_addr, u16 word_count, u16 *
 
 static void *__mb_server_thread(void *_server_node)  {
 	server_node_t *server_node = _server_node;
-	mb_slave_callback_t callbacks = { 
+	mb_slave_callback_t callbacks = {
 			&__read_inbits,
 			&__read_outbits,
 			&__write_outbits,
@@ -271,8 +280,8 @@ static void *__mb_server_thread(void *_server_node)  {
 			&__read_outwords,
 			&__write_outwords,
 			(void *)&(server_node->mem_area)
-			};  
-	
+			};
+
 	// Enable thread cancellation. Enabled is default, but set it anyway to be safe.
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 
@@ -301,7 +310,7 @@ static void *__mb_client_thread(void *_index)  {
 
 	// Enable thread cancellation. Enabled is default, but set it anyway to be safe.
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-	
+
 	// get the current time
 	clock_gettime(CLOCK_MONOTONIC, &next_cycle);
 
@@ -371,12 +380,12 @@ static void *__mb_client_thread(void *_index)  {
 		 * for some time until we catch up.
 		 * This is undesirable, so we detect it by making sure the next_cycle will start in the future.
 		 * When this happens we will switch from a purely periodic task _activation_ sequence, to a fixed task suspension interval.
-		 * 
+		 *
 		 * NOTE B:
 		 * It probably does not make sense to check for overflow of timer - so we don't do it for now!
 		 * Even in 32 bit systems this will take at least 68 years since the computer booted
 		 * (remember, we are using CLOCK_MONOTONIC, which should start counting from 0
-		 * every time the system boots). On 64 bit systems, it will take over 
+		 * every time the system boots). On 64 bit systems, it will take over
 		 * 10^11 years to overflow.
 		 */
 		clock_gettime(CLOCK_MONOTONIC, &now);
@@ -399,6 +408,9 @@ static void *__mb_client_thread(void *_index)  {
 
 int __cleanup_%(locstr)s ();
 int __init_%(locstr)s (int argc, char **argv){
+
+
+
 	int index;
 
 	for (index=0; index < NUMBER_OF_CLIENT_NODES;index++)
@@ -408,7 +420,7 @@ int __init_%(locstr)s (int argc, char **argv){
 		//   -2  --> no modbus node created;  no thread  created
 		//   -1  -->    modbus node created!; no thread  created
 		//  >=0  -->    modbus node created!;    thread  created!
-		server_nodes[index].mb_nd = -2; 
+		server_nodes[index].mb_nd = -2;
 
 	/* modbus library init */
 	/* Note that TOTAL_xxxNODE_COUNT are the nodes required by _ALL_ the instances of the modbus
@@ -423,7 +435,7 @@ int __init_%(locstr)s (int argc, char **argv){
 		//  start the modbus library!
 		return -1;
 	}
-	
+
 	/* init the mutex for each client request */
 	/* Must be done _before_ launching the client threads!! */
 	for (index=0; index < NUMBER_OF_CLIENT_REQTS; index ++){
@@ -434,8 +446,8 @@ int __init_%(locstr)s (int argc, char **argv){
 	}
 
 	/* init each client connection to remote modbus server, and launch thread */
-	/* NOTE: All client_nodes[].init_state are initialised to 0 in the code 
-	 *       generated by the modbus plugin 
+	/* NOTE: All client_nodes[].init_state are initialised to 0 in the code
+	 *       generated by the modbus plugin
 	 */
 	for (index=0; index < NUMBER_OF_CLIENT_NODES;index++){
 		/* establish client connection */
@@ -444,8 +456,8 @@ int __init_%(locstr)s (int argc, char **argv){
 			fprintf(stderr, "Modbus plugin: Error creating modbus client node %%s\n", client_nodes[index].location);
 			goto error_exit;
 		}
-		client_nodes[index].init_state = 1; // we have created the node 
-		
+		client_nodes[index].init_state = 1; // we have created the node
+
 		/* launch a thread to handle this client node */
 		{
 			int res = 0;
@@ -461,34 +473,34 @@ int __init_%(locstr)s (int argc, char **argv){
 	}
 
 	/* init each local server */
-	/* NOTE: All server_nodes[].init_state are initialised to 0 in the code 
-	 *       generated by the modbus plugin 
+	/* NOTE: All server_nodes[].init_state are initialised to 0 in the code
+	 *       generated by the modbus plugin
 	 */
-	for (index=0; index < NUMBER_OF_SERVER_NODES;index++){
-		/* create the modbus server */
-		server_nodes[index].mb_nd = mb_slave_new (server_nodes[index].node_address);
-		if (server_nodes[index].mb_nd < 0){
-			fprintf(stderr, "Modbus plugin: Error creating modbus server node %%s\n", server_nodes[index].location);
-			goto error_exit;
-		}
-		server_nodes[index].init_state = 1; // we have created the node
-		
-		/* launch a thread to handle this server node */
-		{
-			int res = 0;
-			pthread_attr_t attr;
-			res |= pthread_attr_init(&attr);
-			res |= pthread_create(&(server_nodes[index].thread_id), &attr, &__mb_server_thread, (void *)&(server_nodes[index]));
-			if (res !=  0) {
-				fprintf(stderr, "Modbus plugin: Error starting modbus server thread for node %%s\n", server_nodes[index].location);
-				goto error_exit;
-			}
-		}
-		server_nodes[index].init_state = 2; // we have created the node and thread
-	}
+//	for (index=0; index < NUMBER_OF_SERVER_NODES;index++){
+//		/* create the modbus server */
+//		server_nodes[index].mb_nd = mb_slave_new (server_nodes[index].node_address);
+//		if (server_nodes[index].mb_nd < 0){
+//			fprintf(stderr, "Modbus plugin: Error creating modbus server node %%s\n", server_nodes[index].location);
+//			goto error_exit;
+//		}
+//		server_nodes[index].init_state = 1; // we have created the node
+//
+//		/* launch a thread to handle this server node */
+//		{
+//			int res = 0;
+//			pthread_attr_t attr;
+//			res |= pthread_attr_init(&attr);
+//			res |= pthread_create(&(server_nodes[index].thread_id), &attr, &__mb_server_thread, (void *)&(server_nodes[index]));
+//			if (res !=  0) {
+//				fprintf(stderr, "Modbus plugin: Error starting modbus server thread for node %%s\n", server_nodes[index].location);
+//				goto error_exit;
+//			}
+//		}
+//		server_nodes[index].init_state = 2; // we have created the node and thread
+//	}
 
 	return 0;
-	
+
 error_exit:
 	__cleanup_%(locstr)s ();
 	return -1;
@@ -569,32 +581,32 @@ int __cleanup_%(locstr)s (){
 		res |= close;
 		client_nodes[index].init_state = 0;
 	}
-	
-	/* kill thread and close connections of each modbus server node */
-	for (index=0; index < NUMBER_OF_SERVER_NODES; index++) {
-		close = 0;
-		if (server_nodes[index].init_state >= 2) {
-			// thread was launched, so we try to cancel it!
-			close  = pthread_cancel(server_nodes[index].thread_id);
-			close |= pthread_join  (server_nodes[index].thread_id, NULL);
-			if (close < 0)
-				fprintf(stderr, "Modbus plugin: Error closing thread for modbus server %%s\n", server_nodes[index].location);
-		}
-		res |= close;
 
-		close = 0;
-		if (server_nodes[index].init_state >= 1) {
-			// modbus server node was created, so we try to close it!
-			close = mb_slave_close (server_nodes[index].mb_nd);
-			if (close < 0) {
-				fprintf(stderr, "Modbus plugin: Error closing node for modbus server %%s (%%d)\n", server_nodes[index].location, server_nodes[index].mb_nd);
-				// We try to shut down as much as possible, so we do not return noW!
-			}
-			server_nodes[index].mb_nd = -1;
-		}
-		res |= close;
-		server_nodes[index].init_state = 0;
-	}
+	/* kill thread and close connections of each modbus server node */
+//	for (index=0; index < NUMBER_OF_SERVER_NODES; index++) {
+//		close = 0;
+//		if (server_nodes[index].init_state >= 2) {
+//			// thread was launched, so we try to cancel it!
+//			close  = pthread_cancel(server_nodes[index].thread_id);
+//			close |= pthread_join  (server_nodes[index].thread_id, NULL);
+//			if (close < 0)
+//				fprintf(stderr, "Modbus plugin: Error closing thread for modbus server %%s\n", server_nodes[index].location);
+//		}
+//		res |= close;
+//
+//		close = 0;
+//		if (server_nodes[index].init_state >= 1) {
+//			// modbus server node was created, so we try to close it!
+//			close = mb_slave_close (server_nodes[index].mb_nd);
+//			if (close < 0) {
+//				fprintf(stderr, "Modbus plugin: Error closing node for modbus server %%s (%%d)\n", server_nodes[index].location, server_nodes[index].mb_nd);
+//				// We try to shut down as much as possible, so we do not return noW!
+//			}
+//			server_nodes[index].mb_nd = -1;
+//		}
+//		res |= close;
+//		server_nodes[index].init_state = 0;
+//	}
 
 	/* destroy the mutex of each client request */
 	for (index=0; index < NUMBER_OF_CLIENT_REQTS; index ++) {
@@ -615,3 +627,4 @@ int __cleanup_%(locstr)s (){
 	return res;
 }
 
+ 
