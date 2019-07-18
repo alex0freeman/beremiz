@@ -25,6 +25,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from six.moves import xrange
+import sqlite3
 
 # dictionary implementing:
 # key   - string with the description we want in the request plugin GUI
@@ -32,13 +33,41 @@ from six.moves import xrange
 # data_type, bit_size)
 modbus_function_dict = {
     "01 - Read Coils":                ('1',  'req_input', 2000, "BOOL",  1, "Q", "X", "Coil"),
-    "02 - Read Input Discretes":      ('2',  'req_input', 2000, "BOOL",  1, "I", "X", "Input Discrete"),
+   # "02 - Read Input Discretes":      ('2',  'req_input', 2000, "BOOL",  1, "I", "X", "Input Discrete"),
     "03 - Read Holding Registers":    ('3',  'req_input',  125, "WORD", 16, "Q", "W", "Holding Register"),
-    "04 - Read Input Registers":      ('4',  'req_input',  125, "WORD", 16, "I", "W", "Input Register"),
-    "05 - Write Single coil":         ('5', 'req_output',    1, "BOOL",  1, "Q", "X", "Coil"),
+  #  "04 - Read Input Registers":      ('4',  'req_input',  125, "WORD", 16, "I", "W", "Input Register"),
+ #   "05 - Write Single coil":         ('5', 'req_output',    1, "BOOL",  1, "Q", "X", "Coil"),
     "06 - Write Single Register":     ('6', 'req_output',    1, "WORD", 16, "Q", "W", "Holding Register"),
-    "15 - Write Multiple Coils":     ('15', 'req_output', 1968, "BOOL",  1, "Q", "X", "Coil"),
+  #  "15 - Write Multiple Coils":     ('15', 'req_output', 1968, "BOOL",  1, "Q", "X", "Coil"),
     "16 - Write Multiple Registers": ('16', 'req_output',  123, "WORD", 16, "Q", "W", "Holding Register")}
+
+
+
+lacalDir = 'c:\\OSSY-NG\\Schema\\'
+dbFile = '718W.db3'
+conn = sqlite3.connect(lacalDir + dbFile)
+c = conn.cursor()
+#c.execute("select   GroupName   from tblGroupSignals")
+#print(c.fetchone())
+
+lstMBServSignals = []
+for row in c.execute('select  *   from tblMBServSignals'):
+   lstMBServSignals.append(row)
+
+lstOs = []
+for row in c.execute('select  *   from tblOs'):
+   lstOs.append(row)
+
+lstMBServ = []
+for row in c.execute('select  *   from tblMBServer'):
+   lstMBServ.append(row)
+
+lstDataType = []
+for row in c.execute('select  *   from dirMbValueType'):
+   lstDataType.append(row)
+
+cursor = c.execute('select  *   from tblOs')
+dicData = dict((k,'') for k in list(map(lambda x: x[0], cursor.description)))
 
 signallist = []
 vraiableTree = []
