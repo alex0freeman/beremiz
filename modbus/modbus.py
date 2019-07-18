@@ -726,116 +726,6 @@ class _ModbusTCPclientPlug(object):
 #
 
 
-class _ModbusTCPserverPlug(object):
-    # NOTE: the Port number is a 'string' and not an 'integer'!
-    # This is because the underlying modbus library accepts strings
-    # (e.g.: well known port names!)
-    XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
-    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-      <xsd:element name="ModbusServerNode">
-        <xsd:complexType>
-          <xsd:attribute name="Local_IP_Address" type="xsd:string" use="optional"  default="#ANY#"/>
-          <xsd:attribute name="Local_Port_Number" type="xsd:string" use="optional" default="502"/>
-          <xsd:attribute name="SlaveID" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="255"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-        </xsd:complexType>
-      </xsd:element>
-    </xsd:schema>
-    """
-    CTNChildrenTypes = [("MemoryArea", _MemoryAreaPlug, "Memory Area")]
-    # TODO: Replace with CTNType !!!
-    PlugType = "ModbusTCPserver"
-
-    # Return the number of (modbus library) nodes this specific TCP server will need
-    #   return type: (tcp nodes, rtu nodes, ascii nodes)
-    def GetNodeCount(self):
-        return (1, 0, 0)
-
-    # Return a list with a single tuple conatining the (location, port number)
-    #     location: location of this node in the configuration tree
-    #     port number: IP port used by this Modbus/IP server
-    def GetIPServerPortNumbers(self):
-        port = self.GetParamsAttributes()[0]["children"][1]["value"]
-        return [(self.GetCurrentLocation(), port)]
-
-    def CTNGenerate_C(self, buildpath, locations):
-        """
-        Generate C code
-        @param current_location: Tupple containing plugin IEC location : %I0.0.4.5 => (0,0,4,5)
-        @param locations: List of complete variables locations \
-            [{"IEC_TYPE" : the IEC type (i.e. "INT", "STRING", ...)
-            "NAME" : name of the variable (generally "__IW0_1_2" style)
-            "DIR" : direction "Q","I" or "M"
-            "SIZE" : size "X", "B", "W", "D", "L"
-            "LOC" : tuple of interger for IEC location (0,1,2,...)
-            }, ...]
-        @return: [(C_file_name, CFLAGS),...] , LDFLAGS_TO_APPEND
-        """
-        return [], "", False
-
-
-
-class _ModbusTCPserverPlug(object):
-    # NOTE: the Port number is a 'string' and not an 'integer'!
-    # This is because the underlying modbus library accepts strings
-    # (e.g.: well known port names!)
-    XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
-    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-      <xsd:element name="ModbusServerNode">
-        <xsd:complexType>
-          <xsd:attribute name="Local_IP_Address" type="xsd:string" use="optional"  default="#ANY#"/>
-          <xsd:attribute name="Local_Port_Number" type="xsd:string" use="optional" default="502"/>
-          <xsd:attribute name="SlaveID" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="255"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-        </xsd:complexType>
-      </xsd:element>
-    </xsd:schema>
-    """
-    CTNChildrenTypes = [("MemoryArea", _MemoryAreaPlug, "Memory Area")]
-    # TODO: Replace with CTNType !!!
-    PlugType = "ModbusTCPserver"
-
-    # Return the number of (modbus library) nodes this specific TCP server will need
-    #   return type: (tcp nodes, rtu nodes, ascii nodes)
-    def GetNodeCount(self):
-        return (1, 0, 0)
-
-    # Return a list with a single tuple conatining the (location, port number)
-    #     location: location of this node in the configuration tree
-    #     port number: IP port used by this Modbus/IP server
-    def GetIPServerPortNumbers(self):
-        port = self.GetParamsAttributes()[0]["children"][1]["value"]
-        return [(self.GetCurrentLocation(), port)]
-
-    def CTNGenerate_C(self, buildpath, locations):
-        """
-        Generate C code
-        @param current_location: Tupple containing plugin IEC location : %I0.0.4.5 => (0,0,4,5)
-        @param locations: List of complete variables locations \
-            [{"IEC_TYPE" : the IEC type (i.e. "INT", "STRING", ...)
-            "NAME" : name of the variable (generally "__IW0_1_2" style)
-            "DIR" : direction "Q","I" or "M"
-            "SIZE" : size "X", "B", "W", "D", "L"
-            "LOC" : tuple of interger for IEC location (0,1,2,...)
-            }, ...]
-        @return: [(C_file_name, CFLAGS),...] , LDFLAGS_TO_APPEND
-        """
-        return [], "", False
-
-
-
 def _lt_to_str(loctuple):
     return '.'.join(map(str, loctuple))
 
@@ -916,7 +806,7 @@ class RootClass(object):
     """
     CTNChildrenTypes = [
                         ("ModbusTCPclient", _ModbusTCPclientPlug, "Modbus TCP Client"),
-                        ("ModbusTCPserver", _ModbusTCPserverPlug, "Modbus TCP Server") ,
+                       # ("ModbusTCPserver", _ModbusTCPserverPlug, "Modbus TCP Server") ,
                         ("ModbusTCPNode",    _ModbusTCPNode, "Modbus Client")
                        # ("ModbusRTUclient", _ModbusRTUclientPlug, "Modbus RTU Client"),
                        # ("ModbusRTUslave", _ModbusRTUslavePlug,  "Modbus RTU Slave")

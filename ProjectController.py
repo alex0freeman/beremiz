@@ -1906,6 +1906,13 @@ class ProjectController(ConfigTreeNode, PLCControler):
             "method":   "_showIECcode",
             "shown":      False,
         },
+        {
+            "bitmap": "ShowIECcode",
+            "name": _("Open DB"),
+            "tooltip": _("Open DB"),
+            "method": "_showIECcode",
+            "shown": False,
+        },
     ]
 
     ConfNodeMethods = [
