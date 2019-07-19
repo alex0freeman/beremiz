@@ -25,6 +25,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from six.moves import xrange
+from collections import OrderedDict
 import sqlite3
 
 # dictionary implementing:
@@ -42,8 +43,8 @@ modbus_function_dict = {
     "16 - Write Multiple Registers": ('16', 'req_output',  123, "WORD", 16, "Q", "W", "Holding Register")}
 
 
-lacalDir = 'd:\\Valcom\\GITrep\\APS\\APS\\bin\\Debug\\Schema\\'
-#lacalDir = 'c:\\OSSY-NG\\Schema\\'
+#lacalDir = 'd:\\Valcom\\GITrep\\APS\\APS\\bin\\Debug\\Schema\\'
+lacalDir = 'c:\\OSSY-NG\\Schema\\'
 dbFile = '718W.db3'
 try:
 
@@ -53,27 +54,44 @@ try:
     #print(c.fetchone())
 
     lstMBServSignals = []
-    for row in c.execute('select  *   from tblMBServSignals'):
-       lstMBServSignals.append(row)
+    # for row in c.execute('select  *   from tblMBServSignals'):
+    #    lstMBServSignals.append(row)
 
     # lstOs = []
     # for row in c.execute('select  *   from tblOs'):
     #    lstOs.append(row)
 
     lstMBServ = []
-    for row in c.execute('select  *   from tblMBServer'):
-       lstMBServ.append(row)
+    # for row in c.execute('select  *   from tblMBServer'):
+    #    lstMBServ.append(row)
 
-    lstDataType = []
-    for row in c.execute('select  *   from dirMbValueType'):
-       lstDataType.append(row)
+    # lstDataType = []
+    # for row in c.execute('select  *   from dirMbValueType'):
+    #    lstDataType.append(row)
 
     lstOs = []
-    cursor = c.execute('select  *   from tblOs')
-    t = list(map(lambda x: x[0], cursor.description))
-    dicData = dict((k,'') for k in list(map(lambda x: x[0], cursor.description)))
+    cursor = c.execute('select rowid, *   from tblOs')
+    columnList = list(map(lambda x: x[0], cursor.description))
+    dicData = OrderedDict((k,'') for k in list(map(lambda x: x[0], cursor.description)))
     for row in cursor:
-        lstOs.append(dict(zip(t, row)))
+        lstOs.append(dict(zip(columnList, row)))
+
+    cursor = c.execute('select  rowid,*   from tblMBServSignals')
+    columnList = list(map(lambda x: x[0], cursor.description))
+    dicData = dict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
+    for row in cursor:
+        lstMBServSignals.append(dict(zip(columnList, row)))
+
+    cursor = c.execute('select  rowid,*   from tblMBServer')
+    columnList = list(map(lambda x: x[0], cursor.description))
+    dicData = dict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
+    for row in cursor:
+        lstMBServ.append(dict(zip(columnList, row)))
+
+    ipLstBv = []
+    for x in lstOs:
+        if (x['Location'] == u'Вычислитель'):
+            ipLstBv.append(x["IP1"])
 
 except Exception :
     pass
