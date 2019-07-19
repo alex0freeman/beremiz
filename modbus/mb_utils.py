@@ -42,8 +42,8 @@ modbus_function_dict = {
     "16 - Write Multiple Registers": ('16', 'req_output',  123, "WORD", 16, "Q", "W", "Holding Register")}
 
 
-
-lacalDir = 'c:\\OSSY-NG\\Schema\\'
+lacalDir = 'd:\\Valcom\\GITrep\\APS\\APS\\bin\\Debug\\Schema\\'
+#lacalDir = 'c:\\OSSY-NG\\Schema\\'
 dbFile = '718W.db3'
 try:
 
@@ -56,9 +56,9 @@ try:
     for row in c.execute('select  *   from tblMBServSignals'):
        lstMBServSignals.append(row)
 
-    lstOs = []
-    for row in c.execute('select  *   from tblOs'):
-       lstOs.append(row)
+    # lstOs = []
+    # for row in c.execute('select  *   from tblOs'):
+    #    lstOs.append(row)
 
     lstMBServ = []
     for row in c.execute('select  *   from tblMBServer'):
@@ -68,9 +68,14 @@ try:
     for row in c.execute('select  *   from dirMbValueType'):
        lstDataType.append(row)
 
+    lstOs = []
     cursor = c.execute('select  *   from tblOs')
+    t = list(map(lambda x: x[0], cursor.description))
     dicData = dict((k,'') for k in list(map(lambda x: x[0], cursor.description)))
-except Exception, exc:
+    for row in cursor:
+        lstOs.append(dict(zip(t, row)))
+
+except Exception :
     pass
 
 
