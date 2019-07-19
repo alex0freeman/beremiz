@@ -45,29 +45,35 @@ modbus_function_dict = {
 
 lacalDir = 'c:\\OSSY-NG\\Schema\\'
 dbFile = '718W.db3'
-conn = sqlite3.connect(lacalDir + dbFile)
-c = conn.cursor()
-#c.execute("select   GroupName   from tblGroupSignals")
-#print(c.fetchone())
+try:
 
-lstMBServSignals = []
-for row in c.execute('select  *   from tblMBServSignals'):
-   lstMBServSignals.append(row)
+    conn = sqlite3.connect(lacalDir + dbFile)
+    c = conn.cursor()
+    #c.execute("select   GroupName   from tblGroupSignals")
+    #print(c.fetchone())
 
-lstOs = []
-for row in c.execute('select  *   from tblOs'):
-   lstOs.append(row)
+    lstMBServSignals = []
+    for row in c.execute('select  *   from tblMBServSignals'):
+       lstMBServSignals.append(row)
 
-lstMBServ = []
-for row in c.execute('select  *   from tblMBServer'):
-   lstMBServ.append(row)
+    lstOs = []
+    for row in c.execute('select  *   from tblOs'):
+       lstOs.append(row)
 
-lstDataType = []
-for row in c.execute('select  *   from dirMbValueType'):
-   lstDataType.append(row)
+    lstMBServ = []
+    for row in c.execute('select  *   from tblMBServer'):
+       lstMBServ.append(row)
 
-cursor = c.execute('select  *   from tblOs')
-dicData = dict((k,'') for k in list(map(lambda x: x[0], cursor.description)))
+    lstDataType = []
+    for row in c.execute('select  *   from dirMbValueType'):
+       lstDataType.append(row)
+
+    cursor = c.execute('select  *   from tblOs')
+    dicData = dict((k,'') for k in list(map(lambda x: x[0], cursor.description)))
+except Exception, exc:
+    pass
+
+
 
 signallist = []
 vraiableTree = []
@@ -80,68 +86,6 @@ def GetCTVal(child, index):
 def GetCTVals(child, indexes):
     return map(lambda index: GetCTVal(child, index), indexes)
 
-
-def GetTCPServerNodePrinted(self, child):
-    """
-    Outputs a string to be used on C files
-    params: child - the correspondent subplugin in Beremiz
-    """
-    node_init_template = '''/*node %(locnodestr)s*/
-{"%(locnodestr)s", %(slaveid)s, {naf_tcp, {.tcp = {%(host)s, "%(port)s", DEF_CLOSE_ON_SILENCE}}}, -1 /* mb_nd */, 0 /* init_state */}'''
-
-    location = ".".join(map(str, child.GetCurrentLocation()))
-    host, port, slaveid = GetCTVals(child, range(3))
-    if host == "#ANY#":
-        host = 'INADDR_ANY'
-    else:
-        host = '"' + host + '"'
-    # slaveid = GetCTVal(child, 2)
-    # if int(slaveid) not in xrange(256):
-        # self.GetCTRoot().logger.write_error("Error: Wrong slave ID in %s server node\nModbus Plugin C code returns empty\n"%location)
-        # return None
-
-    node_dict = {"locnodestr": location,
-                 "host": host,
-                 "port": port,
-                 "slaveid": slaveid}
-    return node_init_template % node_dict
-
-
-def GetTCPServerMemAreaPrinted(self, child, nodeid):
-    """
-    Outputs a string to be used on C files
-    params: child - the correspondent subplugin in Beremiz
-            nodeid - on C code, each request has it's own parent node (sequential, 0..NUMBER_OF_NODES)
-                     It's this parameter.
-    return: None - if any definition error found
-            The string that should be added on C code - if everything goes allright
-    """
-    request_dict = {}
-
-    request_dict["locreqstr"] = "_".join(map(str, child.GetCurrentLocation()))
-    request_dict["nodeid"] = str(nodeid)
-    request_dict["address"] = GetCTVal(child, 2)
-    if int(request_dict["address"]) not in xrange(65536):
-        self.GetCTRoot().logger.write_error(
-            "Modbus plugin: Invalid Start Address in server memory area node %(locreqstr)s (Must be in the range [0..65535])\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
-        return None
-    request_dict["count"] = GetCTVal(child, 1)
-    if int(request_dict["count"]) not in xrange(1, 65536):
-        self.GetCTRoot().logger.write_error(
-            "Modbus plugin: Invalid number of channels in server memory area node %(locreqstr)s (Must be in the range [1..65536-start_address])\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
-        return None
-    if (int(request_dict["address"]) + int(request_dict["count"])) not in xrange(1, 65537):
-        self.GetCTRoot().logger.write_error(
-            "Modbus plugin: Invalid number of channels in server memory area node %(locreqstr)s (Must be in the range [1..65536-start_address])\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
-        return None
-
-    return ""
-
-
-modbus_serial_baudrate_list = [
-    "110", "300", "600", "1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"]
-modbus_serial_stopbits_list = ["1", "2"]
-modbus_serial_parity_dict = {"none": 0, "odd": 1, "even": 2}
 
 def GetTCPClientNodePrinted(self, child):
     """
