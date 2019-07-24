@@ -165,15 +165,23 @@ class _RequestSignal(object):
         """
         return [], "", False
 
+import xml.etree.ElementTree as ET
+from xml.etree import ElementTree
+
+from lxml import etree
+from cStringIO import StringIO
 
 class _ModbusFunctionLoad(PythonFileCTNMixin):
+
+
+    # @staticmethod
     # def __init__(self):
-    #
+    #     self.XSD = self.CreateXSD()
     #     global vraiableTree
     #     vraiableTree = self.GetVariableLocationTree()
 
-
-    XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
+    def CreateXSD():
+        tmpXSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
          <xsd:element name="ModbusFunctionLoad">
            <xsd:complexType>
@@ -210,7 +218,25 @@ class _ModbusFunctionLoad(PythonFileCTNMixin):
          </xsd:element>
        </xsd:schema>
        """
+        # tm = ET. parse(tmpXSD)
+        # c = ET.Element("signal")
+        # c.text = "sig1"
+        try:
+            tree = ElementTree.parse(tmpXSD)
+            root = tree.getroot()
+            # f = StringIO(tmpXSD)
+            # xmlschema_doc = etree.parse(f)
+
+        except Exception:
+            pass
+
+        return tmpXSD
+
+    XSD = CreateXSD()
+
     CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
+
+
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
