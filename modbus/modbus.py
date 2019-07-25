@@ -168,34 +168,32 @@ class _RequestSignal(object):
 import xml.etree.ElementTree as ET
 from xml.etree import ElementTree
 
-from lxml import etree
 from cStringIO import StringIO
+from lxml import etree
 
-class _ModbusFunctionLoad(PythonFileCTNMixin):
+class _ModbusFunctionLoad():
 
 
     # @staticmethod
-    # def __init__(self):
+    def __init__(self):
+        infos = ConfigTreeNode.GetParamsAttributes(self, path=None)
+        # tmp = infos.append({'use': 'required','type': 'element','name': 'ModbusFunctionLoad1', 'value': None, 'children':[
+        #     {'use': 'required', 'type': 'element', 'name': 'ModbusFunctionLoad1', 'value': None} ]})
+        t = 1
+
+    #    #address = self.GetParamsAttributes()[0]["children"][2]["value"]
+    #     f= 2
     #     self.XSD = self.CreateXSD()
     #     global vraiableTree
     #     vraiableTree = self.GetVariableLocationTree()
 
-    def CreateXSD():
+    def CreateXSD( ):
         tmpXSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
          <xsd:element name="ModbusFunctionLoad">
            <xsd:complexType>
              <xsd:attribute name="Function" type="xsd:string" use="optional" default="03 - Read Holding Registers"/>
-
-             <xsd:attribute name="SlaveID" use="optional" default="1">
-               <xsd:simpleType>
-                   <xsd:restriction base="xsd:integer">
-                       <xsd:minInclusive value="0"/>
-                       <xsd:maxInclusive value="255"/>
-                   </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
-            
+               
              <xsd:attribute name="Start_Address" use="optional" default="0">
                <xsd:simpleType>
                    <xsd:restriction base="xsd:integer">
@@ -213,22 +211,101 @@ class _ModbusFunctionLoad(PythonFileCTNMixin):
                    </xsd:restriction>
                </xsd:simpleType>
              </xsd:attribute>
+ 
+             <xsd:attribute name="SlaveID1" use="optional" default="1">
+               <xsd:simpleType>
+                   <xsd:restriction base="xsd:integer">
+                       <xsd:minInclusive value="0"/>
+                       <xsd:maxInclusive value="255"/>
+                   </xsd:restriction>
+               </xsd:simpleType>
+             </xsd:attribute>
+            
+             <xsd:attribute name="Start_Address2" use="optional" default="0">
+               <xsd:simpleType>
+                   <xsd:restriction base="xsd:integer">
+                       <xsd:minInclusive value="0"/>
+                       <xsd:maxInclusive value="65535"/>
+                   </xsd:restriction>
+               </xsd:simpleType>
+             </xsd:attribute>
 
+             <xsd:attribute name="Timeout_in_ms3" use="optional" default="100">
+               <xsd:simpleType>
+                   <xsd:restriction base="xsd:integer">
+                       <xsd:minInclusive value="1"/>
+                       <xsd:maxInclusive value="100000"/>
+                   </xsd:restriction>
+               </xsd:simpleType>
+             </xsd:attribute>
            </xsd:complexType>
          </xsd:element>
+       
        </xsd:schema>
        """
+
+       #  f = StringIO("""<?xml version="1.0" encoding="ISO-8859-1" ?>
+       # <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+       #   <xsd:element name="ModbusFunctionLoad">
+       #     <xsd:complexType>
+       #       <xsd:attribute name="Function" type="xsd:string" use="optional" default="03 - Read Holding Registers"/>
+       #
+       #       <xsd:attribute name="SlaveID" use="optional" default="1">
+       #         <xsd:simpleType>
+       #             <xsd:restriction base="xsd:integer">
+       #                 <xsd:minInclusive value="0"/>
+       #                 <xsd:maxInclusive value="255"/>
+       #             </xsd:restriction>
+       #         </xsd:simpleType>
+       #       </xsd:attribute>
+       #
+       #       <xsd:attribute name="Start_Address" use="optional" default="0">
+       #         <xsd:simpleType>
+       #             <xsd:restriction base="xsd:integer">
+       #                 <xsd:minInclusive value="0"/>
+       #                 <xsd:maxInclusive value="65535"/>
+       #             </xsd:restriction>
+       #         </xsd:simpleType>
+       #       </xsd:attribute>
+       #
+       #       <xsd:attribute name="Timeout_in_ms" use="optional" default="100">
+       #         <xsd:simpleType>
+       #             <xsd:restriction base="xsd:integer">
+       #                 <xsd:minInclusive value="1"/>
+       #                 <xsd:maxInclusive value="100000"/>
+       #             </xsd:restriction>
+       #         </xsd:simpleType>
+       #       </xsd:attribute>
+       #
+       #     </xsd:complexType>
+       #   </xsd:element>
+       # </xsd:schema>
+       # """)
+
         # tm = ET. parse(tmpXSD)
         # c = ET.Element("signal")
         # c.text = "sig1"
-        try:
-            tree = ElementTree.parse(tmpXSD)
-            root = tree.getroot()
-            # f = StringIO(tmpXSD)
+        # try:
             # xmlschema_doc = etree.parse(f)
+            # xmlschema_doc.xpath('xsd:element',
+            #                     namespaces={"xsd": "http://www.w3.org/2001/XMLSchema"})
+            #
+            # xmlschema_doc = etree.parse(f)
+            # xmlschema = etree.XMLSchema(xmlschema_doc)
+            #
+            # ro = etree.fromstring(tmpXSD)
+            # rt =ro.getchildren()
 
-        except Exception:
-            pass
+            # tree = ET.parse(f)
+            # root = tree.getroot()
+            #
+            # for child in root:
+            #     attr = child.attrib
+            #
+            # infos = ConfigTreeNode.GetParamsAttributes( )
+
+        # except Exception:
+        #     pass
 
         return tmpXSD
 
@@ -254,7 +331,7 @@ class _ModbusFunctionLoad(PythonFileCTNMixin):
         current_location = self.GetCurrentLocation()
         name = self.BaseParams.getName()
         address = self.GetParamsAttributes()[0]["children"][2]["value"]
-        count =1 # self.GetParamsAttributes()[0]["children"][2]["value"]
+        count =1                                            # self.GetParamsAttributes()[0]["children"][2]["value"]
         function = self.GetParamsAttributes()[0]["children"][0]["value"]
         # 'BOOL' or 'WORD'
         datatype = modbus_function_dict[function][3]
@@ -305,26 +382,12 @@ class _ModbusFunctionLoad(PythonFileCTNMixin):
     #     GetVariableLocationTree(self)
 
 
-class _ModbusRead(PythonFileCTNMixin):
-    # def __init__(self):
-    #
-    #     global vraiableTree
-    #     vraiableTree = self.GetVariableLocationTree()
 
-    XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
+XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
          <xsd:element name="ModbusFunctionLoad">
            <xsd:complexType>
              <xsd:attribute name="Function" type="xsd:string" use="optional" default="03 - Read Holding Registers"/>
-
-             <xsd:attribute name="SlaveID" use="optional" default="1">
-               <xsd:simpleType>
-                   <xsd:restriction base="xsd:integer">
-                       <xsd:minInclusive value="0"/>
-                       <xsd:maxInclusive value="255"/>
-                   </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
 
              <xsd:attribute name="Start_Address" use="optional" default="0">
                <xsd:simpleType>
@@ -335,19 +398,186 @@ class _ModbusRead(PythonFileCTNMixin):
                </xsd:simpleType>
              </xsd:attribute>
 
-             <xsd:attribute name="Timeout_in_ms" use="optional" default="100">
-               <xsd:simpleType>
-                   <xsd:restriction base="xsd:integer">
-                       <xsd:minInclusive value="1"/>
-                       <xsd:maxInclusive value="100000"/>
-                   </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
+        
+          <xsd:attribute name="Signal_name0" type="xsd:string" use="optional" default="signal00"/>
+
+          <xsd:attribute name="Bit_in_word0" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          
+          <xsd:attribute name="Signal_name1" type="xsd:string" use="optional" default="signal01"/>
+
+          <xsd:attribute name="Bit_in_word1" use="optional" default="1">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          
+          <xsd:attribute name="Signal_name2" type="xsd:string" use="optional" default="signal02"/>
+
+          <xsd:attribute name="Bit_in_word2" use="optional" default="2">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          
+          <xsd:attribute name="Signal_name3" type="xsd:string" use="optional" default="signal00"/>
+
+          <xsd:attribute name="Bit_in_word3" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name4" type="xsd:string" use="optional" default="signal04"/>
+
+          <xsd:attribute name="Bit_in_word4" use="optional" default="4">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name5" type="xsd:string" use="optional" default="signal05"/>
+
+          <xsd:attribute name="Bit_in_word5" use="optional" default="5">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name6" type="xsd:string" use="optional" default="signal06"/>
+
+          <xsd:attribute name="Bit_in_word6" use="optional" default="6">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name7" type="xsd:string" use="optional" default="signal07"/>
+
+          <xsd:attribute name="Bit_in_word7" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name8" type="xsd:string" use="optional" default="signal08"/>
+
+          <xsd:attribute name="Bit_in_word8" use="optional" default="8">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name09" type="xsd:string" use="optional" default="signal09"/>
+
+          <xsd:attribute name="Bit_in_word09" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name10" type="xsd:string" use="optional" default="signal10"/>
+
+          <xsd:attribute name="Bit_in_word10" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name11" type="xsd:string" use="optional" default="signal11"/>
+
+          <xsd:attribute name="Bit_in_word11" use="optional" default="11">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name12" type="xsd:string" use="optional" default="signal12"/>
+
+          <xsd:attribute name="Bit_in_word12" use="optional" default="12">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name13" type="xsd:string" use="optional" default="signal13"/>
+
+          <xsd:attribute name="Bit_in_word13" use="optional" default="13">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          <xsd:attribute name="Signal_name14" type="xsd:string" use="optional" default="signal14"/>
+
+          <xsd:attribute name="Bit_in_word14" use="optional" default="14">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          
+          <xsd:attribute name="Signal_name15" type="xsd:string" use="optional" default="signal15"/>
+
+          <xsd:attribute name="Bit_in_word15" use="optional" default="15">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                    <xsd:maxInclusive value="16"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+
+      
 
            </xsd:complexType>
          </xsd:element>
        </xsd:schema>
        """
+
+class _ModbusRead(object):
+    # def __init__(self):
+    #
+    #     global vraiableTree
+    #     vraiableTree = self.GetVariableLocationTree()
+
+    XSD = XSDread
     CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
 
     def GetParamsAttributes(self, path=None):
@@ -901,12 +1131,13 @@ class _ModbusTCPLoad(object):
                 for child in element["children"]:
                     if child["name"] == "Remote_IP_Address":
                        child["type"] = ipLstBv
+                       child["value"] = ipLstBv[0]
         return infos
 
     def GetVariableLocationTree(self):
         current_location = self.GetCurrentLocation()
         name = self.BaseParams.getName()
-        address = self.GetParamsAttributes()[0]["children"][2]["value"]
+        address = self.GetParamsAttributes()[0]["children"][2]["value"][1]
         count = self.GetParamsAttributes()[0]["children"][1]["value"]
         function = self.GetParamsAttributes()[0]["children"][0]["value"]
 
@@ -955,6 +1186,21 @@ class RootClass(object):
       </xsd:element>
     </xsd:schema>
     """
+    ConfNodeMethods = [
+        {
+            "bitmap": "ImportSVG",
+            "name": _("Import SVG"),
+            "tooltip": _("Import SVG"),
+            "method": "_ImportSVG"
+        },
+        {
+            "bitmap": "ImportSVG",  # should be something different
+            "name": _("Inkscape"),
+            "tooltip": _("Create HMI"),
+            "method": "_StartInkscape"
+        },
+    ]
+
     CTNChildrenTypes = [
                         ("ModbusTCPclient", _ModbusTCPclientPlug, "Modbus TCP Client"),
                        # ("ModbusTCPserver", _ModbusTCPserverPlug, "Modbus TCP Server") ,
