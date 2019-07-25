@@ -37,6 +37,8 @@ base_folder = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
 base_folder = os.path.join(base_folder, "..")
 ModbusPath = os.path.join(base_folder, "Modbus")
 
+ReadRegistr = 0
+WriteRegistr = 0
 
 def savelog(projects):
     try:
@@ -572,13 +574,12 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        """
 
 class _ModbusRead(object):
-    # def __init__(self):
-    #
-    #     global vraiableTree
-    #     vraiableTree = self.GetVariableLocationTree()
+    def __init__(self):
+         global vraiableTree, ReadRegistr
+         vraiableTree = self.GetVariableLocationTree()
 
     XSD = XSDread
-    CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
+   # CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
@@ -589,39 +590,41 @@ class _ModbusRead(object):
                         list = modbus_function_dict.keys()
                         list.sort()
                         child["type"] = list
+                    if child["name"] == "Start_Address":
+                        child["value"] = ReadRegistr
         return infos
 
     def GetVariableLocationTree(self):
         current_location = self.GetCurrentLocation()
         name = self.BaseParams.getName()
-        address = self.GetParamsAttributes()[0]["children"][2]["value"]
-        count = 1  # self.GetParamsAttributes()[0]["children"][2]["value"]
-        function = self.GetParamsAttributes()[0]["children"][0]["value"]
-        # 'BOOL' or 'WORD'
-        datatype = modbus_function_dict[function][3]
-        # 1 or 16
-        datasize = modbus_function_dict[function][4]
-        # 'Q' for coils and holding registers, 'I' for input discretes and input registers
-        # datazone = modbus_function_dict[function][5]
-
-        # 'X' for bits, 'W' for words
-        datatacc = modbus_function_dict[function][6]
-        # 'Coil', 'Holding Register', 'Input Discrete' or 'Input Register'
-        dataname = modbus_function_dict[function][7]
+        # address = self.GetParamsAttributes()[0]["children"][2]["value"]
+        # count = 1  # self.GetParamsAttributes()[0]["children"][2]["value"]
+        # function = self.GetParamsAttributes()[0]["children"][0]["value"]
+        # # 'BOOL' or 'WORD'
+        # datatype = modbus_function_dict[function][3]
+        # # 1 or 16
+        # datasize = modbus_function_dict[function][4]
+        # # 'Q' for coils and holding registers, 'I' for input discretes and input registers
+        # # datazone = modbus_function_dict[function][5]
+        #
+        # # 'X' for bits, 'W' for words
+        # datatacc = modbus_function_dict[function][6]
+        # # 'Coil', 'Holding Register', 'Input Discrete' or 'Input Register'
+        # dataname = modbus_function_dict[function][7]
         entries = []
 
-        for offset in range(address, address + count):
-            entries.append({
-                "name": dataname,
-                "address": address,
-                "datatacc": datatacc,
-                "type": LOCATION_VAR_MEMORY,
-                "size": datasize,
-                "IEC_type": datatype,
-                "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(offset),
-                "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
-                "description": "description",
-                "children": []})
+        # for offset in range(address, address + count):
+        #     entries.append({
+        #         "name": dataname,
+        #         "address": address,
+        #         "datatacc": datatacc,
+        #         "type": LOCATION_VAR_MEMORY,
+        #         "size": datasize,
+        #         "IEC_type": datatype,
+        #         "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(offset),
+        #         "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
+        #         "description": "description",
+        #         "children": []})
         return entries
 
     # def GetNodeCount(self):
@@ -689,7 +692,7 @@ class _ModbusWrite(PythonFileCTNMixin):
          </xsd:element>
        </xsd:schema>
        """
-    CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
+    #CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
@@ -1099,16 +1102,16 @@ class _ModbusTCPLoad(object):
           <xsd:attribute name="Remote_IP_Address" type="xsd:string" use="optional" default="localhost"/>
           <xsd:attribute name="Remote_Port_Number" type="xsd:string" use="optional" default="502"/>
           <xsd:attribute name="Invocation_Rate_in_ms" use="optional" default="600">
-            
-            <xsd:simpleType>
+           <xsd:simpleType>
                 <xsd:restriction base="xsd:unsignedLong">
                     <xsd:minInclusive value="1"/>
                     <xsd:maxInclusive value="2147483647"/>
                 </xsd:restriction>
             </xsd:simpleType>
-            
           </xsd:attribute>
-          
+         <xsd:attribute name="Adresses" type="xsd:string" />
+        <xsd:attribute name="Read_registers" type="xsd:string" use="optional" default=" "/>
+        <xsd:attribute name="Write_registers" type="xsd:string" use="optional" default=" "/>
         </xsd:complexType>
         
       </xsd:element>
@@ -1122,16 +1125,52 @@ class _ModbusTCPLoad(object):
     #CTNChildrenTypes = [("RequestPlug", _RequestPlug, "Request")]
 
     PlugType = "ModbusTCPLoad"
+    ConfNodeMethods = [
+            {
+                "bitmap": "ImportSVG",
+                "name": _("Create_Read"),
+                "tooltip": _("Create_Read"),
+                "method": "_ImportSVG"
+            },
+            {
+                "bitmap": "ImportSVG",  # should be something different
+                "name": _("Create_Write"),
+                "tooltip": _("Create_Write"),
+                "method": "_StartInkscape"
+            },
+        ]
+
+
+    def _ImportSVG(self):
+        readAddr = self.GetParamsAttributes()[0]["children"][4]["value"]
+        global ReadRegistr
+        ReadRegistr = int(readAddr)
+
+        ConfigTreeNode.CTNAddChild(self, 'ReadReg_'+readAddr ,'ModbusRead')
+           # _ModbusRead()
+
+
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
-        m= lstOs
         for element in infos:
             if element["name"] == "ModbusTCPLoad":
                 for child in element["children"]:
                     if child["name"] == "Remote_IP_Address":
                        child["type"] = ipLstBv
                        child["value"] = ipLstBv[0]
+
+                    if child["name"] == "Read_registers":
+                        child["type"] = mbReadAdrList
+                        if( mbReadAdrList.__len__() > 0):
+                            child["value"] = mbReadAdrList[0]
+
+
+                    if child["name"] == "Write_registers":
+                        child["type"] = mbWriteAdrList
+                        if (mbWriteAdrList.__len__() > 0):
+                            child["value"] = mbWriteAdrList[0]
+
         return infos
 
     def GetVariableLocationTree(self):
@@ -1186,20 +1225,7 @@ class RootClass(object):
       </xsd:element>
     </xsd:schema>
     """
-    ConfNodeMethods = [
-        {
-            "bitmap": "ImportSVG",
-            "name": _("Import SVG"),
-            "tooltip": _("Import SVG"),
-            "method": "_ImportSVG"
-        },
-        {
-            "bitmap": "ImportSVG",  # should be something different
-            "name": _("Inkscape"),
-            "tooltip": _("Create HMI"),
-            "method": "_StartInkscape"
-        },
-    ]
+
 
     CTNChildrenTypes = [
                         ("ModbusTCPclient", _ModbusTCPclientPlug, "Modbus TCP Client"),

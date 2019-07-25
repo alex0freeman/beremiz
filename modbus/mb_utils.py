@@ -44,7 +44,7 @@ modbus_function_dict = {
 
 
 #lacalDir = 'd:\\Valcom\\GITrep\\APS\\APS\\bin\\Debug\\Schema\\'
-lacalDir = 'c:\\OSSY-NG\\Schema\\'
+lacalDir = 'c:\\OSSY-NG\\RunTime\\Schema\\'
 dbFile = '718W.db3'
 try:
 
@@ -53,15 +53,14 @@ try:
     #c.execute("select   GroupName   from tblGroupSignals")
     #print(c.fetchone())
 
-    lstMBServSignals = []
-    # for row in c.execute('select  *   from tblMBServSignals'):
-    #    lstMBServSignals.append(row)
+    ServSignals = []
+    for row in c.execute('select  *   from tblMBServSignals'):
+       ServSignals.append(row)
 
     # lstOs = []
     # for row in c.execute('select  *   from tblOs'):
     #    lstOs.append(row)
 
-    lstMBServ = []
     # for row in c.execute('select  *   from tblMBServer'):
     #    lstMBServ.append(row)
 
@@ -69,6 +68,8 @@ try:
     # for row in c.execute('select  *   from dirMbValueType'):
     #    lstDataType.append(row)
 
+    lstMBServSignals = []
+    lstMBServ = []
     lstOs = []
     cursor = c.execute('select rowid, *   from tblOs')
     columnList = list(map(lambda x: x[0], cursor.description))
@@ -92,6 +93,17 @@ try:
     for x in lstOs:
         if (x['Location'] == u'Вычислитель'):
             ipLstBv.append(x["IP1"])
+    mbReadAdrList = []
+    mbWriteAdrList = []
+    for x in lstMBServSignals:
+        if(x['MbAddr'] >= 48000 and x['MbAddr'] < 48400):
+            tostr = str(x['MbAddr'])
+            if(not mbReadAdrList.__contains__(tostr)):
+                mbReadAdrList.append(tostr)
+        if (x['MbAddr'] >= 48400 ):
+            tostr = str(x['MbAddr'])
+            if (not mbWriteAdrList.__contains__(tostr)):
+                mbWriteAdrList.append(tostr)
 
 except Exception :
     pass
