@@ -391,182 +391,62 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
            <xsd:complexType>
              <xsd:attribute name="Function" type="xsd:string" use="optional" default="03 - Read Holding Registers"/>
 
-             <xsd:attribute name="Start_Address" use="optional" default="0">
-               <xsd:simpleType>
+                <xsd:attribute name="Start_Address" use="optional" default="0">
+                <xsd:simpleType>
                    <xsd:restriction base="xsd:integer">
                        <xsd:minInclusive value="0"/>
                        <xsd:maxInclusive value="65535"/>
                    </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
-
-        
-          <xsd:attribute name="Signal_name0" type="xsd:string" use="optional" default="signal00"/>
-
-          <xsd:attribute name="Bit_in_word0" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Signal_name1" type="xsd:string" use="optional" default="signal01"/>
-
-          <xsd:attribute name="Bit_in_word1" use="optional" default="1">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Signal_name2" type="xsd:string" use="optional" default="signal02"/>
-
-          <xsd:attribute name="Bit_in_word2" use="optional" default="2">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Signal_name3" type="xsd:string" use="optional" default="signal00"/>
-
-          <xsd:attribute name="Bit_in_word3" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name4" type="xsd:string" use="optional" default="signal04"/>
-
-          <xsd:attribute name="Bit_in_word4" use="optional" default="4">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name5" type="xsd:string" use="optional" default="signal05"/>
-
-          <xsd:attribute name="Bit_in_word5" use="optional" default="5">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name6" type="xsd:string" use="optional" default="signal06"/>
-
-          <xsd:attribute name="Bit_in_word6" use="optional" default="6">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name7" type="xsd:string" use="optional" default="signal07"/>
-
-          <xsd:attribute name="Bit_in_word7" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name8" type="xsd:string" use="optional" default="signal08"/>
-
-          <xsd:attribute name="Bit_in_word8" use="optional" default="8">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name09" type="xsd:string" use="optional" default="signal09"/>
-
-          <xsd:attribute name="Bit_in_word09" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name10" type="xsd:string" use="optional" default="signal10"/>
-
-          <xsd:attribute name="Bit_in_word10" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name11" type="xsd:string" use="optional" default="signal11"/>
-
-          <xsd:attribute name="Bit_in_word11" use="optional" default="11">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name12" type="xsd:string" use="optional" default="signal12"/>
-
-          <xsd:attribute name="Bit_in_word12" use="optional" default="12">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name13" type="xsd:string" use="optional" default="signal13"/>
-
-          <xsd:attribute name="Bit_in_word13" use="optional" default="13">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          <xsd:attribute name="Signal_name14" type="xsd:string" use="optional" default="signal14"/>
-
-          <xsd:attribute name="Bit_in_word14" use="optional" default="14">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Signal_name15" type="xsd:string" use="optional" default="signal15"/>
-
-          <xsd:attribute name="Bit_in_word15" use="optional" default="15">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">
-                    <xsd:minInclusive value="0"/>
-                    <xsd:maxInclusive value="16"/>
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-
-      
+                </xsd:simpleType>
+                </xsd:attribute>                
+                
+                <xsd:attribute name="Signal_name00" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description00" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name01" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description01" type="xsd:string" use="optional"/>
+                        
+                <xsd:attribute name="Signal_name02" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description02" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name03" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description03" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name04" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description04" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name05" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description05" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name06" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description06" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name07" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description07" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name08" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description08" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name09" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description09" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name10" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description10" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name11" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description11" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name12" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description12" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name13" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description13" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name14" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description14" type="xsd:string" use="optional"/>
+                
+                <xsd:attribute name="Signal_name15" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Description15" type="xsd:string" use="optional"/>      
 
            </xsd:complexType>
          </xsd:element>
@@ -586,10 +466,11 @@ class _ModbusRead(object):
         for element in infos:
             if element["name"] == "ModbusFunctionLoad":
                 for child in element["children"]:
-                    if child["name"] == "Function":
-                        list = modbus_function_dict.keys()
-                        list.sort()
-                        child["type"] = list
+                    # TODO запрещаем выбор, хардокдим функцию!
+                    # if child["name"] == "Function":
+                    #     list = modbus_function_dict.keys()
+                    #     list.sort()
+                    #     child["type"] = list
                     if child["name"] == "Start_Address":
                         child["value"] = ReadRegistr
         return infos
@@ -597,6 +478,7 @@ class _ModbusRead(object):
     def GetVariableLocationTree(self):
         current_location = self.GetCurrentLocation()
         name = self.BaseParams.getName()
+
         # address = self.GetParamsAttributes()[0]["children"][2]["value"]
         # count = 1  # self.GetParamsAttributes()[0]["children"][2]["value"]
         # function = self.GetParamsAttributes()[0]["children"][0]["value"]
@@ -1142,11 +1024,16 @@ class _ModbusTCPLoad(object):
 
 
     def _ImportSVG(self):
-        readAddr = self.GetParamsAttributes()[0]["children"][4]["value"]
+        readAddr = self.GetParamsAttributes()[0]["children"][4]["value"][1::]
         global ReadRegistr
         ReadRegistr = int(readAddr)
+        # t = super(self)
+        # ff =1
+        from BeremizIDE import Beremiz
+        Beremiz.AddConfNode(self, 'Read_'+readAddr ,'ModbusRead')
+      # Beremiz._
 
-        ConfigTreeNode.CTNAddChild(self, 'ReadReg_'+readAddr ,'ModbusRead')
+        #ConfigTreeNode.CTNAddChild(self, 'Read_'+readAddr ,'ModbusRead')
            # _ModbusRead()
 
 
