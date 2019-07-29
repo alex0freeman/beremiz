@@ -32,7 +32,6 @@ from ConfigTreeNode import ConfigTreeNode
 from PLCControler import LOCATION_CONFNODE, LOCATION_REGISTR, LOCATION_VAR_MEMORY, LOCATION_GROUP
 from py_ext import PythonFileCTNMixin
 
-
 base_folder = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
 base_folder = os.path.join(base_folder, "..")
 ModbusPath = os.path.join(base_folder, "Modbus")
@@ -40,16 +39,16 @@ ModbusPath = os.path.join(base_folder, "Modbus")
 ReadRegistr = 0
 WriteRegistr = 0
 
+
 def savelog(projects):
     try:
         path = 'log.txt'
-        with open(path, "w+" ) as log_file:
-           for project in projects:
+        with open(path, "w+") as log_file:
+            for project in projects:
                 log_file.writelines(str(project))
-                #writer.writerow((project))
+                # writer.writerow((project))
     except Exception:
         print('ошибка записи в файл')
-
 
 
 #
@@ -81,7 +80,6 @@ class _RequestSignal(object):
     </xsd:schema>
     """
 
-
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
         # for element in infos:
@@ -94,10 +92,9 @@ class _RequestSignal(object):
         return infos
 
     def GetVariableLocationTree(self):
-        current_location = self.GetCurrentLocation() # tuple objects
+        current_location = self.GetCurrentLocation()  # tuple objects
         name = self.BaseParams.getName()
-        #address = self.GetParamsAttributes()[0]["children"][3]["value"]
-
+        # address = self.GetParamsAttributes()[0]["children"][3]["value"]
 
         # signame = self.GetParamsAttributes()[0]["children"][0]["value"]
         #
@@ -133,24 +130,25 @@ class _RequestSignal(object):
 
         entries = []
 
-        #for offset in range(0,  15):
+        # for offset in range(0,  15):
         entries.append({
-            "name": dataname + "_" + str(address) +"." + str(bit), #+ "_" + str(address)
+            "name": dataname + "_" + str(address) + "." + str(bit),  # + "_" + str(address)
             "type": LOCATION_VAR_MEMORY,
             "size": 16,
             "IEC_type": "WORD",
-            "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(address) + "." + str(bit), # добавляет список в ветку дерева
-            #для нас 0.0.                                           0   .          8000      .       1
-            "location": datatacc +  ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # представление в дереве выбора источников, ?
+            "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(address) + "." + str(bit),
+            # добавляет список в ветку дерева
+            # для нас 0.0.                                           0   .          8000      .       1
+            "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit),
+            # представление в дереве выбора источников, ?
             "description": "description",
             "children": []})
 
         return {"name": name,
                 "type": LOCATION_CONFNODE,
-                "location": "." .join([str(i) for i in current_location]) + ".x",              # "." .join([str(i) for i in current_location])
+                "location": ".".join([str(i) for i in current_location]) + ".x",
+                # "." .join([str(i) for i in current_location])
                 "children": entries}
-
-
 
     def CTNGenerate_C(self, buildpath, locations):
         """
@@ -167,14 +165,15 @@ class _RequestSignal(object):
         """
         return [], "", False
 
+
 import xml.etree.ElementTree as ET
 from xml.etree import ElementTree
 
 from cStringIO import StringIO
 from lxml import etree
 
-class _ModbusFunctionLoad():
 
+class _ModbusFunctionLoad():
 
     # @staticmethod
     def __init__(self):
@@ -189,7 +188,7 @@ class _ModbusFunctionLoad():
     #     global vraiableTree
     #     vraiableTree = self.GetVariableLocationTree()
 
-    def CreateXSD( ):
+    def CreateXSD():
         tmpXSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
          <xsd:element name="ModbusFunctionLoad">
@@ -246,65 +245,65 @@ class _ModbusFunctionLoad():
        </xsd:schema>
        """
 
-       #  f = StringIO("""<?xml version="1.0" encoding="ISO-8859-1" ?>
-       # <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-       #   <xsd:element name="ModbusFunctionLoad">
-       #     <xsd:complexType>
-       #       <xsd:attribute name="Function" type="xsd:string" use="optional" default="03 - Read Holding Registers"/>
-       #
-       #       <xsd:attribute name="SlaveID" use="optional" default="1">
-       #         <xsd:simpleType>
-       #             <xsd:restriction base="xsd:integer">
-       #                 <xsd:minInclusive value="0"/>
-       #                 <xsd:maxInclusive value="255"/>
-       #             </xsd:restriction>
-       #         </xsd:simpleType>
-       #       </xsd:attribute>
-       #
-       #       <xsd:attribute name="Start_Address" use="optional" default="0">
-       #         <xsd:simpleType>
-       #             <xsd:restriction base="xsd:integer">
-       #                 <xsd:minInclusive value="0"/>
-       #                 <xsd:maxInclusive value="65535"/>
-       #             </xsd:restriction>
-       #         </xsd:simpleType>
-       #       </xsd:attribute>
-       #
-       #       <xsd:attribute name="Timeout_in_ms" use="optional" default="100">
-       #         <xsd:simpleType>
-       #             <xsd:restriction base="xsd:integer">
-       #                 <xsd:minInclusive value="1"/>
-       #                 <xsd:maxInclusive value="100000"/>
-       #             </xsd:restriction>
-       #         </xsd:simpleType>
-       #       </xsd:attribute>
-       #
-       #     </xsd:complexType>
-       #   </xsd:element>
-       # </xsd:schema>
-       # """)
+        #  f = StringIO("""<?xml version="1.0" encoding="ISO-8859-1" ?>
+        # <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        #   <xsd:element name="ModbusFunctionLoad">
+        #     <xsd:complexType>
+        #       <xsd:attribute name="Function" type="xsd:string" use="optional" default="03 - Read Holding Registers"/>
+        #
+        #       <xsd:attribute name="SlaveID" use="optional" default="1">
+        #         <xsd:simpleType>
+        #             <xsd:restriction base="xsd:integer">
+        #                 <xsd:minInclusive value="0"/>
+        #                 <xsd:maxInclusive value="255"/>
+        #             </xsd:restriction>
+        #         </xsd:simpleType>
+        #       </xsd:attribute>
+        #
+        #       <xsd:attribute name="Start_Address" use="optional" default="0">
+        #         <xsd:simpleType>
+        #             <xsd:restriction base="xsd:integer">
+        #                 <xsd:minInclusive value="0"/>
+        #                 <xsd:maxInclusive value="65535"/>
+        #             </xsd:restriction>
+        #         </xsd:simpleType>
+        #       </xsd:attribute>
+        #
+        #       <xsd:attribute name="Timeout_in_ms" use="optional" default="100">
+        #         <xsd:simpleType>
+        #             <xsd:restriction base="xsd:integer">
+        #                 <xsd:minInclusive value="1"/>
+        #                 <xsd:maxInclusive value="100000"/>
+        #             </xsd:restriction>
+        #         </xsd:simpleType>
+        #       </xsd:attribute>
+        #
+        #     </xsd:complexType>
+        #   </xsd:element>
+        # </xsd:schema>
+        # """)
 
         # tm = ET. parse(tmpXSD)
         # c = ET.Element("signal")
         # c.text = "sig1"
         # try:
-            # xmlschema_doc = etree.parse(f)
-            # xmlschema_doc.xpath('xsd:element',
-            #                     namespaces={"xsd": "http://www.w3.org/2001/XMLSchema"})
-            #
-            # xmlschema_doc = etree.parse(f)
-            # xmlschema = etree.XMLSchema(xmlschema_doc)
-            #
-            # ro = etree.fromstring(tmpXSD)
-            # rt =ro.getchildren()
+        # xmlschema_doc = etree.parse(f)
+        # xmlschema_doc.xpath('xsd:element',
+        #                     namespaces={"xsd": "http://www.w3.org/2001/XMLSchema"})
+        #
+        # xmlschema_doc = etree.parse(f)
+        # xmlschema = etree.XMLSchema(xmlschema_doc)
+        #
+        # ro = etree.fromstring(tmpXSD)
+        # rt =ro.getchildren()
 
-            # tree = ET.parse(f)
-            # root = tree.getroot()
-            #
-            # for child in root:
-            #     attr = child.attrib
-            #
-            # infos = ConfigTreeNode.GetParamsAttributes( )
+        # tree = ET.parse(f)
+        # root = tree.getroot()
+        #
+        # for child in root:
+        #     attr = child.attrib
+        #
+        # infos = ConfigTreeNode.GetParamsAttributes( )
 
         # except Exception:
         #     pass
@@ -314,8 +313,6 @@ class _ModbusFunctionLoad():
     XSD = CreateXSD()
 
     CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
-
-
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
@@ -328,12 +325,11 @@ class _ModbusFunctionLoad():
                         child["type"] = list
         return infos
 
-
     def GetVariableLocationTree(self):
         current_location = self.GetCurrentLocation()
         name = self.BaseParams.getName()
         address = self.GetParamsAttributes()[0]["children"][2]["value"]
-        count =1                                            # self.GetParamsAttributes()[0]["children"][2]["value"]
+        count = 1  # self.GetParamsAttributes()[0]["children"][2]["value"]
         function = self.GetParamsAttributes()[0]["children"][0]["value"]
         # 'BOOL' or 'WORD'
         datatype = modbus_function_dict[function][3]
@@ -384,7 +380,6 @@ class _ModbusFunctionLoad():
     #     GetVariableLocationTree(self)
 
 
-
 XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
          <xsd:element name="ModbusFunctionLoad">
@@ -400,52 +395,52 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                 </xsd:simpleType>
                 </xsd:attribute>                
                 
-                <xsd:attribute name="Signal_name00" type="xsd:string" use="optional" default="signal00"/>
-                <xsd:attribute name="Description00" type="xsd:string" use="optional"/>
+                <xsd:attribute name="Signal_name0" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description0" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name01" type="xsd:string" use="optional" default="signal00"/>
-                <xsd:attribute name="Description01" type="xsd:string" use="optional"/>
+                <xsd:attribute name="Signal_name1" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description1" type="xsd:string" use="optional"/>
                         
-                <xsd:attribute name="Signal_name02" type="xsd:string" use="optional" default="signal00"/>
-                <xsd:attribute name="Description02" type="xsd:string" use="optional"/>
+                <xsd:attribute name="Signal_name2" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description2" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name03" type="xsd:string" use="optional" default="signal00"/>
-                <xsd:attribute name="Description03" type="xsd:string" use="optional"/>
+                <xsd:attribute name="Signal_name3" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description3" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name04" type="xsd:string" use="optional" default="signal00"/>
-                <xsd:attribute name="Description04" type="xsd:string" use="optional"/>
+                <xsd:attribute name="Signal_name4" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description4" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name05" type="xsd:string" use="optional" default="signal00"/>
-                <xsd:attribute name="Description05" type="xsd:string" use="optional"/>
+                <xsd:attribute name="Signal_name5" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description5" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name06" type="xsd:string" use="optional" default="signal00"/>
-                <xsd:attribute name="Description06" type="xsd:string" use="optional"/>
+                <xsd:attribute name="Signal_name6" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description6" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name07" type="xsd:string" use="optional" default="signal00"/>
-                <xsd:attribute name="Description07" type="xsd:string" use="optional"/>
+                <xsd:attribute name="Signal_name7" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description7" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name08" type="xsd:string" use="optional" default="signal00"/>
-                <xsd:attribute name="Description08" type="xsd:string" use="optional"/>
+                <xsd:attribute name="Signal_name8" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description8" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name09" type="xsd:string" use="optional" default="signal00"/>
-                <xsd:attribute name="Description09" type="xsd:string" use="optional"/>
+                <xsd:attribute name="Signal_name9" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description9" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name10" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Signal_name10" type="xsd:string" use="optional" default=""/>
                 <xsd:attribute name="Description10" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name11" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Signal_name11" type="xsd:string" use="optional" default=""/>
                 <xsd:attribute name="Description11" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name12" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Signal_name12" type="xsd:string" use="optional" default=""/>
                 <xsd:attribute name="Description12" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name13" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Signal_name13" type="xsd:string" use="optional" default=""/>
                 <xsd:attribute name="Description13" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name14" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Signal_name14" type="xsd:string" use="optional" default=""/>
                 <xsd:attribute name="Description14" type="xsd:string" use="optional"/>
                 
-                <xsd:attribute name="Signal_name15" type="xsd:string" use="optional" default="signal00"/>
+                <xsd:attribute name="Signal_name15" type="xsd:string" use="optional" default=""/>
                 <xsd:attribute name="Description15" type="xsd:string" use="optional"/>      
 
            </xsd:complexType>
@@ -453,13 +448,17 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        </xsd:schema>
        """
 
+
 class _ModbusRead(object):
     def __init__(self):
+         self.countSignals = 0
          global vraiableTree, ReadRegistr
-         vraiableTree = self.GetVariableLocationTree()
+        #vraiableTree = self.GetVariableLocationTree()
+
 
     XSD = XSDread
-   # CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
+
+    # CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
@@ -473,41 +472,68 @@ class _ModbusRead(object):
                     #     child["type"] = list
                     if child["name"] == "Start_Address":
                         child["value"] = ReadRegistr
+
+                    if child["name"][0:11:] == "Signal_name":
+                        if(ReadRegistr in allReg):
+                            sigInfo = allReg[ReadRegistr]
+                            index = 0
+                            self.countSignals = len(sigInfo)
+                            while index < self.countSignals:
+                                if child["name"] == "Signal_name"+str(index):
+                                    child["value"] = sigInfo[index][0]
+                                index +=1
+
+                    if child["name"][0:11:] == "Description":
+                        if (ReadRegistr in allReg):
+                            sigInfo = allReg[ReadRegistr]
+                            index = 0
+                            self.countSignals = len(sigInfo)
+                            while index < self.countSignals:
+                                if child["name"] == "Description" + str(index):
+                                    child["value"] = sigInfo[index][1]
+                                index += 1
+
         return infos
 
     def GetVariableLocationTree(self):
         current_location = self.GetCurrentLocation()
         name = self.BaseParams.getName()
 
-        # address = self.GetParamsAttributes()[0]["children"][2]["value"]
-        # count = 1  # self.GetParamsAttributes()[0]["children"][2]["value"]
-        # function = self.GetParamsAttributes()[0]["children"][0]["value"]
-        # # 'BOOL' or 'WORD'
-        # datatype = modbus_function_dict[function][3]
-        # # 1 or 16
-        # datasize = modbus_function_dict[function][4]
-        # # 'Q' for coils and holding registers, 'I' for input discretes and input registers
-        # # datazone = modbus_function_dict[function][5]
-        #
-        # # 'X' for bits, 'W' for words
-        # datatacc = modbus_function_dict[function][6]
-        # # 'Coil', 'Holding Register', 'Input Discrete' or 'Input Register'
-        # dataname = modbus_function_dict[function][7]
+        function = self.GetParamsAttributes()[0]["children"][0]["value"]
+        address = self.GetParamsAttributes()[0]["children"][1]["value"]
+        count = self.countSignals
+
+        # 'BOOL' or 'WORD'
+        datatype = modbus_function_dict[function][3]
+        # 1 or 16
+        datasize = modbus_function_dict[function][4]
+        # 'Q' for coils and holding registers, 'I' for input discretes and input registers
+        # datazone = modbus_function_dict[function][5]
+
+        # 'X' for bits, 'W' for words
+        datatacc = modbus_function_dict[function][6]
+        # 'Coil', 'Holding Register', 'Input Discrete' or 'Input Register'
+        dataname = modbus_function_dict[function][7]
+
         entries = []
 
-        # for offset in range(address, address + count):
-        #     entries.append({
-        #         "name": dataname,
-        #         "address": address,
-        #         "datatacc": datatacc,
-        #         "type": LOCATION_VAR_MEMORY,
-        #         "size": datasize,
-        #         "IEC_type": datatype,
-        #         "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(offset),
-        #         "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
-        #         "description": "description",
-        #         "children": []})
-        return entries
+        for offset in range(address, address + count):
+            entries.append({
+                "name": dataname,
+                "address": address,
+                "datatacc": datatacc,
+                "type": LOCATION_VAR_MEMORY,
+                "size": datasize,
+                "IEC_type": datatype,
+                "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(offset),
+                "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
+                "description": "description",
+                "children": []})
+
+        return {"name": name,
+                "type": LOCATION_CONFNODE,
+                "location": ".".join([str(i) for i in current_location]) + ".x",
+                "children": entries}
 
     # def GetNodeCount(self):
     #     return (0, 1, 0 )
@@ -574,7 +600,8 @@ class _ModbusWrite(PythonFileCTNMixin):
          </xsd:element>
        </xsd:schema>
        """
-    #CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
+
+    # CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
@@ -647,7 +674,7 @@ class _ModbusFunction(object):
         # Create BaseParam
         global vraiableTree
         vraiableTree = self.GetVariable()
-        #savelog(vraiableTree)
+        # savelog(vraiableTree)
 
     XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -696,8 +723,8 @@ class _ModbusFunction(object):
        </xsd:schema>
        """
     CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
-    #PlugType = "ModbusTCPNode"
 
+    # PlugType = "ModbusTCPNode"
 
     def GetVariable(self):
 
@@ -713,7 +740,6 @@ class _ModbusFunction(object):
         # 'Q' for coils and holding registers, 'I' for input discretes and input registers
         # datazone = modbus_function_dict[function][5]
 
-
         # 'X' for bits, 'W' for words
         datatacc = modbus_function_dict[function][6]
         # 'Coil', 'Holding Register', 'Input Discrete' or 'Input Register'
@@ -722,22 +748,20 @@ class _ModbusFunction(object):
 
         for offset in range(address, address + count):
             entries.append({
-                        "name": dataname ,
-                        "address": address,
-                        "datatacc": datatacc,
-                        "type": LOCATION_VAR_MEMORY,
-                        "size": datasize,
-                        "IEC_type": datatype,
-                        "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(offset),
-                        "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
-                        "description": "description",
-                        "children": []})
+                "name": dataname,
+                "address": address,
+                "datatacc": datatacc,
+                "type": LOCATION_VAR_MEMORY,
+                "size": datasize,
+                "IEC_type": datatype,
+                "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(offset),
+                "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
+                "description": "description",
+                "children": []})
         return entries
 
     # def GetNodeCount(self):
     #     return (0, 1, 0 )
-
-
 
     def CTNGenerate_C(self, buildpath, locations):
         """
@@ -827,9 +851,9 @@ class _RequestPlug(object):
     def GetVariableLocationTree(self):
         current_location = self.GetCurrentLocation()
         name = self.BaseParams.getName()
-        address = self.GetParamsAttributes()[0]["children"][3]["value"] # 3 атрибут в XML схеме
-        count = self.GetParamsAttributes()[0]["children"][2]["value"] # 2 атрибут в XML схеме
-        function = self.GetParamsAttributes()[0]["children"][0]["value"] # нулевой атрибут в XML схеме
+        address = self.GetParamsAttributes()[0]["children"][3]["value"]  # 3 атрибут в XML схеме -- МБ адрес
+        count = self.GetParamsAttributes()[0]["children"][2]["value"]  # 2 атрибут в XML схеме -- количество регистров
+        function = self.GetParamsAttributes()[0]["children"][0]["value"]  # нулевой атрибут в XML схеме -- МБ функция
         # 'BOOL' or 'WORD'
         datatype = modbus_function_dict[function][3]
         # 1 or 16
@@ -872,7 +896,6 @@ class _RequestPlug(object):
 #
 
 class _ModbusTCPclientPlug(object):
-
     XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
     <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
       <xsd:element name="ModbusTCPclient">
@@ -906,7 +929,6 @@ class _ModbusTCPclientPlug(object):
         return (1, 0, 0)
 
     def CTNGenerate_C(self, buildpath, locations):
-
         return [], "", False
 
 
@@ -921,8 +943,6 @@ class _ModbusTCPclientPlug(object):
 
 def _lt_to_str(loctuple):
     return '.'.join(map(str, loctuple))
-
-
 
 
 class _ModbusTCPNode(object):
@@ -948,14 +968,13 @@ class _ModbusTCPNode(object):
     # corresponds to aprox 25 days.
     CTNChildrenTypes = [("ModbusFunction", _ModbusFunction, "Request")]
 
-
     # TODO: Replace with CTNType !!!
     PlugType = "ModbusTCPNode"
 
     # Return the number of (modbus library) nodes this specific TCP client will need
     #   return type: (tcp nodes, rtu nodes, ascii nodes)
     def GetNodeCount(self):
-        return (1, 0, 0, 0 )
+        return (1, 0, 0, 0)
 
     def CTNGenerate_C(self, buildpath, locations):
         """
@@ -974,9 +993,9 @@ class _ModbusTCPNode(object):
 
 
 class _ModbusTCPLoad(object):
-        # global vraiableTree
-        # vraiableTree = self.GetVariable()
-        #savelog(vraiableTree)
+    # global vraiableTree
+    # vraiableTree = self.GetVariable()
+    # savelog(vraiableTree)
     XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
     <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
       <xsd:element name="ModbusTCPLoad">
@@ -991,9 +1010,9 @@ class _ModbusTCPLoad(object):
                 </xsd:restriction>
             </xsd:simpleType>
           </xsd:attribute>
-         <xsd:attribute name="Adresses" type="xsd:string" />
-        <xsd:attribute name="Read_registers" type="xsd:string" use="optional" default=" "/>
-        <xsd:attribute name="Write_registers" type="xsd:string" use="optional" default=" "/>
+         <xsd:attribute name="registers_______" type="xsd:string" />
+        <xsd:attribute name="Read_registers" type="xsd:string" use="optional" />
+        <xsd:attribute name="Write_registers" type="xsd:string" use="optional"  />
         </xsd:complexType>
         
       </xsd:element>
@@ -1004,39 +1023,37 @@ class _ModbusTCPLoad(object):
     CTNChildrenTypes = [("ModbusFunctionLoad", _ModbusFunctionLoad, "Request"),
                         ("ModbusRead", _ModbusRead, "Request"),
                         ("ModbusWrite", _ModbusWrite, "Request")]
-    #CTNChildrenTypes = [("RequestPlug", _RequestPlug, "Request")]
+    # CTNChildrenTypes = [("RequestPlug", _RequestPlug, "Request")]
 
     PlugType = "ModbusTCPLoad"
     ConfNodeMethods = [
-            {
-                "bitmap": "ImportSVG",
-                "name": _("Create_Read"),
-                "tooltip": _("Create_Read"),
-                "method": "_ImportSVG"
-            },
-            {
-                "bitmap": "ImportSVG",  # should be something different
-                "name": _("Create_Write"),
-                "tooltip": _("Create_Write"),
-                "method": "_StartInkscape"
-            },
-        ]
+        {
+            "bitmap": "ImportSVG",
+            "name": _("Create_Read"),
+            "tooltip": _("Create_Read"),
+            "method": "_Create_Read"
+        },
+        {
+            "bitmap": "ImportSVG",  # should be something different
+            "name": _("Create_Write"),
+            "tooltip": _("Create_Write"),
+            "method": "_Create_Write"
+        },
+    ]
 
-
-    def _ImportSVG(self):
-        readAddr = self.GetParamsAttributes()[0]["children"][4]["value"][1::]
+    def _Create_Read(self):
         global ReadRegistr
+        readAddr = self.GetParamsAttributes()[0]["children"][4]["value"] #[1::]
+
         ReadRegistr = int(readAddr)
-        # t = super(self)
-        # ff =1
-        from BeremizIDE import Beremiz
-        Beremiz.AddConfNode(self, 'Read_'+readAddr ,'ModbusRead')
-      # Beremiz._
+        ConfigTreeNode.CTNAddChild(self, 'Read_' + readAddr, 'ModbusRead')
 
-        #ConfigTreeNode.CTNAddChild(self, 'Read_'+readAddr ,'ModbusRead')
-           # _ModbusRead()
+    def _Create_Write(self):
+        global WriteRegistr
+        writeAddr = self.GetParamsAttributes()[0]["children"][5]["value"][1::]
 
-
+        WriteRegistr = int(writeAddr)
+        ConfigTreeNode.CTNAddChild(self, 'Write_' + writeAddr, 'ModbusWrite')
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
@@ -1044,46 +1061,43 @@ class _ModbusTCPLoad(object):
             if element["name"] == "ModbusTCPLoad":
                 for child in element["children"]:
                     if child["name"] == "Remote_IP_Address":
-                       child["type"] = ipLstBv
-                       child["value"] = ipLstBv[0]
+                        child["type"] = ipLstBv
+                        child["value"] = ipLstBv[0]
 
                     if child["name"] == "Read_registers":
                         child["type"] = mbReadAdrList
-                        if( mbReadAdrList.__len__() > 0):
-                            child["value"] = mbReadAdrList[0]
-
+                        # if( mbReadAdrList.__len__() > 0):
+                        #     child["value"] = mbReadAdrList[0]
 
                     if child["name"] == "Write_registers":
                         child["type"] = mbWriteAdrList
-                        if (mbWriteAdrList.__len__() > 0):
-                            child["value"] = mbWriteAdrList[0]
+                        # if (mbWriteAdrList.__len__() > 0):
+                        #     child["value"] = mbWriteAdrList[0]
 
         return infos
 
-    def GetVariableLocationTree(self):
-        current_location = self.GetCurrentLocation()
-        name = self.BaseParams.getName()
-        address = self.GetParamsAttributes()[0]["children"][2]["value"][1]
-        count = self.GetParamsAttributes()[0]["children"][1]["value"]
-        function = self.GetParamsAttributes()[0]["children"][0]["value"]
-
-
-
-        entries = []
-
-        return {"name": name,
-                "type": LOCATION_CONFNODE,
-                "location": ".".join([str(i) for i in current_location]) + ".x",
-                "children": entries}
-
+    # def GetVariableLocationTree(self):
+    #     current_location = self.GetCurrentLocation()
+    #     name = self.BaseParams.getName()
+    #     address = self.GetParamsAttributes()[0]["children"][2]["value"]  # [1]
+    #     count = self.GetParamsAttributes()[0]["children"][1]["value"]
+    #     function = self.GetParamsAttributes()[0]["children"][0]["value"]
+    #
+    #     entries = []
+    #
+    #     return {"name": name,
+    #             "type": LOCATION_CONFNODE,
+    #             "location": ".".join([str(i) for i in current_location]) + ".x",
+    #             "children": entries}
 
     # Return the number of (modbus library) nodes this specific TCP client will need
     #   return type: (tcp nodes, rtu nodes, ascii nodes)
     def GetNodeCount(self):
-        return (1, 0, 0, 0 )
+        return (1, 0, 0)
 
     def CTNGenerate_C(self, buildpath, locations):
         return [], "", False
+
 
 #
 #
@@ -1092,7 +1106,6 @@ class _ModbusTCPLoad(object):
 #
 #
 #
-
 
 
 class RootClass(object):
@@ -1113,18 +1126,17 @@ class RootClass(object):
     </xsd:schema>
     """
 
-
     CTNChildrenTypes = [
-                        ("ModbusTCPclient", _ModbusTCPclientPlug, "Modbus TCP Client"),
-                       # ("ModbusTCPserver", _ModbusTCPserverPlug, "Modbus TCP Server") ,
-                        ("ModbusTCPNode",    _ModbusTCPNode, "Modbus TCP Client"),
-                        ("ModbusTCPLoad", _ModbusTCPLoad, "Modbus TCP Client")
+        ("ModbusTCPclient", _ModbusTCPclientPlug, "Modbus TCP Client"),
+        # ("ModbusTCPserver", _ModbusTCPserverPlug, "Modbus TCP Server") ,
+        ("ModbusTCPNode", _ModbusTCPNode, "Modbus TCP Client"),
+        ("ModbusTCPLoad", _ModbusTCPLoad, "Modbus TCP Client")
 
-                       # ("ModbusRTUclient", _ModbusRTUclientPlug, "Modbus RTU Client"),
-                       # ("ModbusRTUslave", _ModbusRTUslavePlug,  "Modbus RTU Slave")
-                        ]
+        # ("ModbusRTUclient", _ModbusRTUclientPlug, "Modbus RTU Client"),
+        # ("ModbusRTUslave", _ModbusRTUslavePlug,  "Modbus RTU Slave")
+    ]
 
-        # Return the number of (modbus library) nodes this specific instance of the modbus plugin will need
+    # Return the number of (modbus library) nodes this specific instance of the modbus plugin will need
     #   return type: (tcp nodes, rtu nodes, ascii nodes)
     def GetNodeCount(self):
         max_remote_tcpclient = self.GetParamsAttributes()[0]["children"][0]["value"]
@@ -1162,7 +1174,7 @@ class RootClass(object):
         #   IPServer_port_numbers = [(location ,IPserver_port_number), ...]
         #       location: tuple similar to (0, 3, 1) representing the location in the configuration tree "0.3.1.x"
         # IPserver_port_number: a number (i.e. port number used by the Modbus/IP server)
-        total_node_count = (0, 0, 0, 0 )
+        total_node_count = (0, 0, 0, 0)
         IPServer_port_numbers = []
         for CTNInstance in self.GetCTRoot().IterChildren():
             if CTNInstance.CTNType == "modbus":
@@ -1178,8 +1190,9 @@ class RootClass(object):
         for i in range(0, len(IPServer_port_numbers) - 1):
             for j in range(i + 1, len(IPServer_port_numbers)):
                 if IPServer_port_numbers[i][1] == IPServer_port_numbers[j][1]:
-                    self.GetCTRoot().logger.write_warning( _("Error: Modbus/IP Servers %{a1}.x and %{a2}.x use the same port number {a3}.\n").
-                        format(
+                    self.GetCTRoot().logger.write_warning(
+                        _("Error: Modbus/IP Servers %{a1}.x and %{a2}.x use the same port number {a3}.\n").
+                            format(
                             a1=_lt_to_str(IPServer_port_numbers[i][0]),
                             a2=_lt_to_str(IPServer_port_numbers[j][0]),
                             a3=IPServer_port_numbers[j][1]))
@@ -1228,7 +1241,6 @@ class RootClass(object):
             # print ">>>>>>>>>>>>>"
             #
 
-
             if child.PlugType == "ModbusTCPclient":
                 tcpclient_reqs_count += len(child.IECSortedChildren())
                 new_node = GetTCPClientNodePrinted(self, child)
@@ -1248,7 +1260,8 @@ class RootClass(object):
                         if relative_addr in xrange(int(GetCTVal(subchild, 2))):
                             if str(iecvar["NAME"]) not in loc_vars_list:
                                 loc_vars.append(
-                                    "u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (client_requestid, relative_addr))
+                                    "u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (
+                                    client_requestid, relative_addr))
                                 loc_vars_list.append(str(iecvar["NAME"]))
                     client_requestid += 1
                 tcpclient_node_count += 1
@@ -1258,7 +1271,7 @@ class RootClass(object):
             #
 
             if child.PlugType == "ModbusTCPNode":
-                #print "ModbusTCPNode----->"
+                # print "ModbusTCPNode----->"
 
                 tcpclient_reqs_count += len(child.IECSortedChildren())
                 new_node = GetTCPClientNodePrinted(self, child)
@@ -1282,8 +1295,11 @@ class RootClass(object):
                         if relative_addr in xrange(int(GetCTVal(subchild, 2))):
                             iecvarname = iecvar["NAME"]
                             if str(iecvarname) not in loc_vars_list:
-                                #TODO сделать тут разбивку на биты или на стороне Си кода
-                                loc_vars.append("u16 *" + str(iecvarname) + " = &client_requests[%d].plcv_buffer[%d]  ;" % (client_requestid, relative_addr, int(iecvarname[-1]) - 1)) # подставляем наши значение в индексы массива client_requests
+                                # TODO сделать тут разбивку на биты или на стороне Си кода
+                                loc_vars.append(
+                                    "u16 *" + str(iecvarname) + " = &client_requests[%d].plcv_buffer[%d]  ;" % (
+                                    client_requestid, relative_addr, int(iecvarname[
+                                                                             -1]) - 1))  # подставляем наши значение в индексы массива client_requests
                                 loc_vars_list.append(str(iecvarname))
                     client_requestid += 1
                 tcpclient_node_count += 1
@@ -1314,7 +1330,7 @@ class RootClass(object):
                             if str(iecvar["NAME"]) not in loc_vars_list:
                                 loc_vars.append(
                                     "u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (
-                                    client_requestid, relative_addr))
+                                        client_requestid, relative_addr))
                                 loc_vars_list.append(str(iecvar["NAME"]))
                     client_requestid += 1
                 tcpclient_node_count += 1
@@ -1375,4 +1391,3 @@ class RootClass(object):
         # library!
 
         return [(Gen_MB_c_path, ' -I"' + ModbusPath + '"')], LDFLAGS, True
-

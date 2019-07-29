@@ -77,7 +77,8 @@ try:
     for row in cursor:
         lstOs.append(dict(zip(columnList, row)))
 
-    cursor = c.execute('select  rowid,*   from tblMBServSignals')
+    #cursor = c.execute('select  rowid,*   from tblMBServSignals')
+    cursor = c.execute('SELECT serv.rowid, serv.ServerName, serv.ControlName, serv.MbAddr, serv.MbBit, serv.Scale, serv.Offset, tsig.Description FROM tblMBServSignals as serv left join tblSignals as tsig on serv.ControlName = tsig.ControlName ')
     columnList = list(map(lambda x: x[0], cursor.description))
     dicData = dict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
     for row in cursor:
@@ -93,8 +94,11 @@ try:
     for x in lstOs:
         if (x['Location'] == u'Вычислитель'):
             ipLstBv.append(x["IP1"])
+
+
     mbReadAdrList = []
     mbWriteAdrList = []
+
     for x in lstMBServSignals:
         if(x['MbAddr'] >= 48000 and x['MbAddr'] < 48400):
             tostr = str(x['MbAddr'])
@@ -104,7 +108,24 @@ try:
             tostr = str(x['MbAddr'])
             if (not mbWriteAdrList.__contains__(tostr)):
                 mbWriteAdrList.append(tostr)
+    allReg = {}
+    # for reg in mbReadAdrList:
+    #     oneRgeistr =[]
+    #     for signal in lstMBServSignals:
+    #         if(signal['MbAddr'] == int(reg)):
+    #             oneRgeistr.append((signal['ControlName'],signal['MbBit']))
+    #     allReg = {reg:oneRgeistr}
 
+    for reg in lstMBServSignals:
+        if(reg['MbAddr']  not in allReg):
+            oneRgeistr = []
+            for signal in lstMBServSignals:
+                if (signal['MbAddr'] == int(reg['MbAddr'] )):
+                    oneRgeistr.insert(int(signal['MbBit']), [signal['ControlName'], signal['Description']])
+                    #oneRgeistr.append((signal['MbBit'],signal['ControlName'] ))
+            allReg[reg['MbAddr'] ] = oneRgeistr
+
+    t = 1
 except Exception :
     pass
 
