@@ -46,93 +46,109 @@ modbus_function_dict = {
 #lacalDir = 'd:\\Valcom\\GITrep\\APS\\APS\\bin\\Debug\\Schema\\'
 lacalDir = 'c:\\OSSY-NG\\RunTime\\Schema\\'
 dbFile = '718W.db3'
-try:
 
-    conn = sqlite3.connect(lacalDir + dbFile)
-    c = conn.cursor()
-    #c.execute("select   GroupName   from tblGroupSignals")
-    #print(c.fetchone())
-
-    ServSignals = []
-    for row in c.execute('select  *   from tblMBServSignals'):
-       ServSignals.append(row)
-
-    # lstOs = []
-    # for row in c.execute('select  *   from tblOs'):
-    #    lstOs.append(row)
-
-    # for row in c.execute('select  *   from tblMBServer'):
-    #    lstMBServ.append(row)
-
-    # lstDataType = []
-    # for row in c.execute('select  *   from dirMbValueType'):
-    #    lstDataType.append(row)
-
-    lstMBServSignals = []
-    lstMBServ = []
-    lstOs = []
-    cursor = c.execute('select rowid, *   from tblOs')
-    columnList = list(map(lambda x: x[0], cursor.description))
-    dicData = OrderedDict((k,'') for k in list(map(lambda x: x[0], cursor.description)))
-    for row in cursor:
-        lstOs.append(dict(zip(columnList, row)))
-
-    #cursor = c.execute('select  rowid,*   from tblMBServSignals')
-    cursor = c.execute('SELECT serv.rowid, serv.ServerName, serv.ControlName, serv.MbAddr, serv.MbBit, serv.Scale, serv.Offset, tsig.Description FROM tblMBServSignals as serv left join tblSignals as tsig on serv.ControlName = tsig.ControlName ')
-    columnList = list(map(lambda x: x[0], cursor.description))
-    dicData = dict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
-    for row in cursor:
-        lstMBServSignals.append(dict(zip(columnList, row)))
-
-    cursor = c.execute('select  rowid,*   from tblMBServer')
-    columnList = list(map(lambda x: x[0], cursor.description))
-    dicData = dict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
-    for row in cursor:
-        lstMBServ.append(dict(zip(columnList, row)))
-
-    ipLstBv = []
-    for x in lstOs:
-        if (x['Location'] == u'Вычислитель'):
-            ipLstBv.append(x["IP1"])
-
-
-    mbReadAdrList = []
-    mbWriteAdrList = []
-
-    for x in lstMBServSignals:
-        if(x['MbAddr'] >= 48000 and x['MbAddr'] < 48400):
-            tostr = str(x['MbAddr'])
-            if(not mbReadAdrList.__contains__(tostr)):
-                mbReadAdrList.append(tostr)
-        if (x['MbAddr'] >= 48400 ):
-            tostr = str(x['MbAddr'])
-            if (not mbWriteAdrList.__contains__(tostr)):
-                mbWriteAdrList.append(tostr)
-    allReg = {}
-    # for reg in mbReadAdrList:
-    #     oneRgeistr =[]
-    #     for signal in lstMBServSignals:
-    #         if(signal['MbAddr'] == int(reg)):
-    #             oneRgeistr.append((signal['ControlName'],signal['MbBit']))
-    #     allReg = {reg:oneRgeistr}
-
-    for reg in lstMBServSignals:
-        if(reg['MbAddr']  not in allReg):
-            oneRgeistr = []
-            for signal in lstMBServSignals:
-                if (signal['MbAddr'] == int(reg['MbAddr'] )):
-                    oneRgeistr.insert(int(signal['MbBit']), [signal['ControlName'], signal['Description']])
-                    #oneRgeistr.append((signal['MbBit'],signal['ControlName'] ))
-            allReg[reg['MbAddr'] ] = oneRgeistr
-
-    t = 1
-except Exception :
-    pass
-
-
-
+ServSignals = []
+lstMBServSignals = []
+lstMBServ = []
+lstOs = []
 signallist = []
 vraiableTree = []
+mbReadAdrList = []
+mbWriteAdrList = []
+ipLstBv = []
+
+allReg = {}
+
+dbPath = lacalDir + dbFile
+
+def Load_SQLite(self, dbPath):
+    try:
+
+        conn = sqlite3.connect(dbPath)
+        c = conn.cursor()
+        #c.execute("select   GroupName   from tblGroupSignals")
+        #print(c.fetchone())
+
+
+        for row in c.execute('select  *   from tblMBServSignals'):
+           ServSignals.append(row)
+
+        # lstOs = []
+        # for row in c.execute('select  *   from tblOs'):
+        #    lstOs.append(row)
+
+        # for row in c.execute('select  *   from tblMBServer'):
+        #    lstMBServ.append(row)
+
+        # lstDataType = []
+        # for row in c.execute('select  *   from dirMbValueType'):
+        #    lstDataType.append(row)
+
+
+        cursor = c.execute('select rowid, *   from tblOs')
+        columnList = list(map(lambda x: x[0], cursor.description))
+        dicData = OrderedDict((k,'') for k in list(map(lambda x: x[0], cursor.description)))
+        for row in cursor:
+            lstOs.append(dict(zip(columnList, row)))
+
+        #cursor = c.execute('select  rowid,*   from tblMBServSignals')
+        cursor = c.execute('SELECT serv.rowid, serv.ServerName, serv.ControlName, serv.MbAddr, serv.MbBit, serv.Scale, serv.Offset, tsig.Description FROM tblMBServSignals as serv left join tblSignals as tsig on serv.ControlName = tsig.ControlName ')
+        columnList = list(map(lambda x: x[0], cursor.description))
+        dicData = dict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
+        for row in cursor:
+            lstMBServSignals.append(dict(zip(columnList, row)))
+
+        cursor = c.execute('select  rowid,*   from tblMBServer')
+        columnList = list(map(lambda x: x[0], cursor.description))
+        dicData = dict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
+        for row in cursor:
+            lstMBServ.append(dict(zip(columnList, row)))
+
+
+        for x in lstOs:
+            if (x['Location'] == u'Вычислитель'):
+                ipLstBv.append(x["IP1"])
+
+
+
+
+        for x in lstMBServSignals:
+            if(x['MbAddr'] >= 48000 and x['MbAddr'] < 48400):
+                tostr = str(x['MbAddr'])
+                if(not mbReadAdrList.__contains__(tostr)):
+                    mbReadAdrList.append(tostr)
+            if (x['MbAddr'] >= 48400 ):
+                tostr = str(x['MbAddr'])
+                if (not mbWriteAdrList.__contains__(tostr)):
+                    mbWriteAdrList.append(tostr)
+
+        # for reg in mbReadAdrList:
+        #     oneRgeistr =[]
+        #     for signal in lstMBServSignals:
+        #         if(signal['MbAddr'] == int(reg)):
+        #             oneRgeistr.append((signal['ControlName'],signal['MbBit']))
+        #     allReg = {reg:oneRgeistr}
+
+        for reg in lstMBServSignals:
+            if(reg['MbAddr']  not in allReg):
+                oneRgeistr = []
+                for signal in lstMBServSignals:
+                    if (signal['MbAddr'] == int(reg['MbAddr'] )):
+                        desk = ""
+                        if signal['Description'] is not None:
+                            desk = signal['Description'][0:5:]
+
+                        oneRgeistr.insert(int(signal['MbBit']), [signal['ControlName'], desk])
+                        #oneRgeistr.append((signal['MbBit'],signal['ControlName'] ))
+                allReg[reg['MbAddr'] ] = oneRgeistr
+
+        t = 1
+    except Exception :
+        pass
+
+
+
+
 # Configuration tree value acces helper
 def GetCTVal(child, index):
     return child.GetParamsAttributes()[0]["children"][index]["value"]

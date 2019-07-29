@@ -25,6 +25,7 @@
 
 from __future__ import absolute_import
 import os
+import wx
 from six.moves import xrange
 
 from modbus.mb_utils import *
@@ -448,6 +449,73 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        </xsd:schema>
        """
 
+XSDwrite = """<?xml version="1.0" encoding="ISO-8859-1" ?>
+       <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+         <xsd:element name="ModbusFunctionLoad">
+           <xsd:complexType>
+             <xsd:attribute name="Function" type="xsd:string" use="optional" default="16 - Write Multiple Registers"/>
+
+                <xsd:attribute name="Start_Address" use="optional" default="0">
+                <xsd:simpleType>
+                   <xsd:restriction base="xsd:integer">
+                       <xsd:minInclusive value="0"/>
+                       <xsd:maxInclusive value="65535"/>
+                   </xsd:restriction>
+                </xsd:simpleType>
+                </xsd:attribute>                
+
+                <xsd:attribute name="Signal_name0" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description0" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name1" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description1" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name2" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description2" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name3" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description3" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name4" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description4" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name5" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description5" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name6" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description6" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name7" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description7" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name8" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description8" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name9" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description9" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name10" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description10" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name11" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description11" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name12" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description12" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name13" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description13" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name14" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description14" type="xsd:string" use="optional"/>
+
+                <xsd:attribute name="Signal_name15" type="xsd:string" use="optional" default=""/>
+                <xsd:attribute name="Description15" type="xsd:string" use="optional"/>      
+
+           </xsd:complexType>
+         </xsd:element>
+       </xsd:schema>
+       """
 
 class _ModbusRead(object):
     def __init__(self):
@@ -470,8 +538,9 @@ class _ModbusRead(object):
                     #     list = modbus_function_dict.keys()
                     #     list.sort()
                     #     child["type"] = list
-                    if child["name"] == "Start_Address":
-                        child["value"] = ReadRegistr
+                    if ReadRegistr != 0:
+                        if child["name"] == "Start_Address":
+                            child["value"] = ReadRegistr
 
                     if child["name"][0:11:] == "Signal_name":
                         if(ReadRegistr in allReg):
@@ -557,69 +626,98 @@ class _ModbusRead(object):
     #     GetVariableLocationTree(self)
 
 
-class _ModbusWrite(PythonFileCTNMixin):
-    # def __init__(self):
-    #
+#class _ModbusWrite(PythonFileCTNMixin):
+class _ModbusWrite(object):
+    def __init__(self):
+        self.countSignals = 0
     #     global vraiableTree
     #     vraiableTree = self.GetVariableLocationTree()
 
-    XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
-       <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-         <xsd:element name="ModbusFunctionLoad">
-           <xsd:complexType>
-             <xsd:attribute name="Function" type="xsd:string" use="optional" default="16 - Write Multiple Registers"/>
-
-             <xsd:attribute name="SlaveID" use="optional" default="1">
-               <xsd:simpleType>
-                   <xsd:restriction base="xsd:integer">
-                       <xsd:minInclusive value="0"/>
-                       <xsd:maxInclusive value="255"/>
-                   </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
-
-             <xsd:attribute name="Start_Address" use="optional" default="0">
-               <xsd:simpleType>
-                   <xsd:restriction base="xsd:integer">
-                       <xsd:minInclusive value="0"/>
-                       <xsd:maxInclusive value="65535"/>
-                   </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
-
-             <xsd:attribute name="Timeout_in_ms" use="optional" default="100">
-               <xsd:simpleType>
-                   <xsd:restriction base="xsd:integer">
-                       <xsd:minInclusive value="1"/>
-                       <xsd:maxInclusive value="100000"/>
-                   </xsd:restriction>
-               </xsd:simpleType>
-             </xsd:attribute>
-
-           </xsd:complexType>
-         </xsd:element>
-       </xsd:schema>
-       """
+    # XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
+    #    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    #      <xsd:element name="ModbusFunctionLoad">
+    #        <xsd:complexType>
+    #          <xsd:attribute name="Function" type="xsd:string" use="optional" default="16 - Write Multiple Registers"/>
+    #
+    #          <xsd:attribute name="SlaveID" use="optional" default="1">
+    #            <xsd:simpleType>
+    #                <xsd:restriction base="xsd:integer">
+    #                    <xsd:minInclusive value="0"/>
+    #                    <xsd:maxInclusive value="255"/>
+    #                </xsd:restriction>
+    #            </xsd:simpleType>
+    #          </xsd:attribute>
+    #
+    #          <xsd:attribute name="Start_Address" use="optional" default="0">
+    #            <xsd:simpleType>
+    #                <xsd:restriction base="xsd:integer">
+    #                    <xsd:minInclusive value="0"/>
+    #                    <xsd:maxInclusive value="65535"/>
+    #                </xsd:restriction>
+    #            </xsd:simpleType>
+    #          </xsd:attribute>
+    #
+    #          <xsd:attribute name="Timeout_in_ms" use="optional" default="100">
+    #            <xsd:simpleType>
+    #                <xsd:restriction base="xsd:integer">
+    #                    <xsd:minInclusive value="1"/>
+    #                    <xsd:maxInclusive value="100000"/>
+    #                </xsd:restriction>
+    #            </xsd:simpleType>
+    #          </xsd:attribute>
+    #
+    #        </xsd:complexType>
+    #      </xsd:element>
+    #    </xsd:schema>
+    #    """
 
     # CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
+
+    XSD = XSDwrite
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
         for element in infos:
             if element["name"] == "ModbusFunctionLoad":
                 for child in element["children"]:
-                    if child["name"] == "Function":
-                        list = modbus_function_dict.keys()
-                        list.sort()
-                        child["type"] = list
+                    # TODO запрещаем выбор, хардокдим функцию!
+                    # if child["name"] == "Function":
+                    #     list = modbus_function_dict.keys()
+                    #     list.sort()
+                    #     child["type"] = list
+                    if child["name"] == "Start_Address":
+                        child["value"] = WriteRegistr
+
+                    if child["name"][0:11:] == "Signal_name":
+                        if (WriteRegistr in allReg):
+                            sigInfo = allReg[WriteRegistr]
+                            index = 0
+                            self.countSignals = len(sigInfo)
+                            while index < self.countSignals:
+                                if child["name"] == "Signal_name" + str(index):
+                                    child["value"] = sigInfo[index][0]
+                                index += 1
+
+                    # if child["name"][0:11:] == "Description":
+                    #     if (WriteRegistr in allReg):
+                    #         sigInfo = allReg[WriteRegistr]
+                    #         index = 0
+                    #         self.countSignals = len(sigInfo)
+                    #         while index < self.countSignals:
+                    #             if child["name"] == "Description" + str(index):
+                    #                 child["value"] = sigInfo[index][1]
+                    #             index += 1
+
         return infos
 
     def GetVariableLocationTree(self):
         current_location = self.GetCurrentLocation()
         name = self.BaseParams.getName()
-        address = self.GetParamsAttributes()[0]["children"][2]["value"]
-        count = 1  # self.GetParamsAttributes()[0]["children"][2]["value"]
+
         function = self.GetParamsAttributes()[0]["children"][0]["value"]
+        address = self.GetParamsAttributes()[0]["children"][1]["value"]
+        count = self.countSignals
+
         # 'BOOL' or 'WORD'
         datatype = modbus_function_dict[function][3]
         # 1 or 16
@@ -631,6 +729,7 @@ class _ModbusWrite(PythonFileCTNMixin):
         datatacc = modbus_function_dict[function][6]
         # 'Coil', 'Holding Register', 'Input Discrete' or 'Input Register'
         dataname = modbus_function_dict[function][7]
+
         entries = []
 
         for offset in range(address, address + count):
@@ -645,7 +744,11 @@ class _ModbusWrite(PythonFileCTNMixin):
                 "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(offset),
                 "description": "description",
                 "children": []})
-        return entries
+
+        return {"name": name,
+                "type": LOCATION_CONFNODE,
+                "location": ".".join([str(i) for i in current_location]) + ".x",
+                "children": entries}
 
     # def GetNodeCount(self):
     #     return (0, 1, 0 )
@@ -1047,13 +1150,15 @@ class _ModbusTCPLoad(object):
 
         ReadRegistr = int(readAddr)
         ConfigTreeNode.CTNAddChild(self, 'Read_' + readAddr, 'ModbusRead')
+       # ConfigTreeNode.TestUpdate(self)
 
     def _Create_Write(self):
         global WriteRegistr
-        writeAddr = self.GetParamsAttributes()[0]["children"][5]["value"][1::]
+        writeAddr = self.GetParamsAttributes()[0]["children"][5]["value"]#[1::]
 
         WriteRegistr = int(writeAddr)
         ConfigTreeNode.CTNAddChild(self, 'Write_' + writeAddr, 'ModbusWrite')
+        #ConfigTreeNode.TestUpdate()
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
@@ -1135,6 +1240,34 @@ class RootClass(object):
         # ("ModbusRTUclient", _ModbusRTUclientPlug, "Modbus RTU Client"),
         # ("ModbusRTUslave", _ModbusRTUslavePlug,  "Modbus RTU Slave")
     ]
+
+    ConfNodeMethods = [
+        {
+            "bitmap": "sqliteBD",
+            "name": _("Load BD"),
+            "tooltip": _("Load_bd"),
+            "method": "_Load_bd"
+        }
+    ]
+
+
+    def _Load_bd(self):
+        dialog = wx.FileDialog(self.GetCTRoot().AppFrame, _("Choose a db3 file"), os.getcwd(), "",
+                               _("sqlite files|*.db3|*.svg|All files|*.*"), wx.OPEN)
+        if dialog.ShowModal() == wx.ID_OK:
+            dbpath = dialog.GetPath()
+            if os.path.isfile(dbpath):
+                 Load_SQLite(self, dbpath)
+            # else:
+            #     self.GetCTRoot().logger.write_error(_("No such SVG file: %s\n") % svgpath)
+        dialog.Destroy()
+        # global ReadRegistr
+        # readAddr = self.GetParamsAttributes()[0]["children"][4]["value"]  # [1::]
+        #
+        # ReadRegistr = int(readAddr)
+        # ConfigTreeNode.CTNAddChild(self, 'Read_' + readAddr, 'ModbusRead')
+
+    # ConfigTreeNode.TestUpdate(self)
 
     # Return the number of (modbus library) nodes this specific instance of the modbus plugin will need
     #   return type: (tcp nodes, rtu nodes, ascii nodes)
