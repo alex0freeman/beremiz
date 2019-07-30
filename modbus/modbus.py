@@ -633,43 +633,6 @@ class _ModbusWrite(object):
     #     global vraiableTree
     #     vraiableTree = self.GetVariableLocationTree()
 
-    # XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
-    #    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    #      <xsd:element name="ModbusFunctionLoad">
-    #        <xsd:complexType>
-    #          <xsd:attribute name="Function" type="xsd:string" use="optional" default="16 - Write Multiple Registers"/>
-    #
-    #          <xsd:attribute name="SlaveID" use="optional" default="1">
-    #            <xsd:simpleType>
-    #                <xsd:restriction base="xsd:integer">
-    #                    <xsd:minInclusive value="0"/>
-    #                    <xsd:maxInclusive value="255"/>
-    #                </xsd:restriction>
-    #            </xsd:simpleType>
-    #          </xsd:attribute>
-    #
-    #          <xsd:attribute name="Start_Address" use="optional" default="0">
-    #            <xsd:simpleType>
-    #                <xsd:restriction base="xsd:integer">
-    #                    <xsd:minInclusive value="0"/>
-    #                    <xsd:maxInclusive value="65535"/>
-    #                </xsd:restriction>
-    #            </xsd:simpleType>
-    #          </xsd:attribute>
-    #
-    #          <xsd:attribute name="Timeout_in_ms" use="optional" default="100">
-    #            <xsd:simpleType>
-    #                <xsd:restriction base="xsd:integer">
-    #                    <xsd:minInclusive value="1"/>
-    #                    <xsd:maxInclusive value="100000"/>
-    #                </xsd:restriction>
-    #            </xsd:simpleType>
-    #          </xsd:attribute>
-    #
-    #        </xsd:complexType>
-    #      </xsd:element>
-    #    </xsd:schema>
-    #    """
 
     # CTNChildrenTypes = [("ModbusRequestSignal", _RequestSignal, "Request")]
 
@@ -698,15 +661,15 @@ class _ModbusWrite(object):
                                     child["value"] = sigInfo[index][0]
                                 index += 1
 
-                    # if child["name"][0:11:] == "Description":
-                    #     if (WriteRegistr in allReg):
-                    #         sigInfo = allReg[WriteRegistr]
-                    #         index = 0
-                    #         self.countSignals = len(sigInfo)
-                    #         while index < self.countSignals:
-                    #             if child["name"] == "Description" + str(index):
-                    #                 child["value"] = sigInfo[index][1]
-                    #             index += 1
+                    if child["name"][0:11:] == "Description":
+                        if (WriteRegistr in allReg):
+                            sigInfo = allReg[WriteRegistr]
+                            index = 0
+                            self.countSignals = len(sigInfo)
+                            while index < self.countSignals:
+                                if child["name"] == "Description" + str(index):
+                                    child["value"] = sigInfo[index][1]
+                                index += 1
 
         return infos
 
@@ -1249,7 +1212,6 @@ class RootClass(object):
             "method": "_Load_bd"
         }
     ]
-
 
     def _Load_bd(self):
         dialog = wx.FileDialog(self.GetCTRoot().AppFrame, _("Choose a db3 file"), os.getcwd(), "",

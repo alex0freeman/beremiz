@@ -33,17 +33,16 @@ import sqlite3
 # tuple - (modbus function number, request type, max count value,
 # data_type, bit_size)
 modbus_function_dict = {
-    "01 - Read Coils":                ('1',  'req_input', 2000, "BOOL",  1, "Q", "X", "Coil"),
-   # "02 - Read Input Discretes":      ('2',  'req_input', 2000, "BOOL",  1, "I", "X", "Input Discrete"),
-    "03 - Read Holding Registers":    ('3',  'req_input',  125, "WORD", 16, "Q", "W", "Holding Register"),
-  #  "04 - Read Input Registers":      ('4',  'req_input',  125, "WORD", 16, "I", "W", "Input Register"),
- #   "05 - Write Single coil":         ('5', 'req_output',    1, "BOOL",  1, "Q", "X", "Coil"),
-    "06 - Write Single Register":     ('6', 'req_output',    1, "WORD", 16, "Q", "W", "Holding Register"),
-  #  "15 - Write Multiple Coils":     ('15', 'req_output', 1968, "BOOL",  1, "Q", "X", "Coil"),
-    "16 - Write Multiple Registers": ('16', 'req_output',  123, "WORD", 16, "Q", "W", "Holding Register")}
+    "01 - Read Coils": ('1', 'req_input', 2000, "BOOL", 1, "Q", "X", "Coil"),
+    # "02 - Read Input Discretes":      ('2',  'req_input', 2000, "BOOL",  1, "I", "X", "Input Discrete"),
+    "03 - Read Holding Registers": ('3', 'req_input', 125, "WORD", 16, "Q", "W", "Holding Register"),
+    #  "04 - Read Input Registers":      ('4',  'req_input',  125, "WORD", 16, "I", "W", "Input Register"),
+    #   "05 - Write Single coil":         ('5', 'req_output',    1, "BOOL",  1, "Q", "X", "Coil"),
+    "06 - Write Single Register": ('6', 'req_output', 1, "WORD", 16, "Q", "W", "Holding Register"),
+    #  "15 - Write Multiple Coils":     ('15', 'req_output', 1968, "BOOL",  1, "Q", "X", "Coil"),
+    "16 - Write Multiple Registers": ('16', 'req_output', 123, "WORD", 16, "Q", "W", "Holding Register")}
 
-
-#lacalDir = 'd:\\Valcom\\GITrep\\APS\\APS\\bin\\Debug\\Schema\\'
+# lacalDir = 'd:\\Valcom\\GITrep\\APS\\APS\\bin\\Debug\\Schema\\'
 lacalDir = 'c:\\OSSY-NG\\RunTime\\Schema\\'
 dbFile = '718W.db3'
 
@@ -61,42 +60,36 @@ allReg = {}
 
 dbPath = lacalDir + dbFile
 
+
 def Load_SQLite(self, dbPath):
     try:
 
         conn = sqlite3.connect(dbPath)
         c = conn.cursor()
-        #c.execute("select   GroupName   from tblGroupSignals")
-        #print(c.fetchone())
-
+        # c.execute("select   GroupName   from tblGroupSignals")
+        # print(c.fetchone())
 
         for row in c.execute('select  *   from tblMBServSignals'):
-           ServSignals.append(row)
-
-        # lstOs = []
-        # for row in c.execute('select  *   from tblOs'):
-        #    lstOs.append(row)
-
-        # for row in c.execute('select  *   from tblMBServer'):
-        #    lstMBServ.append(row)
-
-        # lstDataType = []
-        # for row in c.execute('select  *   from dirMbValueType'):
-        #    lstDataType.append(row)
-
+            ServSignals.append(row)
 
         cursor = c.execute('select rowid, *   from tblOs')
         columnList = list(map(lambda x: x[0], cursor.description))
-        dicData = OrderedDict((k,'') for k in list(map(lambda x: x[0], cursor.description)))
+        dicData = OrderedDict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
         for row in cursor:
-            lstOs.append(dict(zip(columnList, row)))
+            tmprow = list(row)
+            tmprow[3] = row[3].encode('utf-8')
+            lstOs.append(dict(zip(columnList, tmprow)))
 
-        #cursor = c.execute('select  rowid,*   from tblMBServSignals')
-        cursor = c.execute('SELECT serv.rowid, serv.ServerName, serv.ControlName, serv.MbAddr, serv.MbBit, serv.Scale, serv.Offset, tsig.Description FROM tblMBServSignals as serv left join tblSignals as tsig on serv.ControlName = tsig.ControlName ')
+        # cursor = c.execute('select  rowid,*   from tblMBServSignals')
+        cursor = c.execute(
+            'SELECT serv.rowid, serv.ServerName, serv.ControlName, serv.MbAddr, serv.MbBit, serv.Scale, serv.Offset, tsig.Description FROM tblMBServSignals as serv left join tblSignals as tsig on serv.ControlName = tsig.ControlName ')
         columnList = list(map(lambda x: x[0], cursor.description))
         dicData = dict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
         for row in cursor:
-            lstMBServSignals.append(dict(zip(columnList, row)))
+            tmprow = list(row)
+            if tmprow[7] is not None:
+                tmprow[7] = row[7].encode('utf-8')
+            lstMBServSignals.append(dict(zip(columnList, tmprow)))
 
         cursor = c.execute('select  rowid,*   from tblMBServer')
         columnList = list(map(lambda x: x[0], cursor.description))
@@ -104,49 +97,35 @@ def Load_SQLite(self, dbPath):
         for row in cursor:
             lstMBServ.append(dict(zip(columnList, row)))
 
-
         for x in lstOs:
-            if (x['Location'] == u'Вычислитель'):
+            if (x['Location'] == 'Вычислитель'):
                 ipLstBv.append(x["IP1"])
 
-
-
-
         for x in lstMBServSignals:
-            if(x['MbAddr'] >= 48000 and x['MbAddr'] < 48400):
+            if (x['MbAddr'] >= 48000 and x['MbAddr'] < 48400):
                 tostr = str(x['MbAddr'])
-                if(not mbReadAdrList.__contains__(tostr)):
+                if (not mbReadAdrList.__contains__(tostr)):
                     mbReadAdrList.append(tostr)
-            if (x['MbAddr'] >= 48400 ):
+            if (x['MbAddr'] >= 48400):
                 tostr = str(x['MbAddr'])
                 if (not mbWriteAdrList.__contains__(tostr)):
                     mbWriteAdrList.append(tostr)
 
-        # for reg in mbReadAdrList:
-        #     oneRgeistr =[]
-        #     for signal in lstMBServSignals:
-        #         if(signal['MbAddr'] == int(reg)):
-        #             oneRgeistr.append((signal['ControlName'],signal['MbBit']))
-        #     allReg = {reg:oneRgeistr}
-
         for reg in lstMBServSignals:
-            if(reg['MbAddr']  not in allReg):
+            if (reg['MbAddr'] not in allReg):
                 oneRgeistr = []
                 for signal in lstMBServSignals:
-                    if (signal['MbAddr'] == int(reg['MbAddr'] )):
+                    if signal['MbAddr'] == int(reg['MbAddr']):
                         desk = ""
                         if signal['Description'] is not None:
-                            desk = signal['Description'][0:5:]
+                            desk = signal['Description']#[0:5:]
 
                         oneRgeistr.insert(int(signal['MbBit']), [signal['ControlName'], desk])
-                        #oneRgeistr.append((signal['MbBit'],signal['ControlName'] ))
-                allReg[reg['MbAddr'] ] = oneRgeistr
+                allReg[reg['MbAddr']] = oneRgeistr
 
         t = 1
-    except Exception :
+    except Exception:
         pass
-
-
 
 
 # Configuration tree value acces helper
