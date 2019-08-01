@@ -118,7 +118,7 @@ def Load_SQLite(self, dbPath):
                     if signal['MbAddr'] == int(reg['MbAddr']):
                         desk = ""
                         if signal['Description'] is not None:
-                            desk = signal['Description']#[0:5:]
+                            desk = signal['Description']
 
                         oneRgeistr.insert(int(signal['MbBit']), [signal['ControlName'], desk])
                 allReg[reg['MbAddr']] = oneRgeistr
