@@ -61,10 +61,12 @@ allReg = {}
 dbPath = lacalDir + dbFile
 
 
-def Load_SQLite(self, dbPath):
+def Load_SQLite(self, dbPathlocal = None):
     try:
+        if dbPathlocal is None:
+            dbPathlocal = dbPath
 
-        conn = sqlite3.connect(dbPath)
+        conn = sqlite3.connect(dbPathlocal)
         c = conn.cursor()
         # c.execute("select   GroupName   from tblGroupSignals")
         # print(c.fetchone())
@@ -76,9 +78,9 @@ def Load_SQLite(self, dbPath):
         columnList = list(map(lambda x: x[0], cursor.description))
         dicData = OrderedDict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
         for row in cursor:
-            tmprow = list(row)
-            tmprow[3] = row[3].encode('utf-8')
-            lstOs.append(dict(zip(columnList, tmprow)))
+            # tmprow = list(row)
+            # tmprow[3] = row[3].encode('utf-8')
+            lstOs.append(dict(zip(columnList, row)))
 
         # cursor = c.execute('select  rowid,*   from tblMBServSignals')
         cursor = c.execute(
@@ -86,10 +88,10 @@ def Load_SQLite(self, dbPath):
         columnList = list(map(lambda x: x[0], cursor.description))
         dicData = dict((k, '') for k in list(map(lambda x: x[0], cursor.description)))
         for row in cursor:
-            tmprow = list(row)
-            if tmprow[7] is not None:
-                tmprow[7] = row[7].encode('utf-8')
-            lstMBServSignals.append(dict(zip(columnList, tmprow)))
+            # tmprow = list(row)
+            # if tmprow[7] is not None:
+            #     tmprow[7] = row[7].encode('utf-8')
+            lstMBServSignals.append(dict(zip(columnList, row)))
 
         cursor = c.execute('select  rowid,*   from tblMBServer')
         columnList = list(map(lambda x: x[0], cursor.description))
@@ -98,7 +100,7 @@ def Load_SQLite(self, dbPath):
             lstMBServ.append(dict(zip(columnList, row)))
 
         for x in lstOs:
-            if (x['Location'] == 'Вычислитель'):
+            if (x['Location'] == u'Вычислитель'):
                 ipLstBv.append(x["IP1"])
 
         for x in lstMBServSignals:
@@ -111,16 +113,24 @@ def Load_SQLite(self, dbPath):
                 if (not mbWriteAdrList.__contains__(tostr)):
                     mbWriteAdrList.append(tostr)
 
+        # for reg in lstMBServSignals:
+        #     if (reg['MbAddr'] not in allReg):
+        #         oneRgeistr = []
+        #         for signal in lstMBServSignals:
+        #             if signal['MbAddr'] == int(reg['MbAddr']):
+        #                 desk = ""
+        #                 if signal['Description'] is not None:
+        #                     desk = signal['Description']
+        #
+        #                 oneRgeistr.insert(int(signal['MbBit']) , [signal['ControlName'], desk])
+        #         allReg[reg['MbAddr']] = oneRgeistr
         for reg in lstMBServSignals:
             if (reg['MbAddr'] not in allReg):
                 oneRgeistr = []
                 for signal in lstMBServSignals:
-                    if signal['MbAddr'] == int(reg['MbAddr']):
-                        desk = ""
-                        if signal['Description'] is not None:
-                            desk = signal['Description']
-
-                        oneRgeistr.insert(int(signal['MbBit']), [signal['ControlName'], desk])
+                    if (signal['MbAddr'] == int(reg['MbAddr'])):
+                        oneRgeistr.insert(int(signal['MbBit']), [signal['ControlName'], signal['Description']])
+                        # oneRgeistr.append((signal['MbBit'],signal['ControlName'] ))
                 allReg[reg['MbAddr']] = oneRgeistr
 
         t = 1

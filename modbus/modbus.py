@@ -395,37 +395,21 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
             </xsd:simpleType>
             </xsd:attribute>                
             <xsd:attribute name="Signal_name0" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description0" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name1" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description1" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name2" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description2" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name3" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description3" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name4" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description4" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name5" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description5" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name6" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description6" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name7" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description7" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name8" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description8" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name9" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description9" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name10" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description10" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name11" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description11" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name12" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description12" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name13" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description13" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name14" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description14" type="xsd:string" use="optional"/>
             <xsd:attribute name="Signal_name15" type="xsd:string" use="optional" default=""/>
-            <xsd:attribute name="Description15" type="xsd:string" use="optional"/> 
            </xsd:complexType>
          </xsd:element>
        </xsd:schema>
@@ -445,54 +429,22 @@ XSDwrite = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                    </xsd:restriction>
                 </xsd:simpleType>
                 </xsd:attribute>                
-
-                <xsd:attribute name="Signal_name0" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description0" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name1" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description1" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name2" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description2" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name3" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description3" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name4" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description4" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name5" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description5" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name6" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description6" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name7" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description7" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name8" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description8" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name9" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description9" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name10" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description10" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name11" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description11" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name12" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description12" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name13" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description13" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name14" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description14" type="xsd:string" use="optional"/>
-
-                <xsd:attribute name="Signal_name15" type="xsd:string" use="optional" default=""/>
-                <xsd:attribute name="Description15" type="xsd:string" use="optional"/>      
+            <xsd:attribute name="Signal_name0" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name1" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name2" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name3" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name4" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name5" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name6" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name7" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name8" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name9" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name10" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name11" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name12" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name13" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name14" type="xsd:string" use="optional" default=""/>
+            <xsd:attribute name="Signal_name15" type="xsd:string" use="optional" default=""/>    
 
            </xsd:complexType>
          </xsd:element>
@@ -534,16 +486,6 @@ class _ModbusRead(object):
                                     child["value"] = sigInfo[index][0]
                                 index +=1
 
-                    if child["name"][0:11:] == "Description":
-                        if (ReadRegistr in allReg):
-                            sigInfo = allReg[ReadRegistr]
-                            index = 0
-                            self.countSignals = len(sigInfo)
-                            # while index < self.countSignals:
-                            #     if child["name"] == "Description" + str(index):
-                            #         child["value"] = sigInfo[index][1]
-                            #     index += 1
-
         return infos
 
     def GetVariableLocationTree(self):
@@ -553,6 +495,13 @@ class _ModbusRead(object):
         function = self.GetParamsAttributes()[0]["children"][0]["value"]
         address = self.GetParamsAttributes()[0]["children"][1]["value"]
         count = self.countSignals
+        sig0 = self.GetParamsAttributes()[0]["children"][2]["value"]
+        sig1 = self.GetParamsAttributes()[0]["children"][3]["value"]
+        sig2 = self.GetParamsAttributes()[0]["children"][4]["value"]
+        sig3 = self.GetParamsAttributes()[0]["children"][5]["value"]
+        sig4 = self.GetParamsAttributes()[0]["children"][6]["value"]
+        sig5 = self.GetParamsAttributes()[0]["children"][7]["value"]
+
 
         # 'BOOL' or 'WORD'
         datatype = modbus_function_dict[function][3]
@@ -643,11 +592,11 @@ class _ModbusWrite(object):
                                     child["value"] = sigInfo[index][0]
                                 index += 1
 
-                    if child["name"][0:11:] == "Description":
-                        if (WriteRegistr in allReg):
-                            sigInfo = allReg[WriteRegistr]
-                            index = 0
-                            self.countSignals = len(sigInfo)
+                    # if child["name"][0:11:] == "Description":
+                    #     if (WriteRegistr in allReg):
+                    #         sigInfo = allReg[WriteRegistr]
+                    #         index = 0
+                    #         self.countSignals = len(sigInfo)
                             # while index < self.countSignals:
                             #     if child["name"] == "Description" + str(index):
                             #         child["value"] = sigInfo[index][1]
@@ -1159,6 +1108,8 @@ class _ModbusTCPLoad(object):
 
 
 class RootClass(object):
+    def __init__(self):
+        Load_SQLite(self )
     XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
     <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
       <xsd:element name="ModbusRoot">
