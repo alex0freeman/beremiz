@@ -194,7 +194,7 @@ class _ModbusFunctionLoad():
        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
          <xsd:element name="ModbusFunctionLoad">
            <xsd:complexType>
-             <xsd:attribute name="Function" type="xsd:string" use="optional" default="03 - Read Holding Registers"/>
+             <xsd:attribute name="Function" type="xsd:string" use="optional"  />
                
              <xsd:attribute name="Start_Address" use="optional" default="0">
                <xsd:simpleType>
@@ -677,7 +677,7 @@ class _ModbusFunction(object):
        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
          <xsd:element name="ModbusFunction">
            <xsd:complexType>
-             <xsd:attribute name="Function" type="xsd:string" use="optional" default="01 - Read Coils"/>
+             <xsd:attribute name="Function" type="xsd:string" use="optional" default="03 - Read Holding Registers"/>
 
              <xsd:attribute name="SlaveID" use="optional" default="1">
                <xsd:simpleType>
@@ -1321,8 +1321,8 @@ class RootClass(object):
                                 # TODO сделать тут разбивку на биты или на стороне Си кода
                                 loc_vars.append(
                                     "u16 *" + str(iecvarname) + " = &client_requests[%d].plcv_buffer[%d]  ;" % (
-                                    client_requestid, relative_addr, int(iecvarname[
-                                                                             -1]) - 1))  # подставляем наши значение в индексы массива client_requests
+                                    #client_requestid, relative_addr, int(iecvarname[-1]) - 1))  # подставляем наши значение в индексы массива client_requests
+                                    client_requestid, relative_addr ))
                                 loc_vars_list.append(str(iecvarname))
                     client_requestid += 1
                 tcpclient_node_count += 1
