@@ -158,138 +158,146 @@ static int __execute_mb_request(int request_id){
 	return -1;
 }
 
-
-
-/* pack bits from unpacked_data to packed_data */
-static inline int __pack_bits(u16 *unpacked_data, u16 start_addr, u16 bit_count,  u8  *packed_data) {
-  u8 bit;
-  u16 byte, coils_processed;
-
-  if ((0 == bit_count) || (65535-start_addr < bit_count-1))
-    return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
-
-  for( byte = 0, coils_processed = 0; coils_processed < bit_count; byte++) {
-    packed_data[byte] = 0;
-    for( bit = 0x01; (bit & 0xFF) && (coils_processed < bit_count); bit <<= 1, coils_processed++ ) {
-      if(unpacked_data[start_addr + coils_processed])
-            packed_data[byte] |=  bit; /*   set bit */
-      else  packed_data[byte] &= ~bit; /* reset bit */
-    }
-  }
-
-  //__savelogs_("pack bits");
-  return 0;
-}
-
-
-/* unpack bits from packed_data to unpacked_data */
-static inline int __unpack_bits(u16 *unpacked_data, u16 start_addr, u16 bit_count,  u8  *packed_data) {
-  u8  temp, bit;
-  u16 byte, coils_processed;
-
-  if ((0 == bit_count) || (65535-start_addr < bit_count-1))
-    return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
-
-  for(byte = 0, coils_processed = 0; coils_processed < bit_count; byte++) {
-    temp = packed_data[byte] ;
-    for(bit = 0x01; (bit & 0xff) && (coils_processed < bit_count); bit <<= 1, coils_processed++) {
-      unpacked_data[start_addr + coils_processed] = (temp & bit)?1:0;
-    }
-  }
-
-   //__savelogs_("UNpack bits");
-  return 0;
-}
-
-
-static int __read_inbits   (void *mem_map, u16 start_addr, u16 bit_count, u8  *data_bytes)
-  {return   __pack_bits(((server_mem_t *)mem_map)->ro_bits, start_addr, bit_count, data_bytes);}
-static int __read_outbits  (void *mem_map, u16 start_addr, u16 bit_count, u8  *data_bytes)
-  {return   __pack_bits(((server_mem_t *)mem_map)->rw_bits, start_addr, bit_count, data_bytes);}
-static int __write_outbits (void *mem_map, u16 start_addr, u16 bit_count, u8  *data_bytes)
-  {return __unpack_bits(((server_mem_t *)mem_map)->rw_bits, start_addr, bit_count, data_bytes); }
-
-
-
-static int __read_inwords  (void *mem_map, u16 start_addr, u16 word_count, u16 *data_words) {
-
-  if ((start_addr + word_count) > MEM_AREA_SIZE)
-    return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
-
-  /* use memcpy() because loop with pointers (u16 *) caused alignment problems */
-  memcpy(/* dest */ (void *)data_words,
-         /* src  */ (void *)&(((server_mem_t *)mem_map)->ro_words[start_addr]),
-         /* size */ word_count * 2);
-
- // __savelogs_("read input word");
-  return 0;
-}
-
-
-
-static int __read_outwords (void *mem_map, u16 start_addr, u16 word_count, u16 *data_words) {
-
-  if ((start_addr + word_count) > MEM_AREA_SIZE)
-    return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
-
-  /* use memcpy() because loop with pointers (u16 *) caused alignment problems */
-  memcpy(/* dest */ (void *)data_words,
-         /* src  */ (void *)&(((server_mem_t *)mem_map)->rw_words[start_addr]),
-         /* size */ word_count * 2);
-
-  //__savelogs_("read out word");
-  return 0;
-}
-
-
-
-
-static int __write_outwords(void *mem_map, u16 start_addr, u16 word_count, u16 *data_words) {
-
-  if ((start_addr + word_count) > MEM_AREA_SIZE)
-    return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
-
-  /* WARNING: The data returned in the data_words[] array is not guaranteed to be 16 bit aligned.
-   *           It is not therefore safe to cast it to an u16 data type.
-   *           The following code cannot be used. memcpy() is used instead.
-   */
-  /*
-  for (count = 0; count < word_count ; count++)
-    ((server_mem_t *)mem_map)->rw_words[count + start_addr] = data_words[count];
-  */
-  memcpy(/* dest */ (void *)&(((server_mem_t *)mem_map)->rw_words[start_addr]),
-         /* src  */ (void *)data_words,
-         /* size */ word_count * 2);
-
-  //__savelogs_("save out word");
-  return 0;
-}
-
+//
+//
+///* pack bits from unpacked_data to packed_data */
+//static inline int __pack_bits(u16 *unpacked_data, u16 start_addr, u16 bit_count,  u8  *packed_data)
+//{
+//  u8 bit;
+//  u16 byte, coils_processed;
+//
+//  if ((0 == bit_count) || (65535-start_addr < bit_count-1))
+//    return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
+//
+//  for( byte = 0, coils_processed = 0; coils_processed < bit_count; byte++)
+//   {
+//    packed_data[byte] = 0;
+//    for( bit = 0x01; (bit & 0xFF) && (coils_processed < bit_count); bit <<= 1, coils_processed++ )
+//    {
+//      if(unpacked_data[start_addr + coils_processed])
+//            packed_data[byte] |=  bit; /*   set bit */
+//      else  packed_data[byte] &= ~bit; /* reset bit */
+//    }
+//  }
+//
+//  //__savelogs_("pack bits");
+//  return 0;
+//}
+//
+//
+///* unpack bits from packed_data to unpacked_data */
+//static inline int __unpack_bits(u16 *unpacked_data, u16 start_addr, u16 bit_count,  u8  *packed_data)
+//{
+//  u8  temp, bit;
+//  u16 byte, coils_processed;
+//
+//  if ((0 == bit_count) || (65535-start_addr < bit_count-1))
+//    return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
+//
+//  for(byte = 0, coils_processed = 0; coils_processed < bit_count; byte++)
+//   {
+//    temp = packed_data[byte] ;
+//    for(bit = 0x01; (bit & 0xff) && (coils_processed < bit_count); bit <<= 1, coils_processed++)
+//     {
+//      unpacked_data[start_addr + coils_processed] = (temp & bit)?1:0;
+//    }
+//  }
+//
+//   //__savelogs_("UNpack bits");
+//  return 0;
+//}
+//
+//
+//static int __read_inbits   (void *mem_map, u16 start_addr, u16 bit_count, u8  *data_bytes)
+//  {return   __pack_bits(((server_mem_t *)mem_map)->ro_bits, start_addr, bit_count, data_bytes);}
+//
+//static int __read_outbits  (void *mem_map, u16 start_addr, u16 bit_count, u8  *data_bytes)
+//  {return   __pack_bits(((server_mem_t *)mem_map)->rw_bits, start_addr, bit_count, data_bytes);}
+//
+//static int __write_outbits (void *mem_map, u16 start_addr, u16 bit_count, u8  *data_bytes)
+//  {return __unpack_bits(((server_mem_t *)mem_map)->rw_bits, start_addr, bit_count, data_bytes); }
+//
+//
+//
+//static int __read_inwords  (void *mem_map, u16 start_addr, u16 word_count, u16 *data_words) {
+//
+//  if ((start_addr + word_count) > MEM_AREA_SIZE)
+//    return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
+//
+//  /* use memcpy() because loop with pointers (u16 *) caused alignment problems */
+//  memcpy(/* dest */ (void *)data_words,
+//         /* src  */ (void *)&(((server_mem_t *)mem_map)->ro_words[start_addr]),
+//         /* size */ word_count * 2);
+//
+// // __savelogs_("read input word");
+//  return 0;
+//}
+//
+//
+//
+//static int __read_outwords (void *mem_map, u16 start_addr, u16 word_count, u16 *data_words) {
+//
+//  if ((start_addr + word_count) > MEM_AREA_SIZE)
+//    return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
+//
+//  /* use memcpy() because loop with pointers (u16 *) caused alignment problems */
+//  memcpy(/* dest */ (void *)data_words,
+//         /* src  */ (void *)&(((server_mem_t *)mem_map)->rw_words[start_addr]),
+//         /* size */ word_count * 2);
+//
+//  //__savelogs_("read out word");
+//  return 0;
+//}
+//
+//
+//
+//
+//static int __write_outwords(void *mem_map, u16 start_addr, u16 word_count, u16 *data_words) {
+//
+//  if ((start_addr + word_count) > MEM_AREA_SIZE)
+//    return -ERR_ILLEGAL_DATA_ADDRESS; /* ERR_ILLEGAL_DATA_ADDRESS defined in mb_util.h */
+//
+//  /* WARNING: The data returned in the data_words[] array is not guaranteed to be 16 bit aligned.
+//   *           It is not therefore safe to cast it to an u16 data type.
+//   *           The following code cannot be used. memcpy() is used instead.
+//   */
+//  /*
+//  for (count = 0; count < word_count ; count++)
+//    ((server_mem_t *)mem_map)->rw_words[count + start_addr] = data_words[count];
+//  */
+//  memcpy(/* dest */ (void *)&(((server_mem_t *)mem_map)->rw_words[start_addr]),
+//         /* src  */ (void *)data_words,
+//         /* size */ word_count * 2);
+//
+//  //__savelogs_("save out word");
+//  return 0;
+//}
+//
 
 
 
 #include <pthread.h>
 
-static void *__mb_server_thread(void *_server_node)  {
-	server_node_t *server_node = _server_node;
-	mb_slave_callback_t callbacks = {
-			&__read_inbits,
-			&__read_outbits,
-			&__write_outbits,
-			&__read_inwords,
-			&__read_outwords,
-			&__write_outwords,
-			(void *)&(server_node->mem_area)
-			};
-
-	// Enable thread cancellation. Enabled is default, but set it anyway to be safe.
-	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-
-	// mb_slave_run() should never return!
-	mb_slave_run(server_node->mb_nd /* nd */, callbacks, server_node->slave_id);
-	fprintf(stderr, "Modbus plugin: Modbus server for node %%s died unexpectedly!\n", server_node->location); /* should never occur */
-	return NULL;
-}
+//static void *__mb_server_thread(void *_server_node)  {
+//	server_node_t *server_node = _server_node;
+//	mb_slave_callback_t callbacks = {
+//			&__read_inbits,
+//			&__read_outbits,
+//			&__write_outbits,
+//			&__read_inwords,
+//			&__read_outwords,
+//			&__write_outwords,
+//			(void *)&(server_node->mem_area)
+//			};
+//
+//	// Enable thread cancellation. Enabled is default, but set it anyway to be safe.
+//	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+//
+//	// mb_slave_run() should never return!
+//	mb_slave_run(server_node->mb_nd /* nd */, callbacks, server_node->slave_id);
+//	fprintf(stderr, "Modbus plugin: Modbus server for node %%s died unexpectedly!\n", server_node->location); /* should never occur */
+//	return NULL;
+//}
 
 
 #define timespec_add(ts, sec, nsec) {		\
