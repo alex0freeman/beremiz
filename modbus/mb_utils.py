@@ -185,7 +185,7 @@ DEF_REQ_SEND_RETRIES, 0 /* error_code */, 0 /* prev_code */, {%(timeout_s)d, %(t
 
 
 
-def GetClientRequestRegisters(self, child ):
+def GetClientRequestRegisters(self, child, nodeid):
     """
     Outputs a string to be used on C files
     params: child - the correspondent subplugin in Beremiz
@@ -197,11 +197,9 @@ def GetClientRequestRegisters(self, child ):
 
     req_init_template = '''{ %(address)s ,  {%(num_bit)s}}'''
 
-
-
     request_dict = {
         "address": GetCTVal(child, 3),
-        "num_bit": GetCTVal(child, 2),
+        "num_bit": nodeid,
         }
 
     # if int(request_dict["slaveid"]) not in xrange(256):

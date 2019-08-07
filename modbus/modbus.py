@@ -270,6 +270,7 @@ class _RequestSignalRead(object):
         name = self.BaseParams.getName()
 
         signame = self.GetParamsAttributes()[0]["children"][0]["value"]
+        count = self.GetParamsAttributes()[0]["children"][2]["value"]
 
         bit = self.GetParamsAttributes()[0]["children"][1]["value"]
 
@@ -1186,7 +1187,7 @@ class RootClass(object):
                     if new_req is None:
                         return [], "", False
 
-                    new_node_registr = GetClientRequestRegisters(self, subchild)
+                    new_node_registr = GetClientRequestRegisters(self, subchild, client_requestid)
                     if new_node_registr is None:
                         return [], "", False
 

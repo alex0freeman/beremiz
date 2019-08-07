@@ -149,8 +149,6 @@ static server_node_t		server_nodes[NUMBER_OF_SERVER_NODES] = {
 };
 
 
-
-
 static request_registers_t request_registers[NUMBER_OF_REGISTER] = {
 %(registers_params)s
 };
