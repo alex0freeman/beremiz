@@ -33,14 +33,16 @@ import sqlite3
 # tuple - (modbus function number, request type, max count value,
 # data_type, bit_size)
 modbus_function_dict = {
-    "01 - Read Coils":                ('1',  'req_input', 2000, "BOOL",  1, "Q", "X", "Coil"),
-   # "02 - Read Input Discretes":      ('2',  'req_input', 2000, "BOOL",  1, "I", "X", "Input Discrete"),
-    "03 - Read Holding Registers":    ('3',  'req_input',  125, "WORD", 16, "Q", "W", "Holding Register"),
-  #  "04 - Read Input Registers":      ('4',  'req_input',  125, "WORD", 16, "I", "W", "Input Register"),
- #   "05 - Write Single coil":         ('5', 'req_output',    1, "BOOL",  1, "Q", "X", "Coil"),
-    "06 - Write Single Register":     ('6', 'req_output',    1, "WORD", 16, "Q", "W", "Holding Register"),
-  #  "15 - Write Multiple Coils":     ('15', 'req_output', 1968, "BOOL",  1, "Q", "X", "Coil"),
-    "16 - Write Multiple Registers": ('16', 'req_output',  123, "WORD", 16, "Q", "W", "Holding Register")}
+    "00 - Read Coils":          ('1', 'req_input', 2000, "BOOL", 1, "Q", "X", "Coil"),
+    "01 - Read sig":                    ('1',   'req_input', 1, "BOOL", 1, "Q", "X", "Read Signal"),
+    "02 - Write Sig":                   ('1',   'req_input', 1, "BOOL", 1, "Q", "X", "Write Signal"),
+   #"02 - Read Input Discretes":        ('2',   'req_input', 2000, "BOOL",  1, "I", "X", "Input Discrete"),
+    "03 - Read Holding Registers":      ('3',   'req_input',  125, "WORD", 16, "Q", "W", "Holding Register"),
+    #"04 - Read Input Registers":       ('4',   'req_input',  125, "WORD", 16, "I", "W", "Input Register"),
+    #"05 - Write Single coil":          ('5',   'req_output',    1, "BOOL",  1, "Q", "X", "Coil"),
+    "06 - Write Single Register":       ('6',   'req_output',    1, "WORD", 16, "Q", "W", "Holding Register"),
+    #"15 - Write Multiple Coils":       ('15',  'req_output', 1968, "BOOL",  1, "Q", "X", "Coil"),
+    "16 - Write Multiple Registers":    ('16',  'req_output',  123, "WORD", 16, "Q", "W", "Holding Register")}
 
 
 #lacalDir = 'd:\\Valcom\\GITrep\\APS\\APS\\bin\\Debug\\Schema\\'
@@ -178,5 +180,45 @@ DEF_REQ_SEND_RETRIES, 0 /* error_code */, 0 /* prev_code */, {%(timeout_s)d, %(t
         self.GetCTRoot().logger.write_error(
             "Modbus plugin: Invalid number of channels in TCP client request node %(locreqstr)s (start_address + nr_channels must be less than 65536)\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
         return None
+
+    return req_init_template % request_dict
+
+
+
+def GetClientRequestRegisters(self, child ):
+    """
+    Outputs a string to be used on C files
+    params: child - the correspondent subplugin in Beremiz
+            nodeid - on C code, each request has it's own parent node (sequential, 0..NUMBER_OF_NODES)
+                     It's this parameter.
+    return: None - if any definition error found
+            The string that should be added on C code - if everything goes allright
+    """
+
+    req_init_template = '''{ %(address)s ,  {%(num_bit)s}}'''
+
+
+
+    request_dict = {
+        "address": GetCTVal(child, 3),
+        "num_bit": GetCTVal(child, 2),
+        }
+
+    # if int(request_dict["slaveid"]) not in xrange(256):
+    #     self.GetCTRoot().logger.write_error(
+    #         "Modbus plugin: Invalid slaveID in TCP client request node %(locreqstr)s (Must be in the range [0..255])\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
+    #     return None
+    # if int(request_dict["address"]) not in xrange(65536):
+    #     self.GetCTRoot().logger.write_error(
+    #         "Modbus plugin: Invalid Start Address in TCP client request node %(locreqstr)s (Must be in the range [0..65535])\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
+    #     return None
+    # if int(request_dict["count"]) not in xrange(1, 1 + int(request_dict["maxcount"])):
+    #     self.GetCTRoot().logger.write_error(
+    #         "Modbus plugin: Invalid number of channels in TCP client request node %(locreqstr)s (Must be in the range [1..%(maxcount)s])\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
+    #     return None
+    # if (int(request_dict["address"]) + int(request_dict["count"])) not in xrange(1, 65537):
+    #     self.GetCTRoot().logger.write_error(
+    #         "Modbus plugin: Invalid number of channels in TCP client request node %(locreqstr)s (start_address + nr_channels must be less than 65536)\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
+    #     return None
 
     return req_init_template % request_dict

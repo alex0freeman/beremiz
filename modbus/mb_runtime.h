@@ -12,7 +12,7 @@
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser
  * General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
@@ -43,7 +43,7 @@ typedef struct{
 	    const char *location;
 	    u8		slave_id;
 	    node_addr_t	node_address;
-	    int		mb_nd;      // modbus library node used for this server 
+	    int		mb_nd;      // modbus library node used for this server
 	    int		init_state; // store how far along the server's initialization has progressed
 	    pthread_t	thread_id;  // thread handling this server
 	    server_mem_t	mem_area;
@@ -57,7 +57,7 @@ typedef struct{
 	    int		mb_nd;
 	    int		init_state; // store how far along the client's initialization has progressed
 	    u64		comm_period;
-	    int		prev_error; // error code of the last printed error message (0 when no error) 
+	    int		prev_error; // error code of the last printed error message (0 when no error)
 	    pthread_t	thread_id;  // thread handling all communication with this client
 	} client_node_t;
 
@@ -80,15 +80,22 @@ typedef struct{
 	    u16		count;
 	    int		retries;
 	    u8		error_code; // modbus error code (if any) of current request
-	    int		prev_error; // error code of the last printed error message (0 when no error) 
+	    int		prev_error; // error code of the last printed error message (0 when no error)
 	    struct timespec resp_timeout;
 	      // buffer used to store located PLC variables
 	    u16		plcv_buffer[REQ_BUF_SIZE];
 	      // buffer used to store data coming from / going to server
-	    u16		coms_buffer[REQ_BUF_SIZE]; 
+	    u16		coms_buffer[REQ_BUF_SIZE];
 	    pthread_mutex_t coms_buf_mutex; // mutex to access coms_buffer[]
 	} client_request_t;
 
+
+#define RGISTR_SIZE 16
+typedef struct{
+	    u16     address;
+	    u16	    num_bit[RGISTR_SIZE];
+
+	} request_registers_t;
 
 /* The total number of nodes, needed to support _all_ instances of the modbus plugin */
 #define TOTAL_TCPNODE_COUNT       %(total_tcpnode_count)s
@@ -123,6 +130,8 @@ typedef struct{
                                 NUMBER_OF_ASCIICLIENT_REQTS)
 
 
+#define NUMBER_OF_REGISTER %(registers_count)s
+
 /*initialization following all parameters given by user in application*/
 
 static client_node_t		client_nodes[NUMBER_OF_CLIENT_NODES] = {
@@ -137,8 +146,14 @@ static client_request_t	client_requests[NUMBER_OF_CLIENT_REQTS] = {
 
 static server_node_t		server_nodes[NUMBER_OF_SERVER_NODES] = {
 %(server_nodes_params)s
-}
-;
+};
+
+
+
+
+static request_registers_t request_registers[NUMBER_OF_REGISTER] = {
+%(registers_params)s
+};
 
 /*******************/
 /*located variables*/
