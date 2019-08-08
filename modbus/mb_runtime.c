@@ -45,15 +45,14 @@ static const char *modbus_error_messages[MAX_MODBUS_ERROR_CODE+1] = {
     /* 11*/ "gateway target device failed to respond"
 };
 
-
+#define BIT_IN_WORD 16
 
 /* pack bits from unpacked_data to packed_data */
 static inline void  __pack_bits(request_registers_t *unpacked_data, u16  *packed_data) {
   u8    bit_processed, allbits;
   u16 temp, byte;
-  allbits = 15;
 
-  for(bit_processed = 0; bit_processed < allbits; bit_processed++)
+  for(bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)
   {
      temp = *packed_data;
       if(unpacked_data->num_bit[bit_processed]){
@@ -62,8 +61,7 @@ static inline void  __pack_bits(request_registers_t *unpacked_data, u16  *packed
       else{
         temp &= ~(1 << bit_processed); /* reset bit */
       }
-
-      fprintf(stderr, "Check paking bit  %%d ---\n", unpacked_data->num_bit[bit_processed]);
+      //fprintf(stderr, "Check paking bit  %%d ---\n", unpacked_data->num_bit[bit_processed]);
       *packed_data =  temp;
     }
 }
@@ -74,15 +72,13 @@ static inline void  __unpack_bits(request_registers_t *unpacked_data, u16  *pack
 {
   u8    bit_processed, allbits;
   u16 temp, byte;
-  allbits = 15;
 
-  for(bit_processed = 0; bit_processed < allbits; bit_processed++)
+  for(bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)
   {
     temp = *packed_data;
-    //for(bit = 0x01; (bit & 0xff) && (coils_processed < bit_count); bit <<= 1, coils_processed++) {
 
     unpacked_data->num_bit[bit_processed] = (temp  >> bit_processed) & 1;
-    fprintf(stderr, "Check unpacking bit %%d ---\n", unpacked_data->num_bit[bit_processed]);
+    //fprintf(stderr, "Check unpacking bit %%d ---\n", unpacked_data->num_bit[bit_processed]);
      *packed_data =  temp;
   }
 }
@@ -207,17 +203,30 @@ static int __execute_mb_request_in(int request_id){
 	return -1;
 }
 
+static void __print_structure(request_registers_t *unpacked_data, int request_id )
+{
+u8    bit_processed, allbits;
+    for(bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)
+  {
+    fprintf(stderr, "bits in structure %%d ---\n", unpacked_data->num_bit[bit_processed]);
+  }
+ fprintf(stderr, "--2 bits  structure %%d in request %%d  ---\n", unpacked_data->num_bit[1], request_id);
+
+}
+
 static int __execute_mb_request(int request_id){
 int ret = 0;
 
     fprintf(stderr, "request id %%d  \n", request_id);
-    fprintf(stderr, "request address %%d  \n", client_requests[request_id].address);
-    fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
+   // fprintf(stderr, "request address %%d  \n", client_requests[request_id].address);
+  //  fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
 
      if(client_requests[request_id].mb_function == 16)
     {
         __pack_bits(&request_registers[request_id] ,  &client_requests[request_id].plcv_buffer[0]);
     }
+
+
 
     ret = __execute_mb_request_in(request_id);
 
@@ -225,6 +234,9 @@ int ret = 0;
     {
         __unpack_bits(&request_registers[request_id] ,  &client_requests[request_id].plcv_buffer[0]);
     }
+
+    __print_structure(&request_registers[request_id], request_id);
+
 
 	 return ret;
 }
@@ -696,5 +708,3 @@ int __cleanup_%(locstr)s (){
 
 	return res;
 }
-
- 
