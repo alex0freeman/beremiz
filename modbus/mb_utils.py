@@ -199,7 +199,7 @@ def GetClientRequestRegisters(self, child, nodeid):
 
     request_dict = {
         "address": GetCTVal(child, 3),
-        "num_bit": nodeid,
+        "num_bit": 0 # GetCTVal(child, 2),# nodeid,
         }
 
     # if int(request_dict["slaveid"]) not in xrange(256):
