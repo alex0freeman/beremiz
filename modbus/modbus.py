@@ -151,7 +151,7 @@ class _RequestSignalWrite(object):
 
     XSD = """<?xml version="1.0" encoding="ISO-8859-1" ?>
     <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-     <xsd:element name="MBSigRead">
+     <xsd:element name="MBSigWrite">
        <xsd:complexType>
           <xsd:attribute name="Signal_name" type="xsd:string" use="optional" default="signal00"/>
 
@@ -270,7 +270,7 @@ class _RequestSignalRead(object):
         name = self.BaseParams.getName()
 
         signame = self.GetParamsAttributes()[0]["children"][0]["value"]
-        count = self.GetParamsAttributes()[0]["children"][2]["value"]
+        #count = self.GetParamsAttributes()[0]["children"][2]["value"]
 
         bit = self.GetParamsAttributes()[0]["children"][1]["value"]
 
@@ -318,7 +318,7 @@ class _RequestSignalRead(object):
 
 XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-         <xsd:element name="MBread">
+         <xsd:element name="Read">
            <xsd:complexType>
              <xsd:attribute name="Function" type="xsd:string" use="optional" default="01 - Read sig"/>
 
@@ -365,7 +365,7 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
 
 XSDwrite = """<?xml version="1.0" encoding="ISO-8859-1" ?>
        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-         <xsd:element name="MBwrite">
+         <xsd:element name="Write">
            <xsd:complexType>
              <xsd:attribute name="Function" type="xsd:string" use="optional" default="02 - Write Sig"/>
 
@@ -945,8 +945,8 @@ class _ModbusTCPNode(object):
     # corresponds to aprox 25 days.
     CTNChildrenTypes = [
        # ("ModbusFunctionLoad", _ModbusFunctionLoad, "Request"),
-        ("ModbusRead", _ModbusRead, "Request"),
-        ("ModbusWrite", _ModbusWrite, "Request")]
+        ("Read", _ModbusRead, "Request"),
+        ("Write", _ModbusWrite, "Request")]
 
 
     # TODO: Replace with CTNType !!!
@@ -1114,57 +1114,28 @@ class RootClass(object):
             # print ">>>>>>>>>>>>>"
             #
 
-
             if child.PlugType == "ModbusTCPclient":
                 tcpclient_reqs_count += len(child.IECSortedChildren())
                 new_node = GetTCPClientNodePrinted(self, child)
-
-
                 if new_node is None:
                     return [], "", False
-
-
                 client_node_list.append(new_node)
-
-
-                #old
-                # new_node = GetTCPClientNodePrinted(self, child)
-                #
-                # if new_node is None:
-                #     return [], "", False
-                # client_node_list.append(new_node)
                 for subchild in child.IECSortedChildren():
-                    new_req = GetClientRequestPrinted(self, subchild, client_nodeid)
+                    new_req = GetClientRequestPrinted(
+                        self, subchild, client_nodeid)
                     if new_req is None:
                         return [], "", False
-
-                    new_node_registr = GetClientRequestRegisters(self, subchild)
-                    if new_node_registr is None:
-                        return [], "", False
-                    registers_params.append(new_node_registr)
-
                     client_request_list.append(new_req)
                     for iecvar in subchild.GetLocations():
                         # absloute address - start address
                         relative_addr = iecvar["LOC"][3] - int(GetCTVal(subchild, 3))
-
-                        bm_addr3 = iecvar["LOC"][3]
-
-
                         # test if relative address in request specified range
                         if relative_addr in xrange(int(GetCTVal(subchild, 2))):
                             if str(iecvar["NAME"]) not in loc_vars_list:
-                                #### this block create in C code - binding
-
-                                loc_vars.append("u16 *" + str(iecvar["NAME"]) + " = &request_registers[%d].num_bit[%d];" % (client_requestid, 0))
-
+                                loc_vars.append(
+                                    "u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (
+                                    client_requestid, relative_addr))
                                 loc_vars_list.append(str(iecvar["NAME"]))
-
-
-                                # origin
-                                # loc_vars.append(
-                                #     "u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (client_requestid, relative_addr))
-                                # loc_vars_list.append(str(iecvar["NAME"]))
                     client_requestid += 1
                 tcpclient_node_count += 1
                 client_nodeid += 1
