@@ -943,9 +943,10 @@ class _ModbusTCPNode(object):
     """
     # NOTE: Max value of 2147483647 (i32_max) for Invocation_Rate_in_ms
     # corresponds to aprox 25 days.
-    CTNChildrenTypes = [("ModbusFunctionLoad", _ModbusFunctionLoad, "Request"),
-                        ("ModbusRead", _ModbusRead, "Request"),
-                        ("ModbusWrite", _ModbusWrite, "Request")]
+    CTNChildrenTypes = [
+       # ("ModbusFunctionLoad", _ModbusFunctionLoad, "Request"),
+        ("ModbusRead", _ModbusRead, "Request"),
+        ("ModbusWrite", _ModbusWrite, "Request")]
 
 
     # TODO: Replace with CTNType !!!
