@@ -210,16 +210,16 @@ u8    bit_processed, allbits;
   {
     fprintf(stderr, "bits in structure %%d ---\n", unpacked_data->num_bit[bit_processed]);
   }
- fprintf(stderr, "--2 bits  structure %%d in request %%d  ---\n", unpacked_data->num_bit[1], request_id);
+ //fprintf(stderr, "--2 bits  structure %%d in request %%d  ---\n", unpacked_data->num_bit[1], request_id);
 
 }
 
 static int __execute_mb_request(int request_id){
 int ret = 0;
 
-    fprintf(stderr, "request id %%d  \n", request_id);
+    //fprintf(stderr, "request id %%d  \n", request_id);
    // fprintf(stderr, "request address %%d  \n", client_requests[request_id].address);
-  //  fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
+   // fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
 
      if(client_requests[request_id].mb_function == 16)
     {
@@ -235,7 +235,7 @@ int ret = 0;
         __unpack_bits(&request_registers[request_id] ,  &client_requests[request_id].plcv_buffer[0]);
     }
 
-    __print_structure(&request_registers[request_id], request_id);
+   // __print_structure(&request_registers[request_id], request_id);
 
 
 	 return ret;
