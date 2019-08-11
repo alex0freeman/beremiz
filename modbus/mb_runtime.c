@@ -47,6 +47,9 @@ static const char *modbus_error_messages[MAX_MODBUS_ERROR_CODE+1] = {
 
 /* Execute a modbus client transaction/request */
 static int __execute_mb_request(int request_id){
+/*!!!
+ тут разбираем массив запросов по модбас функциям
+ !!! */
 	switch (client_requests[request_id].mb_function){
 
 	case  1: /* read coils */

@@ -501,6 +501,16 @@ class _ModbusRead(object):
         sig3 = self.GetParamsAttributes()[0]["children"][5]["value"]
         sig4 = self.GetParamsAttributes()[0]["children"][6]["value"]
         sig5 = self.GetParamsAttributes()[0]["children"][7]["value"]
+        sig6 = self.GetParamsAttributes()[0]["children"][8]["value"]
+        sig7 = self.GetParamsAttributes()[0]["children"][9]["value"]
+        sig8 = self.GetParamsAttributes()[0]["children"][10]["value"]
+        sig9 = self.GetParamsAttributes()[0]["children"][11]["value"]
+        sig10 = self.GetParamsAttributes()[0]["children"][12]["value"]
+        sig11 = self.GetParamsAttributes()[0]["children"][13]["value"]
+        sig12 = self.GetParamsAttributes()[0]["children"][14]["value"]
+        sig13 = self.GetParamsAttributes()[0]["children"][15]["value"]
+        sig14 = self.GetParamsAttributes()[0]["children"][16]["value"]
+        sig15 = self.GetParamsAttributes()[0]["children"][17]["value"]
 
 
         # 'BOOL' or 'WORD'
