@@ -280,17 +280,30 @@ class _RequestSignalRead(object):
 
         entries = []
 
-        #for offset in range(0,  15):
-        entries.append({
-            "name": dataname + "_" + str(address) +"." + str(bit), #+ "_" + str(address)
-            "type": LOCATION_VAR_MEMORY,
-            "size": 1,
-            "IEC_type": "BOOL",
-            "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(address) + "." + str(bit), # добавляет список в ветку дерева
-            #для нас x.x.                                           0 . skip one simbol   [:3:]        8000      .       our bit
-            "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # add a variable in addres list
-            "description": "description",
-            "children": []})
+        if(bit == 16):
+            entries.append({
+                "name": dataname + "_" + str(address) + "." + str(bit),  # + "_" + str(address)
+                "type": LOCATION_VAR_MEMORY,
+                "size": 16,
+                "IEC_type": "WORD",
+                "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(address) + "." + str(bit),
+                # добавляет список в ветку дерева
+                # для нас x.x.                                           0 . skip one simbol   [:3:]        8000
+                "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # add a variable in addres list
+                "description": "description",
+                "children": []})
+        else:
+            #for offset in range(0,  15):
+            entries.append({
+                "name": dataname + "_" + str(address) +"." + str(bit), #+ "_" + str(address)
+                "type": LOCATION_VAR_MEMORY,
+                "size": 1,
+                "IEC_type": "BOOL",
+                "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(address) + "." + str(bit), # добавляет список в ветку дерева
+                #для нас x.x.                                           0 . skip one simbol   [:3:]        8000      .       our bit
+                "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # add a variable in addres list
+                "description": "description",
+                "children": []})
 
         return {"name": name,
                 "type": LOCATION_CONFNODE,
@@ -426,6 +439,15 @@ class _ModbusRead(object):
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
+        infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
+        for element in infos:
+            if element["name"] == "Read":
+                for child in element["children"]:
+                    if child["name"] == "Function":
+                        list = modbus_function_dict.keys()
+                        list.sort()
+                        child["type"] = list
+
         # for element in infos:
         #     if element["name"] == "ModbusFunctionLoad":
         #         for child in element["children"]:
@@ -1162,9 +1184,7 @@ class RootClass(object):
                     new_node_registr = GetClientRequestRegisters(self, subchild, client_requestid)
                     if new_node_registr is None:
                         return [], "", False
-
-                    registers_params.append(new_node_registr)
-
+                    notSig = ''
                     client_request_list.append(new_req)
                     for iecvar in subchild.GetLocations():
 
@@ -1173,16 +1193,24 @@ class RootClass(object):
                         # test if relative address in request specified range
                         if relative_addr in xrange(int(GetCTVal(subchild, 2))):
                             iecvarname = iecvar["NAME"]
+                            notSig = iecvarname[-2:]
                             bit_num = int(iecvarname[-1])
-                            if str(iecvarname) not in loc_vars_list:
-                                #TODO сделать тут разбивку на биты или на стороне Си кода
-                                #loc_vars.append("u16 *" + str(iecvarname) + " = &client_requests[%d].plcv_buffer[%d]  ;" % (client_requestid, relative_addr )) # подставляем наши значение в индексы массива client_requests
-                                #loc_vars_list.append(str(iecvarname))
-                                loc_vars.append(
-                                    "u16 *" + str(iecvar["NAME"]) + " = &request_registers[%d].num_bit[%d];" % (
-                                    client_requestid, bit_num))
+                            if(notSig == '16'):
+                                if str(iecvar["NAME"]) not in loc_vars_list:
+                                    loc_vars.append(
+                                        "u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (
+                                            client_requestid, relative_addr))
+                                    loc_vars_list.append(str(iecvar["NAME"]))
+                            else:
+                                if str(iecvarname) not in loc_vars_list:
+                                    loc_vars.append(
+                                        "u16 *" + str(iecvar["NAME"]) + " = &request_registers[%d].num_bit[%d];" % (
+                                        client_requestid, bit_num))
 
-                                loc_vars_list.append(str(iecvar["NAME"]))
+                                    loc_vars_list.append(str(iecvar["NAME"]))
+
+                    if notSig != '16':
+                        registers_params.append(new_node_registr)
 
 
                     client_requestid += 1
@@ -1192,46 +1220,46 @@ class RootClass(object):
                 #
             nodeid += 1
 
-            if child.PlugType == "ModbusTCPLoadNode":
-                # print "ModbusTCPLoadNode----->"
-
-                tcpclient_reqs_count += len(child.IECSortedChildren())
-                new_node = GetTCPClientNodePrinted(self, child)
-
-                new_node_registr = GetClientRequestRegisters(self, child)
-
-                if new_node is None:
-                    return [], "", False
-
-                if new_node_registr is None:
-                    return [], "", False
-
-                client_node_list.append(new_node)
-                registers_params.append(new_node_registr)
-                for subchild in child.IECSortedChildren():
-
-                    new_req = GetClientRequestPrinted(self, subchild, client_nodeid)
-                    if new_req is None:
-                        return [], "", False
-
-                    client_request_list.append(new_req)
-                    for iecvar in subchild.GetLocations():
-
-                        # absloute address - start address --(Я) absloute address [4] in dictionary
-                        relative_addr = iecvar["LOC"][4] - int(GetCTVal(subchild, 3))
-                        # test if relative address in request specified range
-                        if relative_addr in xrange(int(GetCTVal(subchild, 2))):
-                            iecvarname = iecvar["NAME"]
-                            if str(iecvarname) not in loc_vars_list:
-                                loc_vars.append(
-                                    "u16 *" + str(iecvarname) + " = &client_requests[%d].plcv_buffer[%d]  ;" % (client_requestid, relative_addr ))  # подставляем наши значение в индексы массива client_requests
-                                loc_vars_list.append(str(iecvarname))
-                    client_requestid += 1
-                tcpclient_node_count += 1
-                client_nodeid += 1
-                #
-                #
-            nodeid += 1
+            # if child.PlugType == "ModbusTCPLoadNode":
+            #     # print "ModbusTCPLoadNode----->"
+            #
+            #     tcpclient_reqs_count += len(child.IECSortedChildren())
+            #     new_node = GetTCPClientNodePrinted(self, child)
+            #
+            #     new_node_registr = GetClientRequestRegisters(self, child)
+            #
+            #     if new_node is None:
+            #         return [], "", False
+            #
+            #     if new_node_registr is None:
+            #         return [], "", False
+            #
+            #     client_node_list.append(new_node)
+            #     registers_params.append(new_node_registr)
+            #     for subchild in child.IECSortedChildren():
+            #
+            #         new_req = GetClientRequestPrinted(self, subchild, client_nodeid)
+            #         if new_req is None:
+            #             return [], "", False
+            #
+            #         client_request_list.append(new_req)
+            #         for iecvar in subchild.GetLocations():
+            #
+            #             # absloute address - start address --(Я) absloute address [4] in dictionary
+            #             relative_addr = iecvar["LOC"][4] - int(GetCTVal(subchild, 3))
+            #             # test if relative address in request specified range
+            #             if relative_addr in xrange(int(GetCTVal(subchild, 2))):
+            #                 iecvarname = iecvar["NAME"]
+            #                 if str(iecvarname) not in loc_vars_list:
+            #                     loc_vars.append(
+            #                         "u16 *" + str(iecvarname) + " = &client_requests[%d].plcv_buffer[%d]  ;" % (client_requestid, relative_addr ))  # подставляем наши значение в индексы массива client_requests
+            #                     loc_vars_list.append(str(iecvarname))
+            #         client_requestid += 1
+            #     tcpclient_node_count += 1
+            #     client_nodeid += 1
+            #     #
+            #     #
+            # nodeid += 1
 
         loc_dict["loc_vars"] = "\n".join(loc_vars)
         loc_dict["server_nodes_params"] = ",\n\n".join(server_node_list)
