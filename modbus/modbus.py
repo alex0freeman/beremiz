@@ -195,17 +195,31 @@ class _RequestSignalWrite(object):
 
         entries = []
 
-        #for offset in range(0,  15):
-        entries.append({
-            "name": dataname + "_" + str(address) +"." + str(bit), #+ "_" + str(address)
-            "type": LOCATION_VAR_MEMORY,
-            "size": 1,
-            "IEC_type": "BOOL",
-            "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(address) + "." + str(bit), # добавляет список в ветку дерева
-            #для нас x.x.                                           0 . skip one simbol   [:3:]        8000      .       our bit
-            "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # add a variable in addres list
-            "description": "description",
-            "children": []})
+        if (bit == 16):
+            entries.append({
+                "name": dataname + "_" + str(address) + "." + str(bit),  # + "_" + str(address)
+                "type": LOCATION_VAR_MEMORY,
+                "size": 16,
+                "IEC_type": "WORD",
+                "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(address) + "." + str(bit),
+                # добавляет список в ветку дерева
+                # для нас x.x.                                           0 . skip one simbol   [:3:]        8000
+                "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(
+                    bit),  # add a variable in addres list
+                "description": "description",
+                "children": []})
+        else:
+            #for offset in range(0,  15):
+            entries.append({
+                "name": dataname + "_" + str(address) +"." + str(bit), #+ "_" + str(address)
+                "type": LOCATION_VAR_MEMORY,
+                "size": 1,
+                "IEC_type": "BOOL",
+                "var_name": "MB_" + "".join([w[0] for w in dataname.split()]) + "_" + str(address) + "." + str(bit), # добавляет список в ветку дерева
+                #для нас x.x.                                           0 . skip one simbol   [:3:]        8000      .       our bit
+                "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # add a variable in addres list
+                "description": "description",
+                "children": []})
 
         return {"name": name,
                 "type": LOCATION_CONFNODE,
@@ -439,7 +453,6 @@ class _ModbusRead(object):
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
-        infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
         for element in infos:
             if element["name"] == "Read":
                 for child in element["children"]:
@@ -544,6 +557,13 @@ class _ModbusWrite(object):
 
     def GetParamsAttributes(self, path=None):
         infos = ConfigTreeNode.GetParamsAttributes(self, path=path)
+        for element in infos:
+            if element["name"] == "Write":
+                for child in element["children"]:
+                    if child["name"] == "Function":
+                        list = modbus_function_dict.keys()
+                        list.sort()
+                        child["type"] = list
         # for element in infos:
         #     if element["name"] == "ModbusFunctionLoad":
         #         for child in element["children"]:
