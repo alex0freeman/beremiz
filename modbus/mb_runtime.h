@@ -25,8 +25,8 @@
 #include "mb_addr.h"
 #include "mb_tcp_private.h"
 #include "mb_master_private.h"
-
-
+//#include "MbMasterPrivate.h"
+//#include "MbTcpPrivate.h"
 
 #define DEF_REQ_SEND_RETRIES 0
 

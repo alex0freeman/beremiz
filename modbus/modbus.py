@@ -1324,6 +1324,7 @@ class RootClass(object):
 
         LDFLAGS = []
         LDFLAGS.append(" \"-L" + ModbusPath + "\"")
+        #LDFLAGS.append(" \"" + os.path.join(ModbusPath, "MbBeremiz.lib") + "\"")
         LDFLAGS.append(" \"" + os.path.join(ModbusPath, "libmb.a") + "\"")
         LDFLAGS.append(" \"-Wl,-rpath," + ModbusPath + "\"")
         # LDFLAGS.append("\"" + os.path.join(ModbusPath, "mb_slave_and_master.o") + "\"")
