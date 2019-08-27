@@ -163,6 +163,20 @@ class _RequestSignalWrite(object):
                 </xsd:restriction>
             </xsd:simpleType>
           </xsd:attribute>
+          
+          <xsd:attribute name="Offset" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">                    
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          
+          <xsd:attribute name="Scale" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">                   
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
 
         </xsd:complexType>
       </xsd:element>
@@ -188,6 +202,8 @@ class _RequestSignalWrite(object):
         signame = self.GetParamsAttributes()[0]["children"][0]["value"]
 
         bit = self.GetParamsAttributes()[0]["children"][1]["value"]
+        offset = self.GetParamsAttributes()[0]["children"][2]["value"]
+        scale = self.GetParamsAttributes()[0]["children"][3]["value"]
 
         dataname = vraiableTree[0]['name']
         address = vraiableTree[0]['address']
@@ -207,6 +223,8 @@ class _RequestSignalWrite(object):
                 "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(
                     bit),  # add a variable in addres list
                 "description": "description",
+                "offset": offset,
+                "scale": scale,
                 "children": []})
         else:
             #for offset in range(0,  15):
@@ -219,6 +237,8 @@ class _RequestSignalWrite(object):
                 #для нас x.x.                                           0 . skip one simbol   [:3:]        8000      .       our bit
                 "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # add a variable in addres list
                 "description": "description",
+                "offset": 0,
+                "scale": 0,
                 "children": []})
 
         return {"name": name,
@@ -261,6 +281,20 @@ class _RequestSignalRead(object):
                 </xsd:restriction>
             </xsd:simpleType>
           </xsd:attribute>
+          
+            <xsd:attribute name="Offset" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">                    
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          
+          <xsd:attribute name="Scale" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">                   
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
 
         </xsd:complexType>
       </xsd:element>
@@ -287,6 +321,8 @@ class _RequestSignalRead(object):
         #count = self.GetParamsAttributes()[0]["children"][2]["value"]
 
         bit = self.GetParamsAttributes()[0]["children"][1]["value"]
+        offset = self.GetParamsAttributes()[0]["children"][2]["value"]
+        scale = self.GetParamsAttributes()[0]["children"][3]["value"]
 
         dataname = vraiableTree[0]['name']
         address = vraiableTree[0]['address']
@@ -305,6 +341,8 @@ class _RequestSignalRead(object):
                 # для нас x.x.                                           0 . skip one simbol   [:3:]        8000
                 "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # add a variable in addres list
                 "description": "description",
+                "offset": offset,
+                "scale": scale,
                 "children": []})
         else:
             #for offset in range(0,  15):
@@ -317,6 +355,8 @@ class _RequestSignalRead(object):
                 #для нас x.x.                                           0 . skip one simbol   [:3:]        8000      .       our bit
                 "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # add a variable in addres list
                 "description": "description",
+                "offset": 0,
+                "scale": 0,
                 "children": []})
 
         return {"name": name,
@@ -367,7 +407,7 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                </xsd:simpleType>
              </xsd:attribute>
 
-             <xsd:attribute name="Start_Address" use="optional" default="8000">
+             <xsd:attribute name="Start_Address" use="optional" default="0">
                <xsd:simpleType>
                    <xsd:restriction base="xsd:integer">
                        <xsd:minInclusive value="0"/>
@@ -385,6 +425,20 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                </xsd:simpleType>
              </xsd:attribute>
              
+             <xsd:attribute name="Offset" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">                    
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          
+          <xsd:attribute name="Scale" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">                   
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          
            </xsd:complexType>
          </xsd:element>
        </xsd:schema>
@@ -414,7 +468,7 @@ XSDwrite = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                </xsd:simpleType>
              </xsd:attribute>
 
-             <xsd:attribute name="Start_Address" use="optional" default="8400">
+             <xsd:attribute name="Start_Address" use="optional" default="0">
                <xsd:simpleType>
                    <xsd:restriction base="xsd:integer">
                        <xsd:minInclusive value="0"/>
@@ -432,6 +486,19 @@ XSDwrite = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                </xsd:simpleType>
              </xsd:attribute>               
               
+          <xsd:attribute name="Offset" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">                    
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
+          
+          <xsd:attribute name="Scale" use="optional" default="0">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">                   
+                </xsd:restriction>
+            </xsd:simpleType>
+          </xsd:attribute>
 
            </xsd:complexType>
          </xsd:element>
@@ -1211,16 +1278,18 @@ class RootClass(object):
                         # absloute address - start address --(Я) absloute address [4] in dictionary
                         relative_addr = iecvar["LOC"][4] - int(GetCTVal(subchild, 3))
                         # test if relative address in request specified range
-                        if relative_addr in xrange(int(GetCTVal(subchild, 2))):
+                        if relative_addr in range(16):  # xrange(int(GetCTVal(subchild, 2))):
                             iecvarname = iecvar["NAME"]
                             notSig = iecvarname[-2:]
                             bit_num = int(iecvarname[-1])
+                            #обработка регистра
                             if(notSig == '16'):
                                 if str(iecvar["NAME"]) not in loc_vars_list:
                                     loc_vars.append(
                                         "u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (
                                             client_requestid, relative_addr))
                                     loc_vars_list.append(str(iecvar["NAME"]))
+                            # обработка сигналов
                             else:
                                 if str(iecvarname) not in loc_vars_list:
                                     loc_vars.append(

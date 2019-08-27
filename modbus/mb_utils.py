@@ -143,7 +143,7 @@ def GetClientRequestPrinted(self, child, nodeid):
     req_init_template = '''/*request %(locreqstr)s*/
 {"%(locreqstr)s", %(nodeid)s, %(slaveid)s, %(iotype)s, %(func_nr)s, %(address)s , %(count)s,
 DEF_REQ_SEND_RETRIES, 0 /* error_code */, 0 /* prev_code */, {%(timeout_s)d, %(timeout_ns)d} /* timeout */,
-{%(buffer)s}, {%(buffer)s}}'''
+{%(buffer)s}, {%(buffer)s} , %(offset)s, %(scale)s}'''
 
     timeout = int(GetCTVal(child, 4))
     timeout_s = timeout // 1000
@@ -162,7 +162,10 @@ DEF_REQ_SEND_RETRIES, 0 /* error_code */, 0 /* prev_code */, {%(timeout_s)d, %(t
         "buffer": ",".join(['0'] * int(GetCTVal(child, 2))),
         "func_nr": modbus_function_dict[GetCTVal(child, 0)][0],
         "iotype": modbus_function_dict[GetCTVal(child, 0)][1],
-        "maxcount": modbus_function_dict[GetCTVal(child, 0)][2]}
+        "maxcount": modbus_function_dict[GetCTVal(child, 0)][2],
+        "offset": GetCTVal(child, 5),
+        "scale": GetCTVal(child, 6)
+    }
 
     if int(request_dict["slaveid"]) not in xrange(256):
         self.GetCTRoot().logger.write_error(
@@ -186,14 +189,6 @@ DEF_REQ_SEND_RETRIES, 0 /* error_code */, 0 /* prev_code */, {%(timeout_s)d, %(t
 
 
 def GetClientRequestRegisters(self, child, nodeid):
-    """
-    Outputs a string to be used on C files
-    params: child - the correspondent subplugin in Beremiz
-            nodeid - on C code, each request has it's own parent node (sequential, 0..NUMBER_OF_NODES)
-                     It's this parameter.
-    return: None - if any definition error found
-            The string that should be added on C code - if everything goes allright
-    """
 
     req_init_template = '''{ %(address)s ,  {%(num_bit)s}}'''
 
@@ -201,22 +196,5 @@ def GetClientRequestRegisters(self, child, nodeid):
         "address": GetCTVal(child, 3),
         "num_bit": 0 # GetCTVal(child, 2),# nodeid,
         }
-
-    # if int(request_dict["slaveid"]) not in xrange(256):
-    #     self.GetCTRoot().logger.write_error(
-    #         "Modbus plugin: Invalid slaveID in TCP client request node %(locreqstr)s (Must be in the range [0..255])\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
-    #     return None
-    # if int(request_dict["address"]) not in xrange(65536):
-    #     self.GetCTRoot().logger.write_error(
-    #         "Modbus plugin: Invalid Start Address in TCP client request node %(locreqstr)s (Must be in the range [0..65535])\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
-    #     return None
-    # if int(request_dict["count"]) not in xrange(1, 1 + int(request_dict["maxcount"])):
-    #     self.GetCTRoot().logger.write_error(
-    #         "Modbus plugin: Invalid number of channels in TCP client request node %(locreqstr)s (Must be in the range [1..%(maxcount)s])\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
-    #     return None
-    # if (int(request_dict["address"]) + int(request_dict["count"])) not in xrange(1, 65537):
-    #     self.GetCTRoot().logger.write_error(
-    #         "Modbus plugin: Invalid number of channels in TCP client request node %(locreqstr)s (start_address + nr_channels must be less than 65536)\nModbus plugin: Aborting C code generation for this node\n" % request_dict)
-    #     return None
 
     return req_init_template % request_dict

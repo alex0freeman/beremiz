@@ -47,13 +47,25 @@ static const char *modbus_error_messages[MAX_MODBUS_ERROR_CODE+1] = {
 
 #define BIT_IN_WORD 16
 
+/* unpack analog registr  */
+static inline void  __get_analog(client_request_t *raw_data, u16  *packed_data) {
+  u8    bit_processed ;
+  u16 temp,dat, scale, offset;
+    dat = raw_data->plcv_buffer[0];
+    scale = raw_data->scale;
+    offset = raw_data->offset;
+    temp = dat / scale + offset;
+  //temp = (u16)(raw_data->plcv_buffer[0] / raw_data->scale + raw_data->offset)
+
+  *packed_data =  temp;
+}
+
 /* pack bits from unpacked_data to packed_data */
 static inline void  __pack_bits(request_registers_t *unpacked_data, u16  *packed_data) {
-  u8    bit_processed, allbits;
+  u8    bit_processed ;
   u16 temp, byte;
 
-  for(bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)
-  {
+  for(bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)  {
      temp = *packed_data;
       if(unpacked_data->num_bit[bit_processed]){
        temp |=  (1 << bit_processed); /*   set bit */
@@ -66,11 +78,9 @@ static inline void  __pack_bits(request_registers_t *unpacked_data, u16  *packed
     }
 }
 
-
 /* unpack bits from packed_data to unpacked_data */
-static inline void  __unpack_bits(request_registers_t *unpacked_data, u16  *packed_data)
-{
-  u8    bit_processed, allbits;
+static inline void  __unpack_bits(request_registers_t *unpacked_data, u16  *packed_data){
+  u8    bit_processed ;
   u16 temp, byte;
 
   for(bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)
@@ -91,29 +101,8 @@ static int __execute_mb_request_in(int request_id){
 
 	switch (client_requests[request_id].mb_function){
 
-	case  1: /* read coils */
-		return read_output_bits(client_requests[request_id].slave_id,
-					client_requests[request_id].address,
-					client_requests[request_id].count,
-					client_requests[request_id].coms_buffer,
-					(int) client_requests[request_id].count,
-					client_nodes[client_requests[request_id].client_node_id].mb_nd,
-					client_requests[request_id].retries,
-					&(client_requests[request_id].error_code),
-					&(client_requests[request_id].resp_timeout),
-					&(client_requests[request_id].coms_buf_mutex));
-
-	case  2: /* read discrete inputs */
-		return read_input_bits( client_requests[request_id].slave_id,
-					client_requests[request_id].address,
-					client_requests[request_id].count,
-					client_requests[request_id].coms_buffer,
-					(int) client_requests[request_id].count,
-					client_nodes[client_requests[request_id].client_node_id].mb_nd,
-					client_requests[request_id].retries,
-					&(client_requests[request_id].error_code),
-					&(client_requests[request_id].resp_timeout),
-					&(client_requests[request_id].coms_buf_mutex));
+	case  1: break;
+	case  2: break;
 
 	case  3: /* read holding registers */
 		return read_output_words(client_requests[request_id].slave_id,
@@ -128,27 +117,8 @@ static int __execute_mb_request_in(int request_id){
 								&(client_requests[request_id].resp_timeout),
 								&(client_requests[request_id].coms_buf_mutex));
 
-	case  4: /* read input registers */
-		return read_input_words(client_requests[request_id].slave_id,
-					client_requests[request_id].address,
-					client_requests[request_id].count,
-					client_requests[request_id].coms_buffer,
-					(int) client_requests[request_id].count,
-					client_nodes[client_requests[request_id].client_node_id].mb_nd,
-					client_requests[request_id].retries,
-					&(client_requests[request_id].error_code),
-					&(client_requests[request_id].resp_timeout),
-					&(client_requests[request_id].coms_buf_mutex));
-
-	case  5: /* write single coil */
-		return write_output_bit(client_requests[request_id].slave_id,
-					client_requests[request_id].address,
-					client_requests[request_id].coms_buffer[0],
-					client_nodes[client_requests[request_id].client_node_id].mb_nd,
-					client_requests[request_id].retries,
-					&(client_requests[request_id].error_code),
-					&(client_requests[request_id].resp_timeout),
-					&(client_requests[request_id].coms_buf_mutex));
+	case  4: break;
+	case  5: break;
 
 	case  6: /* write single register */
 		return write_output_word(client_requests[request_id].slave_id,
@@ -170,16 +140,7 @@ static int __execute_mb_request_in(int request_id){
 	case 13: break; /* function not yet supported */
 	case 14: break; /* function not yet supported */
 
-	case 15: /* write multiple coils */
-		return write_output_bits(client_requests[request_id].slave_id,
-					 client_requests[request_id].address,
-					 client_requests[request_id].count,
-					 client_requests[request_id].coms_buffer,
-					 client_nodes[client_requests[request_id].client_node_id].mb_nd,
-					 client_requests[request_id].retries,
-					 &(client_requests[request_id].error_code),
-					 &(client_requests[request_id].resp_timeout),
-					 &(client_requests[request_id].coms_buf_mutex));
+	case 15: break;
 
 	case 16: /* write multiple registers */
 		return write_output_words(client_requests[request_id].slave_id,
@@ -203,8 +164,7 @@ static int __execute_mb_request_in(int request_id){
 	return -1;
 }
 
-static void __print_structure(request_registers_t *unpacked_data, int request_id )
-{
+static void __print_structure(request_registers_t *unpacked_data, int request_id ){
 u8    bit_processed, allbits;
     for(bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)
   {
@@ -226,10 +186,14 @@ int ret = 0;
         __pack_bits(&request_registers[request_id] ,  &client_requests[request_id].plcv_buffer[0]);
     }
 
-
-
     ret = __execute_mb_request_in(request_id);
 
+    if(client_requests[request_id].offset != 0 || client_requests[request_id].scale != 0)
+    {
+        __get_analog(&client_requests[request_id],  &client_requests[request_id].plcv_buffer[0]);
+    }
+
+    // получаем биты - сигналы
     if(client_requests[request_id].mb_function == 3)
     {
         __unpack_bits(&request_registers[request_id] ,  &client_requests[request_id].plcv_buffer[0]);
