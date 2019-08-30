@@ -51,13 +51,19 @@ static const char *modbus_error_messages[MAX_MODBUS_ERROR_CODE+1] = {
 static inline void  __get_analog(client_request_t *raw_data, u16  *packed_data) {
   u8    bit_processed ;
   u16 temp,dat, scale, offset;
+ float ttt;
     dat = raw_data->plcv_buffer[0];
     scale = raw_data->scale;
     offset = raw_data->offset;
     temp = dat / scale + offset;
-  //temp = (u16)(raw_data->plcv_buffer[0] / raw_data->scale + raw_data->offset)
+    fprintf(stderr, "analog registr %%d  \n", dat);
+    fprintf(stderr, "scale %%d  \n", scale);
+    fprintf(stderr, "offset %%d  \n", offset);
 
-  *packed_data =  temp;
+    ttt = dat / scale + offset;
+    fprintf(stderr, "data %%.3f \n", ttt);
+    //fprintf(stderr, "Check paking bit  %%d ---\n", unpacked_data->num_bit[bit_processed]);
+  *packed_data =  ttt;
 }
 
 /* pack bits from unpacked_data to packed_data */
@@ -178,8 +184,8 @@ static int __execute_mb_request(int request_id){
 int ret = 0;
 
     //fprintf(stderr, "request id %%d  \n", request_id);
-   // fprintf(stderr, "request address %%d  \n", client_requests[request_id].address);
-   // fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
+    fprintf(stderr, "request address %%d  \n", client_requests[request_id].address);
+    fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
 
      if(client_requests[request_id].mb_function == 16)
     {
@@ -191,7 +197,9 @@ int ret = 0;
     if(client_requests[request_id].offset != 0 || client_requests[request_id].scale != 0)
     {
         __get_analog(&client_requests[request_id],  &client_requests[request_id].plcv_buffer[0]);
+         fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
     }
+
 
     // получаем биты - сигналы
     if(client_requests[request_id].mb_function == 3)
