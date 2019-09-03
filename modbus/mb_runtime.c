@@ -48,22 +48,51 @@ static const char *modbus_error_messages[MAX_MODBUS_ERROR_CODE+1] = {
 #define BIT_IN_WORD 16
 
 /* unpack analog registr  */
-static inline void  __get_analog(client_request_t *raw_data, u16  *packed_data) {
-  u8    bit_processed ;
-  u16 temp,dat, scale, offset;
- float ttt;
-    dat = raw_data->plcv_buffer[0];
+static inline void  __get_analog(client_request_t *raw_data, float  *packed_data) {
+u8    bit_processed ;
+u16  raw_d;
+float ttt, analog_data, scale, offset;
+
+    raw_d = raw_data->plcv_buffer[0];
     scale = raw_data->scale;
     offset = raw_data->offset;
-    temp = dat / scale + offset;
-    fprintf(stderr, "analog registr %%d  \n", dat);
-    fprintf(stderr, "scale %%d  \n", scale);
-    fprintf(stderr, "offset %%d  \n", offset);
+    if(scale > 0 ){
+        analog_data = raw_d / scale + offset;
+    }
+    else {
+        analog_data = (float) raw_d;
+    }
 
-    ttt = dat / scale + offset;
-    fprintf(stderr, "data %%.3f \n", ttt);
-    //fprintf(stderr, "Check paking bit  %%d ---\n", unpacked_data->num_bit[bit_processed]);
-  *packed_data =  ttt;
+    fprintf(stderr, "registr raw_data %%d  \n", raw_d);
+    fprintf(stderr, "scale %%.3f \n", scale);
+    fprintf(stderr, "offset %%.3f \n", offset);
+    fprintf(stderr, "unpacked analog data %%.3f \n", analog_data);
+
+    *packed_data =  analog_data;
+}
+
+/* unpack analog registr  */
+static inline void  __pack_analog(client_request_t *raw_data, float  *packed_data) {
+u8    bit_processed ;
+u16  raw_d;
+float ttt, analog_data, scale, offset;
+
+    raw_d = raw_data->plcv_buffer[0];
+    scale = raw_data->scale;
+    offset = raw_data->offset;
+    if(scale > 0 ){
+        analog_data = raw_d / scale + offset;
+    }
+    else {
+        analog_data = (float) raw_d;
+    }
+
+    fprintf(stderr, "registr raw_data %%d  \n", raw_d);
+    fprintf(stderr, "scale %%.3f \n", scale);
+    fprintf(stderr, "offset %%.3f \n", offset);
+    fprintf(stderr, "unpacked analog data %%.3f \n", analog_data);
+
+    *packed_data =  analog_data;
 }
 
 /* pack bits from unpacked_data to packed_data */
@@ -182,24 +211,18 @@ u8    bit_processed, allbits;
 
 static int __execute_mb_request(int request_id){
 int ret = 0;
-
+    fprintf(stderr, "#_____________________________# \n" );
     //fprintf(stderr, "request id %%d  \n", request_id);
     fprintf(stderr, "request address %%d  \n", client_requests[request_id].address);
     fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
 
-     if(client_requests[request_id].mb_function == 16)
-    {
+     if(client_requests[request_id].mb_function == 16){
         __pack_bits(&request_registers[request_id] ,  &client_requests[request_id].plcv_buffer[0]);
     }
 
     ret = __execute_mb_request_in(request_id);
-
-    if(client_requests[request_id].offset != 0 || client_requests[request_id].scale != 0)
-    {
-        __get_analog(&client_requests[request_id],  &client_requests[request_id].plcv_buffer[0]);
-         fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
-    }
-
+    // unpack analogs
+    __get_analog(&client_requests[request_id],  &client_requests[request_id].analog_buffer[0]);
 
     // получаем биты - сигналы
     if(client_requests[request_id].mb_function == 3)
@@ -209,6 +232,7 @@ int ret = 0;
 
    // __print_structure(&request_registers[request_id], request_id);
 
+    fprintf(stderr, "#_____________________________# \n" );
 
 	 return ret;
 }

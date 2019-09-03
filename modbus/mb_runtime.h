@@ -86,6 +86,8 @@ typedef struct{
 	    u16		plcv_buffer[REQ_BUF_SIZE];
 	      // buffer used to store data coming from / going to server
 	    u16		coms_buffer[REQ_BUF_SIZE];
+	    // buffer for analog data
+	    float   analog_buffer[REQ_BUF_SIZE];
         u16 offset;
 	    u16 scale;
 	    pthread_mutex_t coms_buf_mutex; // mutex to access coms_buffer[]

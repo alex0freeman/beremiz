@@ -143,7 +143,7 @@ def GetClientRequestPrinted(self, child, nodeid):
     req_init_template = '''/*request %(locreqstr)s*/
 {"%(locreqstr)s", %(nodeid)s, %(slaveid)s, %(iotype)s, %(func_nr)s, %(address)s , %(count)s,
 DEF_REQ_SEND_RETRIES, 0 /* error_code */, 0 /* prev_code */, {%(timeout_s)d, %(timeout_ns)d} /* timeout */,
-{%(buffer)s}, {%(buffer)s} , %(offset)s, %(scale)s}'''
+{%(buffer)s}, {%(buffer)s} , {%(abuffer)s} ,%(offset)s, %(scale)s}'''
 
     timeout = int(GetCTVal(child, 4))
     timeout_s = timeout // 1000
@@ -160,6 +160,7 @@ DEF_REQ_SEND_RETRIES, 0 /* error_code */, 0 /* prev_code */, {%(timeout_s)d, %(t
         "timeout_s": timeout_s,
         "timeout_ns": timeout_ns,
         "buffer": ",".join(['0'] * int(GetCTVal(child, 2))),
+        "abuffer": ",".join(['0'] * int(GetCTVal(child, 2))),
         "func_nr": modbus_function_dict[GetCTVal(child, 0)][0],
         "iotype": modbus_function_dict[GetCTVal(child, 0)][1],
         "maxcount": modbus_function_dict[GetCTVal(child, 0)][2],

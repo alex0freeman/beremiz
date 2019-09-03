@@ -1282,14 +1282,14 @@ class RootClass(object):
                             iecvarname = iecvar["NAME"]
                             notSig = iecvarname[-2:]
                             bit_num = int(iecvarname[-1])
-                            #обработка регистра
+                       #обработка регистра
                             if(notSig == '16'):
                                 if str(iecvar["NAME"]) not in loc_vars_list:
                                     loc_vars.append(
-                                        "u16 *" + str(iecvar["NAME"]) + " = &client_requests[%d].plcv_buffer[%d];" % (
+                                        "float *" + str(iecvar["NAME"]) + " = &client_requests[%d].analog_buffer[%d];" % (
                                             client_requestid, relative_addr))
                                     loc_vars_list.append(str(iecvar["NAME"]))
-                            # обработка сигналов
+                        # обработка сигналов
                             else:
                                 if str(iecvarname) not in loc_vars_list:
                                     loc_vars.append(
