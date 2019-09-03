@@ -73,26 +73,26 @@ float ttt, analog_data, scale, offset;
 
 /* unpack analog registr  */
 static inline void  __pack_analog(client_request_t *raw_data, float  *packed_data) {
-u8    bit_processed ;
-u16  raw_d;
-float ttt, analog_data, scale, offset;
-
-    raw_d = raw_data->plcv_buffer[0];
-    scale = raw_data->scale;
-    offset = raw_data->offset;
-    if(scale > 0 ){
-        analog_data = raw_d / scale + offset;
-    }
-    else {
-        analog_data = (float) raw_d;
-    }
-
-    fprintf(stderr, "registr raw_data %%d  \n", raw_d);
-    fprintf(stderr, "scale %%.3f \n", scale);
-    fprintf(stderr, "offset %%.3f \n", offset);
-    fprintf(stderr, "unpacked analog data %%.3f \n", analog_data);
-
-    *packed_data =  analog_data;
+//u8    bit_processed ;
+//u16  raw_d;
+//float ttt, analog_data, scale, offset;
+//
+//    raw_d = raw_data->plcv_buffer[0];
+//    scale = raw_data->scale;
+//    offset = raw_data->offset;
+//    if(scale > 0 ){
+//        analog_data = raw_d / scale + offset;
+//    }
+//    else {
+//        analog_data = (float) raw_d;
+//    }
+//
+//    fprintf(stderr, "registr raw_data %%d  \n", raw_d);
+//    fprintf(stderr, "scale %%.3f \n", scale);
+//    fprintf(stderr, "offset %%.3f \n", offset);
+//    fprintf(stderr, "unpacked analog data %%.3f \n", analog_data);
+//
+//    *packed_data =  analog_data;
 }
 
 /* pack bits from unpacked_data to packed_data */
