@@ -81,7 +81,7 @@ float  analog_data, scale, offset;
     scale = raw_data->scale;
     offset = raw_data->offset;
     if(scale > 0 ){
-        pack_data = analog_data * scale - offset;
+        pack_data = (analog_data - offset)  * scale;
     }
     else {
         pack_data = analog_data;
