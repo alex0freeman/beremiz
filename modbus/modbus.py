@@ -29,7 +29,7 @@ from six.moves import xrange
 
 from modbus.mb_utils import *
 from ConfigTreeNode import ConfigTreeNode
-from PLCControler import LOCATION_CONFNODE, LOCATION_REGISTR, LOCATION_VAR_MEMORY, LOCATION_GROUP
+from PLCControler import LOCATION_CONFNODE, LOCATION_VAR_MEMORY, LOCATION_GROUP
 
 
 base_folder = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
