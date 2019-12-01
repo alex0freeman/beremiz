@@ -1348,14 +1348,14 @@ class RootClass(object):
         loc_dict["loc_vars"] = "\n".join(loc_vars)
         loc_dict["client_nodes_params"] = ",\n\n".join(client_node_list)
         loc_dict["client_req_params"] = ",\n\n".join(client_request_list)
-
+        #
         loc_dict["registers_params"] = ",\n\n".join(registers_params)
         loc_dict["registers_count"] = str(tcpclient_reqs_count)
-
+        #
         loc_dict["tcpclient_reqs_count"] = str(tcpclient_reqs_count)
-
+        #
         loc_dict["tcpclient_node_count"] = str(tcpclient_node_count)
-
+        #
         loc_dict["total_tcpnode_count"] = str(total_node_count[0])
         loc_dict["max_remote_tcpclient"] = int(self.GetParamsAttributes()[0]["children"][0]["value"])
 

@@ -353,20 +353,15 @@ typedef struct{
 
 	} request_registers_t;
 
-/* The total number of nodes, needed to support _all_ instances of the modbus plugin */
 #define TOTAL_TCPNODE_COUNT       %(total_tcpnode_count)s
 #define MAX_NUMBER_OF_TCPCLIENTS  %(max_remote_tcpclient)s
 #define NUMBER_OF_TCPCLIENT_NODES %(tcpclient_node_count)s
 #define NUMBER_OF_TCPCLIENT_REQTS %(tcpclient_reqs_count)s
 
-
 #define NUMBER_OF_CLIENT_NODES (NUMBER_OF_TCPCLIENT_NODES )
 #define NUMBER_OF_CLIENT_REQTS (NUMBER_OF_TCPCLIENT_REQTS )
 
-
 #define NUMBER_OF_REGISTER %(registers_count)s
-
-/*initialization following all parameters given by user in application*/
 
 static client_node_t		client_nodes[NUMBER_OF_CLIENT_NODES] = {
 %(client_nodes_params)s
