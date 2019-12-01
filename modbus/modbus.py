@@ -1346,21 +1346,42 @@ class RootClass(object):
             # nodeid += 1
 
 
-        loc_dict["total_tcpnode_count"] = str(total_node_count[0])
-        loc_dict["max_remote_tcpclient"] = str(int(self.GetParamsAttributes()[0]["children"][0]["value"]))
-        loc_dict["tcpclient_node_count"] = str(tcpclient_node_count)
-        loc_dict["tcpclient_reqs_count"] = str(tcpclient_reqs_count)
-        loc_dict["registers_count"] = str(tcpclient_reqs_count)
+        # loc_dict["total_tcpnode_count"] = str(total_node_count[0])
+        # loc_dict["max_remote_tcpclient"] = str(int(self.GetParamsAttributes()[0]["children"][0]["value"]))
+        # loc_dict["tcpclient_node_count"] = str(tcpclient_node_count)
+        # loc_dict["tcpclient_reqs_count"] = str(tcpclient_reqs_count)
+        # loc_dict["registers_count"] = str(tcpclient_reqs_count)
+        #
+        # loc_dict["client_nodes_params"] = ",\n\n".join(client_node_list)
+        # loc_dict["client_req_params"] = ",\n\n".join(client_request_list)
+        # loc_dict["registers_params"] = ",\n\n".join(registers_params)
+        # loc_dict["loc_vars"] = "\n".join(loc_vars)
 
+        loc_dict["loc_vars"] = "\n".join(loc_vars)
+        loc_dict["server_nodes_params"] = ",\n\n".join(server_node_list)
         loc_dict["client_nodes_params"] = ",\n\n".join(client_node_list)
         loc_dict["client_req_params"] = ",\n\n".join(client_request_list)
+
         loc_dict["registers_params"] = ",\n\n".join(registers_params)
-        loc_dict["loc_vars"] = "\n".join(loc_vars)
+        loc_dict["registers_count"] = str(tcpclient_reqs_count)
 
+        loc_dict["tcpclient_reqs_count"] = str(tcpclient_reqs_count)
 
+        loc_dict["tcpclient_node_count"] = str(tcpclient_node_count)
 
+        loc_dict["tcpserver_node_count"] = str('0')
 
+        loc_dict["rtuclient_reqs_count"] = str('0')
+        loc_dict["rtuclient_node_count"] =  str('0')
+        loc_dict["rtuserver_node_count"] = str('0')
+        loc_dict["ascclient_reqs_count"] = str('0')
+        loc_dict["ascclient_node_count"] =  str('0')
+        loc_dict["ascserver_node_count"] =  str('0')
 
+        loc_dict["total_tcpnode_count"] = str(total_node_count[0])
+        loc_dict["total_rtunode_count"] = str(total_node_count[1])
+        loc_dict["total_ascnode_count"] = str(total_node_count[2])
+        loc_dict["max_remote_tcpclient"] = int(self.GetParamsAttributes()[0]["children"][0]["value"])
 
         # get template file content into a string, format it with dict
         # and write it to proper .h file
