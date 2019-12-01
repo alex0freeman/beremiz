@@ -50,6 +50,726 @@ static const char *modbus_error_messages[MAX_MODBUS_ERROR_CODE+1] = {
 
 #define BIT_IN_WORD 16
 
+#define THREADS_NUMBER 10
+#define ITERATIONS_NUMBER 100
+#define PAUSE 10 /* ms */
+
+DWORD dwCounter = 0;
+struct sockaddr_in serv_addr;
+
+
+#define get_ttyfd()     int layer1_fin = fd & 3; int ttyfd = fd / 4;
+
+static inline u16 mb_hton(u16 h_value) { return htons(h_value); }
+
+/*
+ * Function to determine next transaction id.
+ *
+ * We use a library wide transaction id, which means that we
+ * use a new transaction id no matter what slave to which we will
+ * be sending the request...
+ */
+static inline u16 next_transaction_id(void) {
+	static u16 next_id = 0;
+	return next_id++;
+}
+
+
+// заголовок пакета
+static inline void build_header_new(u8* header, u16 byte_count)
+{
+	union {
+		u16 u16;
+		u8  u8[2];
+	} tmp;
+
+	int headersize = 6;
+
+	header[0] = 1,
+	header[1] = 0;
+
+	header[2] = 0;
+	header[3] = 0;
+
+	tmp.u16 = mb_hton(byte_count);
+	header[4] = tmp.u8[0];
+	header[5] = tmp.u8[1];
+
+	//char* bufTxt = barray2hexstr(header, 12);
+	//printf(bufTxt);
+	//printf("\n");
+}
+
+static inline int build_packet_read(u8  slave, u8  function, u16 start_addr, u16  data, u8* packet) {
+	union {
+		u16 u16;
+		u8  u8[2];
+	} tmp;
+	int headersize = 6;
+	packet[0 + headersize] = slave,
+    packet[1 + headersize] = function;
+
+	tmp.u16 = mb_hton(start_addr);
+	packet[2 + headersize] = tmp.u8[0];
+	packet[3 + headersize] = tmp.u8[1];
+
+	tmp.u16 = mb_hton(data );
+	packet[4 + headersize] = tmp.u8[0];
+	packet[5 + headersize] = tmp.u8[1];
+
+	/*char*  bufTxt = barray2hexstr(packet, 12);
+	printf(bufTxt);
+	printf("\n");*/
+
+	return 6;
+}
+static inline int build_packet_new(u8  slave, u8  function, u16 start_addr, u16  *data, u8* packet) {
+	union {
+		u16 u16;
+		u8  u8[2];
+	} tmp;
+	int headersize = 6;
+	packet[0 + headersize] = slave,
+
+		packet[1 + headersize] = function;
+
+	tmp.u16 = mb_hton(start_addr);
+	packet[2 + headersize] = tmp.u8[0];
+	packet[3 + headersize] = tmp.u8[1];
+
+	tmp.u16 = mb_hton(data[0] );
+	packet[4 + headersize] = tmp.u8[0];
+	packet[5 + headersize] = tmp.u8[1];
+
+	/*char*  bufTxt = barray2hexstr(packet, 12);
+	printf(bufTxt);
+	printf("\n");*/
+
+	return 6;
+}
+
+static inline int build_packet(u8  slave, u8  function, u16 start_addr, u16 data, u8* packet) {
+	union {
+		u16 u16;
+		u8  u8[2];
+	} tmp;
+	int headersize = 6;
+	packet[0 + headersize] = slave,
+
+		packet[1 + headersize] = function;
+
+	tmp.u16 = mb_hton(start_addr);
+	packet[2 + headersize] = tmp.u8[0];
+	packet[3 + headersize] = tmp.u8[1];
+
+	tmp.u16 = mb_hton(data);
+	packet[4 + headersize] = tmp.u8[0];
+	packet[5 + headersize] = tmp.u8[1];
+
+	/*char*  bufTxt = barray2hexstr(packet, 12);
+	printf(bufTxt);
+	printf("\n");*/
+
+	return 6;
+}
+
+
+#define u16_v(char_ptr)  (*((u16 *)(&(char_ptr))))
+
+
+static inline void build_header(u8* header, u16 transaction_id, u16 byte_count)
+{
+	u16_v(header[0]) = mb_hton(transaction_id);
+	header[2] = 0;
+	header[3] = 0;
+	u16_v(header[4]) = mb_hton(byte_count);
+}
+
+
+/* The node descriptor table... */
+/* NOTE: The node_table_ Must be initialized correctly here! */
+static nd_table_t nd_table_ = { .node = NULL, .node_count = 0, .free_node_count = 0 };
+
+
+static int configure_socket(int socket_id) {
+
+	/* configure the socket */
+	  /* Set it to be non-blocking. This is safe because we always use select() before reading from it!
+	   * It is also required for the connect() call. The default timeout in the TCP stack is much too long
+	   * (typically blocks for 128 s ??) when the connect does not succedd imediately!
+	   */
+	   //  if (fcntl(socket_id, F_SETFL, O_NONBLOCK) < 0) {
+	   //#ifdef ERRMSG
+	   //    perror("fcntl()");
+	   //    fprintf(stderr, ERRMSG_HEAD "Error configuring socket 'non-blocking' option.\n");
+	   //#endif
+	   //    return -1;
+	   //  }
+
+		 /* configure the socket  set the TCP no delay flag. */
+
+	{int bool_opt = 1;
+	if (setsockopt(socket_id, IPPROTO_TCP, TCP_NODELAY, (const void*)&bool_opt, sizeof(bool_opt)) < 0)
+	{
+#ifdef ERRMSG
+		perror("setsockopt()");
+		fprintf(stderr, ERRMSG_HEAD "Error configuring socket 'TCP no delay' option.\n");
+#endif
+		return -1;
+	}
+	}
+
+	/* set the IP low delay option. */
+//  {int priority_opt = IPTOS_LOWDELAY;
+//  if (setsockopt(socket_id, SOL_IP, IP_TOS, (const void *)&priority_opt, sizeof(priority_opt))  < 0) {
+//#ifdef ERRMSG
+//    perror("setsockopt()");
+//    fprintf(stderr, ERRMSG_HEAD "Error configuring socket 'IP low delay' option.\n");
+//#endif
+//    return -1;
+//  }
+//  }
+
+	return 0;
+}
+
+
+/* This function will create a new socket, and connect it to a remote host... */
+static inline int open_connection(int nd, const struct timespec* timeout) {
+	int socket_id, con_res;
+
+	//
+	   //if (nd_table_.node[nd].fd >= 0)
+	   //	/* nd already connected) */
+	   //	return nd_table_.node[nd].fd;
+
+	   //if (nd_table_.node[nd].addr.sin_family != AF_INET)
+	   //	/* invalid remote address, or invalid nd */
+	   //	return -1;
+
+
+#if defined _WIN64 || defined _WIN32
+
+	int iResult;
+	int recvResult;
+	WSADATA wsaData;
+	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (iResult != 0) {
+
+		printf("WSAStartup failed with error: %d", iResult);
+		return -1;
+	}
+
+#else
+
+#endif
+
+
+	/* lets try to connect... */
+	  /* create the socket */
+	socket_id = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	if (socket_id < 0) {
+#ifdef DEBUG
+		perror("socket()");
+#endif
+#ifdef ERRMSG
+		perror("socket()");
+		fprintf(stderr, ERRMSG_HEAD "Error creating socket\n");
+#endif
+		return -1;
+	}
+
+	/* configure the socket - includes setting non-blocking option! */
+	if (configure_socket(socket_id) < 0) {
+		closesocket(socket_id);
+		return -1;
+	};
+
+	/* establish the connection to remote host */
+   // *iResult = (connect(CustomSocket->ClientSocket, (struct sockaddr*) & serv_addr, sizeof(serv_addr)));
+	con_res = connect(socket_id, (struct sockaddr*) & (nd_table_.node[nd].addr), sizeof(nd_table_.node[nd].addr));
+
+	/* The following condition is not strictly necessary
+	 * (we could let the code fall through)
+	 * but it does make the code easier to read/understand...
+	 */
+	if (con_res >= 0)
+		goto success_exit; /* connected succesfully on first try! */
+
+	if (con_res < 0) {
+		if ((errno != EINPROGRESS) && (errno != EALREADY))
+			goto error_exit; /* error in connection request! */
+
+		  /* connection request is ongoing */
+		  /* EINPROGRESS -> first call to connect, EALREADY -> subsequent calls to connect */
+		  /* Must wait for connect to complete at most 'timeout' seconds */
+		{fd_set fdset;
+		int res, so_error;
+		socklen_t len;
+		struct timespec end_time, * et_ptr;
+
+		et_ptr = NULL;
+		if (timeout != NULL) {
+			et_ptr = &end_time;
+			//*et_ptr = timespec_add_curtime(*timeout);
+		}
+
+		FD_ZERO(&fdset);
+		FD_SET(socket_id, &fdset);
+
+		//res = my_select(socket_id + 1, NULL, &fdset, et_ptr);
+		//if (res < 0) goto error_exit; /* error on call to select */
+		//if (res == 0) goto error_exit; /* timeout */
+		/* (res  > 0) -> connection attemt completed. May have been success or failure! */
+
+		len = sizeof(so_error);
+		res = getsockopt(socket_id, SOL_SOCKET, SO_ERROR, &so_error, &len);
+		if (res < 0)      goto error_exit; /* error on call to getsockopt */
+		if (so_error != 0) goto error_exit; /* error on connection attempt */
+		goto success_exit; /* succesfully completed connection attempt! */
+						   /* goto sucess_exit is not strcitly necessary - we could let the code fall through! */
+		}
+	}
+
+success_exit:
+	nd_table_.node[nd].fd = socket_id;
+	/* Succesfully established connection => print a message next time we have error. */
+	nd_table_.node[nd].print_connect_error = 1;
+
+#ifdef DEBUG
+	printf("  open_connection(): returning...\n");
+#endif
+	return socket_id;
+
+error_exit:
+#ifdef ERRMSG
+	if (nd_table_.node[nd].print_connect_error > 0) {
+		perror("connect()");
+		fprintf(stderr, ERRMSG_HEAD "Error establishing socket connection.\n");
+		/* do not print more error messages for this node... */
+		nd_table_.node[nd].print_connect_error = 0;
+	}
+#endif
+	closesocket(socket_id);
+	return -1;
+}
+
+
+void modbus_set_float_dcba(float f, uint16_t* dest)
+{
+	uint32_t i;
+
+	memcpy(&i, &f, sizeof(uint32_t));
+	i = bswap_32(htonl(i));
+	dest[0] = (uint16_t)(i >> 16);
+	dest[1] = (uint16_t)i;
+}
+
+
+
+char* barray2hexstr(const unsigned char* data, size_t datalen) {
+
+	size_t final_len = datalen * 2;
+	char* chrs = (unsigned char*)malloc((final_len + 1) * sizeof(*chrs));
+	unsigned int j = 0;
+	for (j = 0; j < datalen; j++)
+	{
+		chrs[2 * j] = (data[j] >> 4) + 48;
+		chrs[2 * j + 1] = (data[j] & 15) + 48;
+		if (chrs[2 * j] > 57) chrs[2 * j] += 7;
+		if (chrs[2 * j + 1] > 57) chrs[2 * j + 1] += 7;
+	}
+	chrs[2 * j] = '\0';
+	return chrs;
+}
+
+/* unpack bits from packed_data to unpacked_data */
+static inline void  __unpack_bits(request_registers_t* unpacked_data, u16* packed_data) {
+	u8    bit_processed;
+	u16 temp, byte;
+
+	for (bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)
+	{
+		temp = *packed_data;
+
+		unpacked_data->num_bit[bit_processed] = (temp >> bit_processed) & 1;
+		//fprintf(stderr, "Check unpacking bit %%d ---\n", unpacked_data->num_bit[bit_processed]);
+		*packed_data = temp;
+	}
+}
+
+int init_custom_socket_new(client_node_t* CustomSocket)
+{
+	if (!CustomSocket) {
+		printf("CustomSocket cannot be NULL.");
+		return -1;
+	}
+	int iResult;
+	struct addrinfo* result = NULL, * ptr = NULL, hints;
+
+	WSADATA wsaData;
+	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (iResult != 0) {
+		CustomSocket->Connected = false;
+		CustomSocket->Stopped = true;
+		printf("WSAStartup failed with error: %d", iResult);
+		return -1;
+	}
+
+	// Create a SOCKET for connecting to server
+	CustomSocket->ClientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (CustomSocket->ClientSocket == INVALID_SOCKET)
+	{
+		printf("Listening Socket Creation failed");
+		CustomSocket->Connected = false;
+		CustomSocket->Stopped = true;
+
+
+		WSACleanup();
+
+		return -1;
+	}
+
+	CustomSocket->Stopped = false;
+	return 0;
+}
+
+void create_connect_new(client_node_t* CustomSocket, int* iResult, struct sockaddr_in serv_addr)
+{
+	int size_serv_addr = sizeof(serv_addr);
+	*iResult = (connect(CustomSocket->ClientSocket, (struct sockaddr*) & serv_addr, size_serv_addr));
+	if (*iResult == SOCKET_ERROR) {
+		closesocket(CustomSocket->ClientSocket);
+		CustomSocket->Connected = false;
+
+	}
+	else
+	{
+		CustomSocket->Connected = true;
+	}
+}
+
+/* Execute a transaction for functions that READ REGISTERS.
+ * Called by:  read_input_words()
+ *             read_output_words()
+ */
+static int read_registers(
+	u8  function,
+	u8  slave,
+	u16 start_addr,
+	u16 count,
+	u16* registers,
+	int dest_size,
+	int ttyfd,
+	int send_retries,
+	u8* error_code,
+	const struct timespec* response_timeout,
+	CONST HANDLE* data_access_mutex,
+	client_node_t* cnInfoIn,
+	u16* plcbuff
+
+) {
+	//u8* data;
+	u8 packet[QUERY_BUFFER_SIZE];
+	int response_length = 0;
+	int query_length;
+	int tempResult, recvResult;
+	int connResult = 0;
+
+	char* bufTxt;
+
+	query_length = build_packet_read(slave, function, start_addr, count, packet);
+	if (query_length < 0)    return INTERNAL_ERROR;
+
+	build_header_new(packet, query_length);
+	u8 packet_lenght = TCP_HEADER_LENGTH + query_length;
+
+	create_connect_new(cnInfoIn, &connResult, serv_addr);
+
+	if (connResult >= 0)
+	{
+		tempResult = send(cnInfoIn->ClientSocket, packet, packet_lenght, 0);
+		if (tempResult == SOCKET_ERROR) {
+			printf("send failed with error: %d \n", WSAGetLastError());
+
+			WSACleanup();
+			return 1;
+		}
+
+		printf("Bytes Sent: %ld\n", tempResult);
+
+		u16 tm[2000];
+	for(int ind =0; ind < 2000; ind++)
+	{
+		tm[ind] = registers[ind];
+	}
+		// shutdown the connection since no more data will be sent
+	   /* iResult = shutdown(CustomSocket->ClientSocket, SD_SEND);
+		if (iResult == SOCKET_ERROR) {
+			printf("shutdown failed with error: %d\n", WSAGetLastError());
+			closesocket(CustomSocket->ClientSocket);
+			WSACleanup();
+			return 1;
+		}*/
+
+		// Receive until the peer closes the connection
+			//do {
+			//
+
+		memset((char*)&packet, 0, sizeof(packet));
+
+		recvResult = recv(cnInfoIn->ClientSocket, packet, QUERY_BUFFER_SIZE, 0);
+		if (recvResult > 0)
+		{
+			printf("Bytes received: %d\n", recvResult);
+			update_bufer(plcbuff, packet, recvResult);
+		}
+		else if (recvResult == 0)
+			printf("Connection closed\n");
+		else
+			printf("recv failed with error: %d\n", WSAGetLastError());
+
+		for (int ind = 0; ind < 2000; ind++)
+		{
+			tm[ind] = plcbuff[ind];
+		}
+
+
+		/*bufTxt = barray2hexstr(packet, sizeof(packet));
+		printf(bufTxt);
+		printf("\n");*/
+	}
+
+	Sleep(300);
+
+	//response_length =  mb_transaction(packet, query_length, &data, ttyfd, send_retries, error_code, response_timeout);
+
+	//if (response_length < 0)              return response_length;
+	//if (response_length != 3 + 2 * count)    return INVALID_FRAME;
+	//if (data[2] != 2 * count)    return INVALID_FRAME;
+
+	////TODO переделать мутекс
+	////if (NULL != data_access_mutex) pthread_mutex_lock(data_access_mutex);
+
+
+	//
+	//for (i = 0; (i < (data[2] * 2)) && (i < dest_size); i++) {
+	//	temp = data[3 + i * 2] << 8;    /* copy reg hi byte to temp hi byte*/
+	//	temp = temp | data[4 + i * 2]; /* copy reg lo byte to temp lo byte*/
+	//	dest[i] = temp;
+	//}
+	//
+	////TODO переделать мутекс
+	////if (NULL != data_access_mutex) pthread_mutex_unlock(data_access_mutex);
+
+	return response_length;
+}
+
+
+void update_bufer(u16* coms_buffer, u8 *received_data, int packet_size)
+{
+	union {
+		u16 u16;
+		u8  u8[2];
+	} tmp;
+
+	u8 tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11;
+
+	tmp0 = received_data[0];
+	tmp1 = received_data[1];
+
+	tmp2 = received_data[2];
+	tmp3 = received_data[3];
+
+	tmp4 = received_data[4];
+	tmp5 = received_data[5];  //  размер данных
+
+	tmp6 = received_data[6]; // Количество регистров
+
+	tmp7 = received_data[7]; //
+	tmp8 = received_data[8];
+
+
+	tmp9 = received_data[9];
+
+	tmp10 = received_data[10];
+	tmp11 = received_data[11];
+	/*header[0] = 1,
+		header[1] = 0;
+
+	header[2] = 0;
+	header[3] = 0;
+	*/
+	tmp.u16 = mb_hton(coms_buffer[0]);
+    tmp.u8[0] = received_data[10];
+	 tmp.u8[1] = received_data[9];
+	 coms_buffer[0] = tmp.u16;
+}
+
+/* Execute a transaction for functions that WRITE a sinlge BIT.
+ * Called by:  write_output_bit()
+ *             write_output_word()
+ */
+static int set_single(
+	u8  function,
+	u8  slave,
+	u16 addr,
+	u16 * rigistr,
+	int ttyfd,
+	int send_retries,
+	u8* error_code,
+	const struct timespec* response_timeout,
+	CONST HANDLE* data_access_mutex,
+	client_node_t* cnInfoIn,
+	u16* plc_buffer
+)
+{
+	u8 packet[QUERY_BUFFER_SIZE];
+	u8* data;
+	int query_length, response_length = 0;
+
+
+	int tempResult, recvResult;
+	int connResult = 0;
+
+	char* bufTxt;
+
+	//TODO переделать мутекс
+	//if (NULL != data_access_mutex) pthread_mutex_lock(data_access_mutex);
+	//
+	query_length = build_packet_new(slave, function, addr, rigistr, packet);
+	if (query_length < 0)    return INTERNAL_ERROR;
+	//
+	//TODO переделать мутекс
+	//if (NULL != data_access_mutex) pthread_mutex_unlock(data_access_mutex);
+	if (query_length < 0)    return INTERNAL_ERROR;
+
+	/*u16 tm[2000];
+	for(int ind =0; ind < 2000; ind++)
+	{
+		tm[ind] = rigistr[ind];
+	}*/
+
+	build_header_new(packet, query_length);
+	u8 packet_lenght = TCP_HEADER_LENGTH + query_length;
+
+	create_connect_new(cnInfoIn, &connResult, serv_addr);
+
+	if (connResult >= 0)
+	{
+		tempResult = send(cnInfoIn->ClientSocket, packet, packet_lenght, 0);
+		if (tempResult == SOCKET_ERROR) {
+			printf("send failed with error: %d \n", WSAGetLastError());
+
+			WSACleanup();
+			return 1;
+		}
+
+
+		printf("Bytes Sent: %ld\n", tempResult);
+
+		// shutdown the connection since no more data will be sent
+	   /* iResult = shutdown(CustomSocket->ClientSocket, SD_SEND);
+		if (iResult == SOCKET_ERROR) {
+			printf("shutdown failed with error: %d\n", WSAGetLastError());
+			closesocket(CustomSocket->ClientSocket);
+			WSACleanup();
+			return 1;
+		}*/
+
+		// Receive until the peer closes the connection
+			//do {
+			//
+
+		memset((char*)&packet, 0, sizeof(packet));
+
+
+		recvResult = recv(cnInfoIn->ClientSocket, packet, QUERY_BUFFER_SIZE, 0);
+		if (recvResult > 0)
+		{
+			printf("Bytes received: %d\n", recvResult);
+			update_bufer(plc_buffer, packet, recvResult);
+		}
+		else if (recvResult == 0)
+			printf("Connection closed\n");
+		else
+			printf("recv failed with error: %d\n", WSAGetLastError());
+
+
+
+		/*bufTxt = barray2hexstr(packet, sizeof(packet));
+		printf(bufTxt);
+		printf("\n");*/
+	}
+
+	Sleep(300);
+	return response_length;
+}
+
+
+
+/* FUNCTION 0x03   - Read Holding Registers */
+int read_output_words(
+	u8  slave,
+	u16 start_addr,
+	u16 count,
+	u16* registers,
+	int dest_size,
+	int ttyfd,
+	int send_retries,
+	u8* error_code,
+	const struct timespec* response_timeout,
+	CONST HANDLE* data_access_mutex,
+	client_node_t* cnInfo,
+	u16* plcbuff
+
+) {
+	if (count > MAX_READ_REGS) {
+		count = MAX_READ_REGS;
+#ifdef DEBUG
+		fprintf(stderr, "Too many registers requested.\n");
+#endif
+	}
+
+	return read_registers(
+		0x03 /* function */,
+		slave,
+		start_addr,
+		count,
+		registers,
+		dest_size,
+		ttyfd,
+		send_retries, error_code, response_timeout, data_access_mutex,
+		cnInfo,
+		plcbuff
+
+	);
+}
+
+/* FUNCTION 0x06   - Write Single Register */
+int write_output_word(
+	u8  slave,
+	u16 reg_addr,
+	u16 * value_registr,
+	int fd,
+	int send_retries,
+	u8* error_code,
+	const struct timespec* response_timeout,
+	CONST HANDLE* data_access_mutex,
+	client_node_t* cnInfo,
+	u16* plcbuff
+
+) {
+	return set_single(0x06 /* function */,
+		slave, reg_addr, value_registr, fd, send_retries,
+		error_code, response_timeout, data_access_mutex,
+		cnInfo,
+		plcbuff
+
+	);
+}
+
 /* unpack analog registr  */
 static inline void  __get_analog(client_request_t *raw_data, float  *packed_data) {
 u8    bit_processed ;
@@ -131,43 +851,50 @@ static inline void  __unpack_bits(request_registers_t *unpacked_data, u16  *pack
   }
 }
 
-/* Execute a modbus client transaction/request */
-static int __execute_mb_request_in(int request_id){
+static int execute_mb_request_in(int request_id) {
 
-   // __pack_bits(&request_registers[request_id] ,  &client_requests[request_id].plcv_buffer[0]);
-
-
-	switch (client_requests[request_id].mb_function){
+	switch (client_requests[request_id].mb_function) {
 
 	case  1: break;
 	case  2: break;
 
 	case  3: /* read holding registers */
-		return read_output_words(client_requests[request_id].slave_id,
-								client_requests[request_id].address,
-								client_requests[request_id].count,
-								client_requests[request_id].coms_buffer,
-								(int) client_requests[request_id].count,
+		return read_output_words(
+			client_requests[request_id].slave_id,
+			client_requests[request_id].address,
+			client_requests[request_id].count,
+			&(client_requests[request_id].coms_buffer),
+			(int)client_requests[request_id].count,
 
-								client_nodes[client_requests[request_id].client_node_id].mb_nd,
-								client_requests[request_id].retries,
-								&(client_requests[request_id].error_code),
-								&(client_requests[request_id].resp_timeout),
-								&(client_requests[request_id].coms_buf_mutex));
+			client_nodes[client_requests[request_id].client_node_id].mb_nd,
+			client_requests[request_id].retries,
+			&(client_requests[request_id].error_code),
+			&(client_requests[request_id].resp_timeout),
+			&(client_requests[request_id].coms_buf_mutex),
+			&client_nodes[client_requests[request_id].client_node_id],
+			&(client_requests[request_id].plcv_buffer)
 
-	case  4: break;
-	case  5: break;
 
-	case  6: /* write single register */
-		return write_output_word(client_requests[request_id].slave_id,
-								client_requests[request_id].address,
-								client_requests[request_id].coms_buffer[0],
+		);
 
-								client_nodes[client_requests[request_id].client_node_id].mb_nd,
-								client_requests[request_id].retries,
-								&(client_requests[request_id].error_code),
-								&(client_requests[request_id].resp_timeout),
-								&(client_requests[request_id].coms_buf_mutex));
+	case  4:break;
+
+	case  5:break;
+
+	case  6:  /* write single register */
+		return write_output_word(
+			client_requests[request_id].slave_id,
+			client_requests[request_id].address,
+			&(client_requests[request_id].coms_buffer) ,
+
+			client_nodes[client_requests[request_id].client_node_id].mb_nd,
+			client_requests[request_id].retries,
+			&(client_requests[request_id].error_code),
+			&(client_requests[request_id].resp_timeout),
+			&(client_requests[request_id].coms_buf_mutex),
+			&client_nodes[client_requests[request_id].client_node_id],
+			&(client_requests[request_id].plcv_buffer)
+		);
 
 	case  7: break; /* function not yet supported */
 	case  8: break; /* function not yet supported */
@@ -180,27 +907,15 @@ static int __execute_mb_request_in(int request_id){
 
 	case 15: break;
 
-	case 16: /* write multiple registers */
-		return write_output_words(client_requests[request_id].slave_id,
-								client_requests[request_id].address,
-								client_requests[request_id].count,
-								client_requests[request_id].coms_buffer,
-
-								client_nodes[client_requests[request_id].client_node_id].mb_nd,
-								client_requests[request_id].retries,
-								&(client_requests[request_id].error_code),
-								&(client_requests[request_id].resp_timeout),
-								&(client_requests[request_id].coms_buf_mutex));
+	case 16: break;
 
 	default: break;  /* should never occur, if file generation is correct */
 	}
 
-
-
-
-	fprintf(stderr, "Modbus plugin: Modbus function %%d not supported\n", request_id); /* should never occur, if file generation is correct */
+	fprintf(stderr, "Modbus plugin: Modbus function %d not supported\n", request_id); /* should never occur, if file generation is correct */
 	return -1;
 }
+
 
 static void __print_structure(request_registers_t *unpacked_data, int request_id ){
 u8    bit_processed, allbits;
@@ -253,20 +968,220 @@ int ret = 0;
 	}					\
 }
 
+int accept_and_stream_custom_socket2(void* _index)
+{
+	int client_node_id = (char*)_index - (char*)NULL; // Use pointer arithmetic (more portable than cast)
 
-static void *__mb_client_thread(void *_index)  {
 
+	do {
+
+			u64 period_sec = client_nodes[client_node_id].comm_period / 1000;          /* comm_period is in ms */
+			int period_nsec = (client_nodes[client_node_id].comm_period % 1000) * 1000000; /* comm_period is in ms */
+
+
+	// loop the communication with the client
+	while (1) {
+
+		int req;
+		for (req = 0; req < NUMBER_OF_CLIENT_REQTS; req++) {
+			/*just do the requests belonging to the client */
+			if (client_requests[req].client_node_id != client_node_id)
+				continue;
+			int res_tmp = __execute_mb_request(req);
+			switch (res_tmp) {
+			  case PORT_FAILURE: {
+				if (res_tmp != client_nodes[client_node_id].prev_error)
+					fprintf(stderr, "Modbus plugin: Error connecting Modbus client %s to remote server.\n", client_nodes[client_node_id].location);
+				client_nodes[client_node_id].prev_error = res_tmp;
+				break;
+			  }
+			  case INVALID_FRAME: {
+				if ((res_tmp != client_requests[req].prev_error) && (0 == client_nodes[client_node_id].prev_error))
+					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %s was unsuccesful. Server/slave returned an invalid/corrupted frame.\n", client_requests[req].location);
+				client_requests[req].prev_error = res_tmp;
+				break;
+			  }
+			  case TIMEOUT: {
+				if ((res_tmp != client_requests[req].prev_error) && (0 == client_nodes[client_node_id].prev_error))
+					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %s timed out waiting for reply from server.\n", client_requests[req].location);
+				client_requests[req].prev_error = res_tmp;
+				break;
+			  }
+			  case MODBUS_ERROR: {
+				if (client_requests[req].prev_error != client_requests[req].error_code) {
+					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %s was unsuccesful. Server/slave returned error code 0x%2x", client_requests[req].location, client_requests[req].error_code);
+
+				}
+				client_requests[req].prev_error = client_requests[req].error_code;
+				break;
+			  }
+			  default: {
+				if ((res_tmp >= 0) && (client_nodes[client_node_id].prev_error != 0)) {
+					fprintf(stderr, "Modbus plugin: Modbus client %s has reconnected to server/slave.\n", client_nodes[client_node_id].location);
+				}
+				if ((res_tmp >= 0) && (client_requests[req].prev_error != 0)) {
+					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %s has succesfully resumed comunication.\n", client_requests[req].location);
+				}
+				client_nodes[client_node_id].prev_error = 0;
+				client_requests[req].prev_error = 0;
+				break;
+			  }
+			}
+		}
+		 Sleep(200);
+
+		//clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next_cycle, NULL);
+	}
 
 	// humour the compiler.
 	return NULL;
+
+
+
+	} while (1); // while (!CustomSocket->Stopped);
+}
+
+int clean_custom_socket(struct custom_socket* CustomSocket) {
+	if (CustomSocket) {
+		CustomSocket->Stopped = true;
+		CustomSocket->Connected = false;
+		// cleanup
+		closesocket(CustomSocket->ClientSocket);
+		WSACleanup();
+	}
+#if defined _WIN64 || defined _WIN32
+	WSACleanup();
+#endif
+}
+
+
+//static void *__mb_client_thread(void *_index)  {
+//
+//
+//	// humour the compiler.
+//	return NULL;
+//}
+
+DWORD WINAPI run_accept_and_stream_custom_socket2(CONST LPVOID lpParam) {
+
+	struct client_request_t* client_requests = lpParam;
+	int tt = accept_and_stream_custom_socket2(client_requests);
+
 }
 
 
 int __cleanup_%(locstr)s ();
 int __init_%(locstr)s (int argc, char **argv){
 
+TCHAR szMessage[256];
+	TCHAR szMessage[256];
+	DWORD dwTemp, i;
+	HANDLE hThreads[THREADS_NUMBER];
+	CONST HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONST HANDLE hMutex = CreateMutex(NULL, FALSE, NULL);
+
+	HANDLE hThreads2;
+
+	struct timeval st, et;
+	getTick(&st);
+
+	show(hStdOut, TEXT("Socekt TEST 06 - Starting ...\r\n"));
+
+	//struct custom_socket CustomSocket = { NULL, NULL, 0,0,0 };
+	uint16_t Port = 501;
+
+	// Setup the TCP listening socket
+	 SetUpSocket(501, "192.168.253.250"); // 172.16.13.142
+
+	uint16_t deelay_ = 500;
+	int count = 0;
 
 
+	char* bufTxt;
+	uint16_t tab_reg[2];
+
+	//int mbRead = 8000;
+	//int mbWrite = 8400;
+	int count_registers = 1;
+	uint16_t  reg = 0;
+	u16  data = 5;
+	int request_id = 0;
+
+
+	client_requests[1].coms_buffer[0] = 0;
+
+	Sleep(deelay_);
+
+	int index;
+
+	for (index = 0; index < NUMBER_OF_CLIENT_NODES; index++)
+	{
+		client_nodes[index].mb_nd = -1;
+		int initResult = init_custom_socket_new(&client_nodes[index]);
+		if (initResult != 0) {
+			Error(hStdOut, TEXT("Failed to initialise socket.\r\n"));
+		}
+
+		if (NULL == hMutex) {
+			Error(hStdOut, TEXT("Failed to create mutex.\r\n"));
+		}
+		else
+		{
+			show(hStdOut, TEXT("Mutex created.\r\n"));
+		}
+	}
+
+	for (index = 0; index < NUMBER_OF_CLIENT_NODES; index++)
+	{
+
+		client_nodes[index].init_state = 1;
+		{
+			int res = 0;
+
+			hThreads2 = CreateThread(NULL, 0, &run_accept_and_stream_custom_socket2, index, 0, &(client_nodes[index].thread_id));
+
+			Sleep(500);
+			if (res != 0) {
+				printf("Modbus plugin: Error starting modbus client thread for node %%s\n", client_nodes[index].location);
+				return -1;
+			}
+		}
+		client_nodes[index].init_state = 2; // we have created the node and a thread
+	}
+
+	do {
+		bufTxt = barray2hexstr(&client_requests[0].plcv_buffer[0], 2);
+		printf(bufTxt);
+		printf("\n");
+
+
+		count++;
+		client_requests[1].coms_buffer[0] = count;
+
+		bufTxt = barray2hexstr(&client_requests[1].coms_buffer[0], 2);
+		printf(bufTxt);
+		printf("\n");
+		//printf(&client_requests[0].plcv_buffer[0] ) ;
+		Sleep(deelay_);
+
+
+		for (index = 0; index < NUMBER_OF_CLIENT_NODES; index++)
+		{
+
+			if (client_nodes[index].Connected == false)
+			{
+				int initResult = init_custom_socket_new(&client_nodes[index]);
+				if (initResult != 0) {
+					Error(hStdOut, TEXT("Failed to initialise socket.\r\n"));
+				}
+			}
+		}
+
+	} while (1);
+
+	CloseHandle(hThreads[0]);
+	CloseHandle(hMutex);
+	ExitProcess(0);
 
 	return 0;
 
