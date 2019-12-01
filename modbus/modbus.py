@@ -1385,7 +1385,9 @@ class RootClass(object):
 
         # get template file content into a string, format it with dict
         # and write it to proper .h file
-        mb_main = open(h_filename).read() % loc_dict
+        file_str = open(h_filename).read()
+
+        mb_main = file_str  % loc_dict
         f = open(Gen_MB_h_path, 'w')
         f.write(mb_main)
         f.close()
