@@ -256,7 +256,7 @@ static inline int open_connection(int nd, const struct timespec* timeout) {
 	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (iResult != 0) {
 
-		printf("WSAStartup failed with error: %d", iResult);
+		printf("WSAStartup failed with error: %%d", iResult);
 		return -1;
 	}
 
@@ -413,7 +413,7 @@ int init_custom_socket_new(client_node_t* CustomSocket)
 	if (iResult != 0) {
 		CustomSocket->Connected = false;
 		CustomSocket->Stopped = true;
-		printf("WSAStartup failed with error: %d", iResult);
+		printf("WSAStartup failed with error: %%d", iResult);
 		return -1;
 	}
 
@@ -491,13 +491,13 @@ static int read_registers(
 	{
 		tempResult = send(cnInfoIn->ClientSocket, packet, packet_lenght, 0);
 		if (tempResult == SOCKET_ERROR) {
-			printf("send failed with error: %d \n", WSAGetLastError());
+			printf("send failed with error: %%d \n", WSAGetLastError());
 
 			WSACleanup();
 			return 1;
 		}
 
-		printf("Bytes Sent: %ld\n", tempResult);
+		printf("Bytes Sent: %%ld\n", tempResult);
 
 		u16 tm[2000];
 	for(int ind =0; ind < 2000; ind++)
@@ -507,7 +507,7 @@ static int read_registers(
 		// shutdown the connection since no more data will be sent
 	   /* iResult = shutdown(CustomSocket->ClientSocket, SD_SEND);
 		if (iResult == SOCKET_ERROR) {
-			printf("shutdown failed with error: %d\n", WSAGetLastError());
+			printf("shutdown failed with error: %%d\n", WSAGetLastError());
 			closesocket(CustomSocket->ClientSocket);
 			WSACleanup();
 			return 1;
@@ -522,13 +522,13 @@ static int read_registers(
 		recvResult = recv(cnInfoIn->ClientSocket, packet, QUERY_BUFFER_SIZE, 0);
 		if (recvResult > 0)
 		{
-			printf("Bytes received: %d\n", recvResult);
+			printf("Bytes received: %%d\n", recvResult);
 			update_bufer(plcbuff, packet, recvResult);
 		}
 		else if (recvResult == 0)
 			printf("Connection closed\n");
 		else
-			printf("recv failed with error: %d\n", WSAGetLastError());
+			printf("recv failed with error: %%d\n", WSAGetLastError());
 
 		for (int ind = 0; ind < 2000; ind++)
 		{
@@ -660,19 +660,19 @@ static int set_single(
 	{
 		tempResult = send(cnInfoIn->ClientSocket, packet, packet_lenght, 0);
 		if (tempResult == SOCKET_ERROR) {
-			printf("send failed with error: %d \n", WSAGetLastError());
+			printf("send failed with error: %%d \n", WSAGetLastError());
 
 			WSACleanup();
 			return 1;
 		}
 
 
-		printf("Bytes Sent: %ld\n", tempResult);
+		printf("Bytes Sent: %%ld\n", tempResult);
 
 		// shutdown the connection since no more data will be sent
 	   /* iResult = shutdown(CustomSocket->ClientSocket, SD_SEND);
 		if (iResult == SOCKET_ERROR) {
-			printf("shutdown failed with error: %d\n", WSAGetLastError());
+			printf("shutdown failed with error: %%d\n", WSAGetLastError());
 			closesocket(CustomSocket->ClientSocket);
 			WSACleanup();
 			return 1;
@@ -688,13 +688,13 @@ static int set_single(
 		recvResult = recv(cnInfoIn->ClientSocket, packet, QUERY_BUFFER_SIZE, 0);
 		if (recvResult > 0)
 		{
-			printf("Bytes received: %d\n", recvResult);
+			printf("Bytes received: %%d\n", recvResult);
 			update_bufer(plc_buffer, packet, recvResult);
 		}
 		else if (recvResult == 0)
 			printf("Connection closed\n");
 		else
-			printf("recv failed with error: %d\n", WSAGetLastError());
+			printf("recv failed with error: %%d\n", WSAGetLastError());
 
 
 
@@ -912,7 +912,7 @@ static int execute_mb_request_in(int request_id) {
 	default: break;  /* should never occur, if file generation is correct */
 	}
 
-	fprintf(stderr, "Modbus plugin: Modbus function %d not supported\n", request_id); /* should never occur, if file generation is correct */
+	fprintf(stderr, "Modbus plugin: Modbus function %%d not supported\n", request_id); /* should never occur, if file generation is correct */
 	return -1;
 }
 
@@ -976,7 +976,7 @@ int accept_and_stream_custom_socket2(void* _index)
 	do {
 
 			u64 period_sec = client_nodes[client_node_id].comm_period / 1000;          /* comm_period is in ms */
-			int period_nsec = (client_nodes[client_node_id].comm_period % 1000) * 1000000; /* comm_period is in ms */
+			int period_nsec = (client_nodes[client_node_id].comm_period %% 1000) * 1000000; /* comm_period is in ms */
 
 
 	// loop the communication with the client
@@ -991,25 +991,25 @@ int accept_and_stream_custom_socket2(void* _index)
 			switch (res_tmp) {
 			  case PORT_FAILURE: {
 				if (res_tmp != client_nodes[client_node_id].prev_error)
-					fprintf(stderr, "Modbus plugin: Error connecting Modbus client %s to remote server.\n", client_nodes[client_node_id].location);
+					fprintf(stderr, "Modbus plugin: Error connecting Modbus client %%s to remote server.\n", client_nodes[client_node_id].location);
 				client_nodes[client_node_id].prev_error = res_tmp;
 				break;
 			  }
 			  case INVALID_FRAME: {
 				if ((res_tmp != client_requests[req].prev_error) && (0 == client_nodes[client_node_id].prev_error))
-					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %s was unsuccesful. Server/slave returned an invalid/corrupted frame.\n", client_requests[req].location);
+					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s was unsuccesful. Server/slave returned an invalid/corrupted frame.\n", client_requests[req].location);
 				client_requests[req].prev_error = res_tmp;
 				break;
 			  }
 			  case TIMEOUT: {
 				if ((res_tmp != client_requests[req].prev_error) && (0 == client_nodes[client_node_id].prev_error))
-					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %s timed out waiting for reply from server.\n", client_requests[req].location);
+					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s timed out waiting for reply from server.\n", client_requests[req].location);
 				client_requests[req].prev_error = res_tmp;
 				break;
 			  }
 			  case MODBUS_ERROR: {
 				if (client_requests[req].prev_error != client_requests[req].error_code) {
-					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %s was unsuccesful. Server/slave returned error code 0x%2x", client_requests[req].location, client_requests[req].error_code);
+					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s was unsuccesful. Server/slave returned error code 0x%%2x", client_requests[req].location, client_requests[req].error_code);
 
 				}
 				client_requests[req].prev_error = client_requests[req].error_code;
@@ -1017,10 +1017,10 @@ int accept_and_stream_custom_socket2(void* _index)
 			  }
 			  default: {
 				if ((res_tmp >= 0) && (client_nodes[client_node_id].prev_error != 0)) {
-					fprintf(stderr, "Modbus plugin: Modbus client %s has reconnected to server/slave.\n", client_nodes[client_node_id].location);
+					fprintf(stderr, "Modbus plugin: Modbus client %%s has reconnected to server/slave.\n", client_nodes[client_node_id].location);
 				}
 				if ((res_tmp >= 0) && (client_requests[req].prev_error != 0)) {
-					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %s has succesfully resumed comunication.\n", client_requests[req].location);
+					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s has succesfully resumed comunication.\n", client_requests[req].location);
 				}
 				client_nodes[client_node_id].prev_error = 0;
 				client_requests[req].prev_error = 0;
