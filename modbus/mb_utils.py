@@ -37,7 +37,7 @@ modbus_function_dict = {
     "01 - Read sig":                    ('3',   'req_input', 1, "BOOL", 1, "Q", "X", "Read Signal"),
     "02 - Write Sig":                   ('6',   'req_output', 1, "BOOL", 1, "Q", "X", "Write Signal"),
    #"02 - Read Input Discretes":        ('2',   'req_input', 2000, "BOOL",  1, "I", "X", "Input Discrete"),
-    "03 - Read Holding Registers":      ('3',   'req_input',  125, "WORD", 16, "Q", "W", "Holding Register"),
+    "03 - Read Holding Registers":      ('3',   'req_input',  125, "REAL", 16, "Q", "W", "Holding Register"),
     #"04 - Read Input Registers":       ('4',   'req_input',  125, "WORD", 16, "I", "W", "Input Register"),
     #"05 - Write Single coil":          ('5',   'req_output',    1, "BOOL",  1, "Q", "X", "Coil"),
     "06 - Write Single Register":       ('6',   'req_output',    1, "WORD", 16, "Q", "W", "Holding Register"),
