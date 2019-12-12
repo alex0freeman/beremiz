@@ -34,7 +34,7 @@ from PLCControler import LOCATION_CONFNODE, LOCATION_VAR_MEMORY, LOCATION_GROUP
 
 base_folder = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
 base_folder = os.path.join(base_folder, "..")
-ModbusPath = os.path.join(base_folder, "Modbus")
+ModbusPath = os.path.join(base_folder, "mb")
 
 
 def savelog(projects):
@@ -1358,7 +1358,7 @@ class RootClass(object):
         # loc_dict["loc_vars"] = "\n".join(loc_vars)
 
         loc_dict["loc_vars"] = "\n".join(loc_vars)
-        loc_dict["server_nodes_params"] = ",\n\n".join(server_node_list)
+        
         loc_dict["client_nodes_params"] = ",\n\n".join(client_node_list)
         loc_dict["client_req_params"] = ",\n\n".join(client_request_list)
 
@@ -1400,7 +1400,7 @@ class RootClass(object):
         LDFLAGS = []
         LDFLAGS.append(" \"-L" + ModbusPath + "\"")
         #LDFLAGS.append(" \"" + os.path.join(ModbusPath, "MbBeremiz.lib") + "\"")
-        LDFLAGS.append(" \"" + os.path.join(ModbusPath, "libmb.a") + "\"")
+        LDFLAGS.append(" \"" + os.path.join(ModbusPath, "mblib.lib") + "\"")
         LDFLAGS.append(" \"-Wl,-rpath," + ModbusPath + "\"")
         # LDFLAGS.append("\"" + os.path.join(ModbusPath, "mb_slave_and_master.o") + "\"")
         # LDFLAGS.append("\"" + os.path.join(ModbusPath, "mb_slave.o") + "\"")

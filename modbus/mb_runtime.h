@@ -1,12 +1,4 @@
-
-
-
-#define RGISTR_SIZE 16
-typedef struct{
-	    u16     address;
-	    u16	    num_bit[RGISTR_SIZE];
-
-	} request_registers_t;
+#include <mblib.h>
 
 /* The total number of nodes, needed to support _all_ instances of the modbus plugin */
 #define TOTAL_TCPNODE_COUNT       %(total_tcpnode_count)s
@@ -54,10 +46,6 @@ static client_request_t	client_requests[NUMBER_OF_CLIENT_REQTS] = {
 %(client_req_params)s
 };
 
-
-static server_node_t		server_nodes[NUMBER_OF_SERVER_NODES] = {
-%(server_nodes_params)s
-};
 
 
 static request_registers_t request_registers[NUMBER_OF_REGISTER] = {
