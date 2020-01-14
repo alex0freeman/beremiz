@@ -76,42 +76,6 @@ static inline u16 next_transaction_id(void) {
 }
 
 
-float modbus_set_float_dcba(  uint16_t* src)
-{
-	u8 t1, t2;
-	float f;
-	uint32_t i;
-	union {
-		u16 u16;
-		u8  u8[2];
-	} tmp;
-
-	u16 tu1, tu2;
-
-	//tmp.u16 = src[0];
-	//t1 = tmp.u8[1];
-	//t2 = tmp.u8[0];
-
-	//tmp.u8[1] = t2;
-	//tmp.u8[0] = t1;
-	//
-	//tu1 = tmp.u16;
-
-	//tmp.u16 = src[1];
-	//t1 = tmp.u8[1];
-	//t2 = tmp.u8[0];
-
-	//tmp.u8[1] = t2;
-	//tmp.u8[0] = t1;
-
-	//tu2 = tmp.u16;
-
-	i = ntohl(bswap_32((((uint32_t)src[0]) << 16) + src[1]));
-	memcpy(&f, &i, sizeof(float));
-
-	return f;
-}
-
 
 /* The node descriptor table... */
 /* NOTE: The node_table_ Must be initialized correctly here! */
@@ -161,18 +125,6 @@ static int configure_socket(int socket_id) {
 }
 
 
-//void modbus_set_float_dcba(float f, uint16_t* dest)
-//{
-//	uint32_t i;
-//
-//	memcpy(&i, &f, sizeof(uint32_t));
-//	i = bswap_32(htonl(i));
-//	dest[0] = (uint16_t)(i >> 16);
-//	dest[1] = (uint16_t)i;
-//}
-
-
-
 char* barray2hexstr(const unsigned char* data, size_t datalen) {
 
 	size_t final_len = datalen * 2;
@@ -189,10 +141,81 @@ char* barray2hexstr(const unsigned char* data, size_t datalen) {
 	return chrs;
 }
 
+
+/* Get a float from 4 bytes (Modbus) in inversed format (DCBA) */
+float modbus_get_float_dcba(uint16_t* raw_words)
+{
+	float float_data;
+	uint32_t i;
+
+	i = ntohl(bswap_32((((uint32_t)raw_words[0]) << 16) + raw_words[1]));
+	memcpy(&float_data, &i, sizeof(float));
+
+	return float_data;
+}
+
+/* Set a float to 4 bytes for Modbus with byte and word swap conversion (DCBA) */
+void modbus_set_float_dcba(float f, uint16_t* dest)
+{
+	uint32_t i;
+
+	memcpy(&i, &f, sizeof(uint32_t));
+	i = bswap_32(htonl(i));
+	dest[0] = (uint16_t)(i >> 16);
+	dest[1] = (uint16_t)i;
+}
+
+/* unpack analog registr  */
+static inline void  __unpack_analog(client_request_t* raw_data, float* packed_data) {
+	u8   bit_processed;
+	u16  raw_d;
+	float analog_data, scale, offset;
+
+	raw_d = raw_data->plcv_buffer[0];
+
+	scale = raw_data->scale;
+	offset = raw_data->offset;
+
+	if (scale > 1) {
+		analog_data = raw_d / scale + offset;
+	}
+	else {
+		analog_data = modbus_get_float_dcba(raw_data->plcv_buffer);
+	}
+
+	*packed_data = analog_data;
+}
+
+/* pack analog registr  */
+static inline void  __pack_analog(client_request_t* raw_data, float* packed_data) {
+	u16  raw_d;
+	float analog_data ;
+	analog_data = *packed_data;
+	modbus_set_float_dcba(analog_data, raw_data->plcv_buffer);
+
+}
+
+/* pack bits from unpacked_data to packed_data */
+static inline void  __pack_bits(request_registers_t* unpacked_data, u16* packed_data) {
+	u8    bit_processed;
+	u16 temp;
+
+	for (bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++) {
+		temp = *packed_data;
+		if (unpacked_data->num_bit[bit_processed]) {
+			temp |= (1 << bit_processed); /*   set bit */
+		}
+		else {
+			temp &= ~(1 << bit_processed); /* reset bit */
+		}
+		//fprintf(stderr, "Check paking bit  %%d ---\n", unpacked_data->num_bit[bit_processed]);
+		*packed_data = temp;
+	}
+}
 /* unpack bits from packed_data to unpacked_data */
 static inline void  __unpack_bits(request_registers_t* unpacked_data, u16* packed_data) {
 	u8    bit_processed;
-	u16 temp, byte;
+	u16 temp;
 
 	for (bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)
 	{
@@ -203,6 +226,7 @@ static inline void  __unpack_bits(request_registers_t* unpacked_data, u16* packe
 		*packed_data = temp;
 	}
 }
+
 
 int init_custom_socket_new(client_node_t* CustomSocket)
 {
@@ -239,74 +263,6 @@ int init_custom_socket_new(client_node_t* CustomSocket)
 	CustomSocket->Stopped = false;
 	return 0;
 }
-
-
-/* unpack analog registr  */
-static inline void  __get_analog(client_request_t *raw_data, float  *packed_data) {
-u8    bit_processed ;
-u16  raw_d;
-float ttt, analog_data, scale, offset;
-
-    raw_d = raw_data->plcv_buffer[0];
-    scale = raw_data->scale;
-    offset = raw_data->offset;
-    if(scale > 1 ){
-        analog_data = raw_d / scale + offset;
-    }
-    else {
-        analog_data = modbus_set_float_dcba(raw_data->plcv_buffer);
-    }
-
-    fprintf(stderr, "registr raw_data %%d  \n", raw_d);
-    fprintf(stderr, "scale %%.3f \n", scale);
-    fprintf(stderr, "offset %%.3f \n", offset);
-    fprintf(stderr, "unpacked analog data %%.3f \n", analog_data);
-
-    *packed_data =  analog_data;
-}
-
-/* unpack analog registr  */
-static inline void  __pack_analog(client_request_t *raw_data, float  *packed_data) {
-u8    bit_processed ;
-u16  pack_data;
-float  analog_data, scale, offset;
-
-    analog_data = raw_data->analog_buffer[0];
-    scale = raw_data->scale;
-    offset = raw_data->offset;
-    if(scale > 0 ){
-        pack_data = (analog_data - offset)  * scale;
-    }
-    else {
-        pack_data = analog_data;
-    }
-//
-//    fprintf(stderr, "registr raw_data %%d  \n", raw_d);
-//    fprintf(stderr, "scale %%.3f \n", scale);
-//    fprintf(stderr, "offset %%.3f \n", offset);
-//    fprintf(stderr, "unpacked analog data %%.3f \n", analog_data);
-
-    raw_data->plcv_buffer[0] = (u16) pack_data;
-}
-
-/* pack bits from unpacked_data to packed_data */
-static inline void  __pack_bits(request_registers_t *unpacked_data, u16  *packed_data) {
-  u8    bit_processed ;
-  u16 temp, byte;
-
-  for(bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)  {
-     temp = *packed_data;
-      if(unpacked_data->num_bit[bit_processed]){
-       temp |=  (1 << bit_processed); /*   set bit */
-      }
-      else{
-        temp &= ~(1 << bit_processed); /* reset bit */
-      }
-      //fprintf(stderr, "Check paking bit  %%d ---\n", unpacked_data->num_bit[bit_processed]);
-      *packed_data =  temp;
-    }
-}
-
 
 
 static int execute_mb_request_in(int request_id) {
@@ -405,20 +361,30 @@ u8    bit_processed, allbits;
 
 static int __execute_mb_request(int request_id){
 int ret = 0;
-    fprintf(stderr, "#_____________________________# \n" );
+   // fprintf(stderr, "#_____________________________# \n" );
     //fprintf(stderr, "request id %%d  \n", request_id);
-    fprintf(stderr, "request address %%d  \n", client_requests[request_id].address);
-    fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
+   // fprintf(stderr, "request address %%d  \n", client_requests[request_id].address);
+   // fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
 
-    if (client_requests[request_id].mb_function == 6 ) {
-        __pack_bits(&request_registers[request_id] ,  &client_requests[request_id].plcv_buffer[0]);
-    }
+//    if (client_requests[request_id].mb_function == 6 ) {
+//        __pack_bits(&request_registers[request_id] ,  &client_requests[request_id].plcv_buffer[0]);
+//    }
+    if (client_requests[request_id].mb_function == 6) // || client_requests[request_id].mb_function == 16)
+	{
+		__pack_bits(&request_registers[request_id], &client_requests[request_id].plcv_buffer[0]);
+		//__pack_bits(&request_registers[request_id], &client_requests[request_id].coms_buffer[0]);
+	}
+
+	if (client_requests[request_id].mb_function == 16 && client_requests[request_id].count > 1)
+	{
+		__pack_analog(&client_requests[request_id], &client_requests[request_id].analog_buffer[0]);
+	}
 
     ret = execute_mb_request_in(request_id);
 
     // unpack analogs
 	if (client_requests[request_id].mb_function == 3 && client_requests[request_id].count > 1)
-		 __get_analog(&client_requests[request_id], &client_requests[request_id].analog_buffer[0]);
+		 __unpack_analog(&client_requests[request_id], &client_requests[request_id].analog_buffer[0]);
 
     // получаем биты - сигналы
     	if (client_requests[request_id].mb_function == 3 && client_requests[request_id].count == 1)	{
@@ -431,15 +397,12 @@ int ret = 0;
 
 	if (client_requests[request_id].mb_function == 3 && client_requests[request_id].count == 1)
 			__print_structure(&request_registers[request_id], request_id);
-   // __print_structure(&request_registers[request_id], request_id);
 
-    fprintf(stderr, "#_____________________________# \n" );
+   // __print_structure(&request_registers[request_id], request_id);
+  //  fprintf(stderr, "#_____________________________# \n" );
 
 	 return ret;
 }
-
-
-
 
 
 #define timespec_add(ts, sec, nsec) {		\
@@ -513,7 +476,10 @@ int accept_and_stream_custom_socket2(void* _index)
 		}
 		 Sleep(200);
 
-		//clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next_cycle, NULL);
+		 if (client_nodes[client_node_id].Stopped )
+			{
+				return 0;
+			}
 	}
 
 	// humour the compiler.
@@ -720,12 +686,10 @@ int __cleanup_%(locstr)s (){
 		close = 0;
 		if (client_nodes[index].init_state >= 2) {
 			// thread was launched, so we try to cancel it!
-			/*close  = pthread_cancel(client_nodes[index].thread_id);
-			close |= pthread_join  (client_nodes[index].thread_id, NULL);*/
-
-			close = CloseHandle(client_nodes[index].thread_id);
-			if (close == 0)
-				fprintf(stderr, "Modbus plugin: Error closing thread for modbus client %%s\n", client_nodes[index].location);
+//			close = CloseHandle(client_nodes[index].thread_id);
+//			if (close == 0)
+//				fprintf(stderr, "Modbus plugin: Error closing thread for modbus client %%s\n", client_nodes[index].location);
+            client_nodes[index].Stopped = true;
 		}
 		res |= close;
 
@@ -746,20 +710,21 @@ int __cleanup_%(locstr)s (){
 	/* destroy the mutex of each client request */
 	for (index=0; index < NUMBER_OF_CLIENT_REQTS; index ++) {
 
-		if (CloseHandle(&(client_requests[index].coms_buf_mutex))) {
-			fprintf(stderr, "Modbus plugin: Error destroying request for modbus client node %%s\n", client_nodes[client_requests[index].client_node_id].location);
-			// We try to shut down as much as possible, so we do not return noW!
-			res |= -1;
-		}
+//		if (CloseHandle(&(client_requests[index].coms_buf_mutex))) {
+//			fprintf(stderr, "Modbus plugin: Error destroying request for modbus client node %%s\n", client_nodes[client_requests[index].client_node_id].location);
+//			// We try to shut down as much as possible, so we do not return noW!
+//			res |= -1;
+//		}
 	}
 
 	/* modbus library close */
 
 	////fprintf(stderr, "Shutting down modbus library...\n");
-	//if (mb_slave_and_master_done()<0) {
-	//	fprintf(stderr, "Modbus plugin: Error shutting down modbus library\n");
-	//	res |= -1;
-	//}
+	//fprintf(stderr, "Shutting down modbus library...\n");
+	if (mb_slave_and_master_done()<0) {
+		fprintf(stderr, "Modbus plugin: Error shutting down modbus library\n");
+		res |= -1;
+	}
 
 	return res;
 }

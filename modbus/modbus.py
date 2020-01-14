@@ -164,19 +164,6 @@ class _RequestSignalWrite(object):
             </xsd:simpleType>
           </xsd:attribute>
           
-          <xsd:attribute name="Offset" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                    
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Scale" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                   
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
 
         </xsd:complexType>
       </xsd:element>
@@ -202,8 +189,8 @@ class _RequestSignalWrite(object):
         signame = self.GetParamsAttributes()[0]["children"][0]["value"]
 
         bit = self.GetParamsAttributes()[0]["children"][1]["value"]
-        offset = self.GetParamsAttributes()[0]["children"][2]["value"]
-        scale = self.GetParamsAttributes()[0]["children"][3]["value"]
+        # offset = self.GetParamsAttributes()[0]["children"][2]["value"]
+        # scale = self.GetParamsAttributes()[0]["children"][3]["value"]
 
         dataname = vraiableTree[0]['name']
         address = vraiableTree[0]['address']
@@ -223,8 +210,8 @@ class _RequestSignalWrite(object):
                 "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(
                     bit),  # add a variable in addres list
                 "description": "description",
-                "offset": offset,
-                "scale": scale,
+                "offset": 0,
+                "scale": 1,
                 "children": []})
         else:
             #for offset in range(0,  15):
@@ -282,20 +269,6 @@ class _RequestSignalRead(object):
             </xsd:simpleType>
           </xsd:attribute>
           
-            <xsd:attribute name="Offset" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                    
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Scale" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                   
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-
         </xsd:complexType>
       </xsd:element>
     </xsd:schema>
@@ -321,8 +294,8 @@ class _RequestSignalRead(object):
         #count = self.GetParamsAttributes()[0]["children"][2]["value"]
 
         bit = self.GetParamsAttributes()[0]["children"][1]["value"]
-        offset = self.GetParamsAttributes()[0]["children"][2]["value"]
-        scale = self.GetParamsAttributes()[0]["children"][3]["value"]
+        # offset = self.GetParamsAttributes()[0]["children"][2]["value"]
+        # scale = self.GetParamsAttributes()[0]["children"][3]["value"]
 
         dataname = vraiableTree[0]['name']
         address = vraiableTree[0]['address']
@@ -341,8 +314,8 @@ class _RequestSignalRead(object):
                 # для нас x.x.                                           0 . skip one simbol   [:3:]        8000
                 "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # add a variable in addres list
                 "description": "description",
-                "offset": offset,
-                "scale": scale,
+                "offset": 0,
+                "scale": 1,
                 "children": []})
         else:
             #for offset in range(0,  15):
@@ -424,21 +397,7 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                    </xsd:restriction>
                </xsd:simpleType>
              </xsd:attribute>
-             
-             <xsd:attribute name="Offset" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                    
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Scale" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                   
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
+               
            </xsd:complexType>
          </xsd:element>
        </xsd:schema>
@@ -477,7 +436,7 @@ XSDwrite = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                </xsd:simpleType>
              </xsd:attribute>
 
-             <xsd:attribute name="Timeout_in_ms" use="optional" default="10">
+             <xsd:attribute name="Timeout_in_ms" use="optional" default="300">
                <xsd:simpleType>
                    <xsd:restriction base="xsd:integer">
                        <xsd:minInclusive value="1"/>
@@ -485,21 +444,7 @@ XSDwrite = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                    </xsd:restriction>
                </xsd:simpleType>
              </xsd:attribute>               
-              
-          <xsd:attribute name="Offset" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                    
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Scale" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                   
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-
+               
            </xsd:complexType>
          </xsd:element>
        </xsd:schema>
@@ -777,7 +722,7 @@ class _ModbusFunctionLoad(object):
                </xsd:simpleType>
              </xsd:attribute>
 
-             <xsd:attribute name="Timeout_in_ms" use="optional" default="10">
+             <xsd:attribute name="Timeout_in_ms" use="optional" default="300">
                <xsd:simpleType>
                    <xsd:restriction base="xsd:integer">
                        <xsd:minInclusive value="1"/>
@@ -1372,11 +1317,11 @@ class RootClass(object):
         loc_dict["tcpserver_node_count"] = str('0')
 
         loc_dict["rtuclient_reqs_count"] = str('0')
-        loc_dict["rtuclient_node_count"] =  str('0')
+        loc_dict["rtuclient_node_count"] = str('0')
         loc_dict["rtuserver_node_count"] = str('0')
         loc_dict["ascclient_reqs_count"] = str('0')
-        loc_dict["ascclient_node_count"] =  str('0')
-        loc_dict["ascserver_node_count"] =  str('0')
+        loc_dict["ascclient_node_count"] = str('0')
+        loc_dict["ascserver_node_count"] = str('0')
 
         loc_dict["total_tcpnode_count"] = str(total_node_count[0])
         loc_dict["total_rtunode_count"] = str(total_node_count[1])

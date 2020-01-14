@@ -37,12 +37,12 @@ modbus_function_dict = {
     "01 - Read sig":                    ('3',   'req_input', 1, "BOOL", 1, "Q", "X", "Read Signal"),
     "02 - Write Sig":                   ('6',   'req_output', 1, "BOOL", 1, "Q", "X", "Write Signal"),
    #"02 - Read Input Discretes":        ('2',   'req_input', 2000, "BOOL",  1, "I", "X", "Input Discrete"),
-    "03 - Read Holding Registers":      ('3',   'req_input',  125, "REAL", 16, "Q", "W", "Holding Register"),
+    "03 - Read Holding Registers":      ('3',   'req_input',  125, "REAL", 16, "Q", "D", "Holding Register"),
     #"04 - Read Input Registers":       ('4',   'req_input',  125, "WORD", 16, "I", "W", "Input Register"),
     #"05 - Write Single coil":          ('5',   'req_output',    1, "BOOL",  1, "Q", "X", "Coil"),
-    "06 - Write Single Register":       ('6',   'req_output',    1, "WORD", 16, "Q", "W", "Holding Register"),
+    "06 - Write Single Register":       ('6',   'req_output',    1, "REAL", 16, "Q", "D", "Holding Register"),
     #"15 - Write Multiple Coils":       ('15',  'req_output', 1968, "BOOL",  1, "Q", "X", "Coil"),
-    "16 - Write Multiple Registers":    ('16',  'req_output',  123, "WORD", 16, "Q", "W", "Holding Register")}
+    "16 - Write Multiple Registers":    ('16',  'req_output',  123, "REAL", 16, "Q", "D", "Holding Register")}
 
 
 #lacalDir = 'd:\\Valcom\\GITrep\\APS\\APS\\bin\\Debug\\Schema\\'
@@ -143,7 +143,7 @@ def GetClientRequestPrinted(self, child, nodeid):
     req_init_template = '''/*request %(locreqstr)s*/
 {"%(locreqstr)s", %(nodeid)s, %(slaveid)s, %(iotype)s, %(func_nr)s, %(address)s , %(count)s,
 DEF_REQ_SEND_RETRIES, 0 /* error_code */, 0 /* prev_code */, {%(timeout_s)d, %(timeout_ns)d} /* timeout */,
-{%(buffer)s}, {%(buffer)s} , {%(abuffer)s} ,%(offset)s, %(scale)s}'''
+{%(buffer)s}, {%(buffer)s} , {%(abuffer)s} }'''
 
     timeout = int(GetCTVal(child, 4))
     timeout_s = timeout // 1000
@@ -163,9 +163,10 @@ DEF_REQ_SEND_RETRIES, 0 /* error_code */, 0 /* prev_code */, {%(timeout_s)d, %(t
         "abuffer": ",".join(['0'] * int(GetCTVal(child, 2))),
         "func_nr": modbus_function_dict[GetCTVal(child, 0)][0],
         "iotype": modbus_function_dict[GetCTVal(child, 0)][1],
-        "maxcount": modbus_function_dict[GetCTVal(child, 0)][2],
-        "offset": GetCTVal(child, 5),
-        "scale": GetCTVal(child, 6)
+        "maxcount": modbus_function_dict[GetCTVal(child, 0)][2]
+        # ,
+        # "offset": GetCTVal(child, 5),
+        # "scale": GetCTVal(child, 6)
     }
 
     if int(request_dict["slaveid"]) not in xrange(256):
