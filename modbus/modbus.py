@@ -34,7 +34,7 @@ from PLCControler import LOCATION_CONFNODE, LOCATION_VAR_MEMORY, LOCATION_GROUP
 
 base_folder = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
 base_folder = os.path.join(base_folder, "..")
-ModbusPath = os.path.join(base_folder, "Modbus")
+ModbusPath = os.path.join(base_folder, "mb")
 
 
 def savelog(projects):
@@ -164,19 +164,6 @@ class _RequestSignalWrite(object):
             </xsd:simpleType>
           </xsd:attribute>
           
-          <xsd:attribute name="Offset" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                    
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Scale" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                   
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
 
         </xsd:complexType>
       </xsd:element>
@@ -202,8 +189,8 @@ class _RequestSignalWrite(object):
         signame = self.GetParamsAttributes()[0]["children"][0]["value"]
 
         bit = self.GetParamsAttributes()[0]["children"][1]["value"]
-        offset = self.GetParamsAttributes()[0]["children"][2]["value"]
-        scale = self.GetParamsAttributes()[0]["children"][3]["value"]
+        # offset = self.GetParamsAttributes()[0]["children"][2]["value"]
+        # scale = self.GetParamsAttributes()[0]["children"][3]["value"]
 
         dataname = vraiableTree[0]['name']
         address = vraiableTree[0]['address']
@@ -223,8 +210,8 @@ class _RequestSignalWrite(object):
                 "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(
                     bit),  # add a variable in addres list
                 "description": "description",
-                "offset": offset,
-                "scale": scale,
+                "offset": 0,
+                "scale": 1,
                 "children": []})
         else:
             #for offset in range(0,  15):
@@ -282,20 +269,6 @@ class _RequestSignalRead(object):
             </xsd:simpleType>
           </xsd:attribute>
           
-            <xsd:attribute name="Offset" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                    
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Scale" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                   
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-
         </xsd:complexType>
       </xsd:element>
     </xsd:schema>
@@ -321,8 +294,8 @@ class _RequestSignalRead(object):
         #count = self.GetParamsAttributes()[0]["children"][2]["value"]
 
         bit = self.GetParamsAttributes()[0]["children"][1]["value"]
-        offset = self.GetParamsAttributes()[0]["children"][2]["value"]
-        scale = self.GetParamsAttributes()[0]["children"][3]["value"]
+        # offset = self.GetParamsAttributes()[0]["children"][2]["value"]
+        # scale = self.GetParamsAttributes()[0]["children"][3]["value"]
 
         dataname = vraiableTree[0]['name']
         address = vraiableTree[0]['address']
@@ -341,8 +314,8 @@ class _RequestSignalRead(object):
                 # для нас x.x.                                           0 . skip one simbol   [:3:]        8000
                 "location": datatacc + ".".join([str(i) for i in current_location]) + "." + str(address) + "." + str(bit), # add a variable in addres list
                 "description": "description",
-                "offset": offset,
-                "scale": scale,
+                "offset": 0,
+                "scale": 1,
                 "children": []})
         else:
             #for offset in range(0,  15):
@@ -424,21 +397,7 @@ XSDread = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                    </xsd:restriction>
                </xsd:simpleType>
              </xsd:attribute>
-             
-             <xsd:attribute name="Offset" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                    
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Scale" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                   
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
+               
            </xsd:complexType>
          </xsd:element>
        </xsd:schema>
@@ -477,7 +436,7 @@ XSDwrite = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                </xsd:simpleType>
              </xsd:attribute>
 
-             <xsd:attribute name="Timeout_in_ms" use="optional" default="10">
+             <xsd:attribute name="Timeout_in_ms" use="optional" default="300">
                <xsd:simpleType>
                    <xsd:restriction base="xsd:integer">
                        <xsd:minInclusive value="1"/>
@@ -485,21 +444,7 @@ XSDwrite = """<?xml version="1.0" encoding="ISO-8859-1" ?>
                    </xsd:restriction>
                </xsd:simpleType>
              </xsd:attribute>               
-              
-          <xsd:attribute name="Offset" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                    
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-          
-          <xsd:attribute name="Scale" use="optional" default="0">
-            <xsd:simpleType>
-                <xsd:restriction base="xsd:integer">                   
-                </xsd:restriction>
-            </xsd:simpleType>
-          </xsd:attribute>
-
+               
            </xsd:complexType>
          </xsd:element>
        </xsd:schema>
@@ -777,7 +722,7 @@ class _ModbusFunctionLoad(object):
                </xsd:simpleType>
              </xsd:attribute>
 
-             <xsd:attribute name="Timeout_in_ms" use="optional" default="10">
+             <xsd:attribute name="Timeout_in_ms" use="optional" default="300">
                <xsd:simpleType>
                    <xsd:restriction base="xsd:integer">
                        <xsd:minInclusive value="1"/>
@@ -1191,14 +1136,9 @@ class RootClass(object):
         h_filename = os.path.join(os.path.split(__file__)[0], "mb_runtime.h")
 
         tcpclient_reqs_count = 0
-        rtuclient_reqs_count = 0
-        ascclient_reqs_count = 0
+
         tcpclient_node_count = 0
-        rtuclient_node_count = 0
-        ascclient_node_count = 0
-        tcpserver_node_count = 0
-        rtuserver_node_count = 0
-        ascserver_node_count = 0
+
         nodeid = 0
         client_nodeid = 0
         client_requestid = 0
@@ -1350,38 +1290,49 @@ class RootClass(object):
             #     #
             # nodeid += 1
 
+
+        # loc_dict["total_tcpnode_count"] = str(total_node_count[0])
+        # loc_dict["max_remote_tcpclient"] = str(int(self.GetParamsAttributes()[0]["children"][0]["value"]))
+        # loc_dict["tcpclient_node_count"] = str(tcpclient_node_count)
+        # loc_dict["tcpclient_reqs_count"] = str(tcpclient_reqs_count)
+        # loc_dict["registers_count"] = str(tcpclient_reqs_count)
+        #
+        # loc_dict["client_nodes_params"] = ",\n\n".join(client_node_list)
+        # loc_dict["client_req_params"] = ",\n\n".join(client_request_list)
+        # loc_dict["registers_params"] = ",\n\n".join(registers_params)
+        # loc_dict["loc_vars"] = "\n".join(loc_vars)
+
         loc_dict["loc_vars"] = "\n".join(loc_vars)
-        loc_dict["server_nodes_params"] = ",\n\n".join(server_node_list)
+        
         loc_dict["client_nodes_params"] = ",\n\n".join(client_node_list)
         loc_dict["client_req_params"] = ",\n\n".join(client_request_list)
 
         loc_dict["registers_params"] = ",\n\n".join(registers_params)
         loc_dict["registers_count"] = str(tcpclient_reqs_count)
 
-
-
         loc_dict["tcpclient_reqs_count"] = str(tcpclient_reqs_count)
 
         loc_dict["tcpclient_node_count"] = str(tcpclient_node_count)
 
-        loc_dict["tcpserver_node_count"] = str(tcpserver_node_count)
+        loc_dict["tcpserver_node_count"] = str('0')
 
-        loc_dict["rtuclient_reqs_count"] = str(rtuclient_reqs_count)
-        loc_dict["rtuclient_node_count"] = str(rtuclient_node_count)
-        loc_dict["rtuserver_node_count"] = str(rtuserver_node_count)
-        loc_dict["ascclient_reqs_count"] = str(ascclient_reqs_count)
-        loc_dict["ascclient_node_count"] = str(ascclient_node_count)
-        loc_dict["ascserver_node_count"] = str(ascserver_node_count)
+        loc_dict["rtuclient_reqs_count"] = str('0')
+        loc_dict["rtuclient_node_count"] = str('0')
+        loc_dict["rtuserver_node_count"] = str('0')
+        loc_dict["ascclient_reqs_count"] = str('0')
+        loc_dict["ascclient_node_count"] = str('0')
+        loc_dict["ascserver_node_count"] = str('0')
 
         loc_dict["total_tcpnode_count"] = str(total_node_count[0])
         loc_dict["total_rtunode_count"] = str(total_node_count[1])
         loc_dict["total_ascnode_count"] = str(total_node_count[2])
         loc_dict["max_remote_tcpclient"] = int(self.GetParamsAttributes()[0]["children"][0]["value"])
 
-
         # get template file content into a string, format it with dict
         # and write it to proper .h file
-        mb_main = open(h_filename).read() % loc_dict
+        file_str = open(h_filename).read()
+
+        mb_main = file_str  % loc_dict
         f = open(Gen_MB_h_path, 'w')
         f.write(mb_main)
         f.close()
@@ -1394,7 +1345,7 @@ class RootClass(object):
         LDFLAGS = []
         LDFLAGS.append(" \"-L" + ModbusPath + "\"")
         #LDFLAGS.append(" \"" + os.path.join(ModbusPath, "MbBeremiz.lib") + "\"")
-        LDFLAGS.append(" \"" + os.path.join(ModbusPath, "libmb.a") + "\"")
+        LDFLAGS.append(" \"" + os.path.join(ModbusPath, "mblib.lib") + "\"")
         LDFLAGS.append(" \"-Wl,-rpath," + ModbusPath + "\"")
         # LDFLAGS.append("\"" + os.path.join(ModbusPath, "mb_slave_and_master.o") + "\"")
         # LDFLAGS.append("\"" + os.path.join(ModbusPath, "mb_slave.o") + "\"")
