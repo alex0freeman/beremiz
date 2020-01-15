@@ -53,7 +53,7 @@ static const char *modbus_error_messages[MAX_MODBUS_ERROR_CODE+1] = {
 #  define bswap_32 __builtin_bswap32
 #endif
 
-
+HANDLE hThreads[NUMBER_OF_CLIENT_NODES];
 
 #define BIT_IN_WORD 16
 
@@ -526,11 +526,11 @@ int __init_%(locstr)s (int argc, char **argv){
 
 	TCHAR szMessage[256];
 	DWORD dwTemp, i;
-	HANDLE hThreads[THREADS_NUMBER];
-	CONST HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	CONST HANDLE hMutex = CreateMutex(NULL, FALSE, NULL);
 
-	HANDLE hThreads2;
+	//CONST HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	//CONST HANDLE hMutex = CreateMutex(NULL, FALSE, NULL);
+
+
 
 //	struct timeval st, et;
 //	getTick(&st);
@@ -543,7 +543,7 @@ int __init_%(locstr)s (int argc, char **argv){
 	// Setup the TCP listening socket
 	SetUpSocket(client_nodes[0].node_address); // 172.16.13.142
 
-	uint16_t deelay_ = 500;
+	uint16_t deelay_ = client_nodes[0].comm_period;
 	int count = 0;
 
 
@@ -571,8 +571,10 @@ int __init_%(locstr)s (int argc, char **argv){
 		if (initResult != 0) {
 			fprintf(stderr,   "Failed to initialise socket.\n");
 		}
-
-
+		else
+		{
+			client_nodes[index].mb_nd = 1;
+		}
 	}
 
 	for (index = 0; index < NUMBER_OF_CLIENT_NODES; index++)
@@ -582,7 +584,7 @@ int __init_%(locstr)s (int argc, char **argv){
 		{
 			int res = 0;
 
-			hThreads2 = CreateThread(NULL, 0, &run_accept_and_stream_custom_socket2, index, 0, &(client_nodes[index].thread_id));
+			hThreads[index] = CreateThread(NULL, 0, &run_accept_and_stream_custom_socket2, index, 0, &(client_nodes[index].thread_id));
 
 			Sleep(500);
 			if (res != 0) {
@@ -681,50 +683,48 @@ int __cleanup_%(locstr)s (){
 	int res = 0;
 
 	/* kill thread and close connections of each modbus client node */
-
 	for (index=0; index < NUMBER_OF_CLIENT_NODES; index++) {
 		close = 0;
 		if (client_nodes[index].init_state >= 2) {
 			// thread was launched, so we try to cancel it!
-//			close = CloseHandle(client_nodes[index].thread_id);
-//			if (close == 0)
-//				fprintf(stderr, "Modbus plugin: Error closing thread for modbus client %%s\n", client_nodes[index].location);
+			close = CloseHandle(hThreads[index]);
+			if (close == false)
+				fprintf(stderr, "Modbus plugin: Error closing thread for modbus client \n" );
             client_nodes[index].Stopped = true;
 		}
 		res |= close;
 
 		close = 0;
-		if (client_nodes[index].init_state >= 1) {
-			// modbus client node was created, so we try to close it!
-			close = modbus_tcp_close(client_nodes[index].mb_nd);
-			if (close < 0){
-				fprintf(stderr, "Modbus plugin: Error closing modbus client node %%s\n", client_nodes[index].location);
-				// We try to shut down as much as possible, so we do not return noW!
-			}
-			client_nodes[index].mb_nd = -1;
-		}
+//		if (client_nodes[index].init_state >= 1) {
+//			// modbus client node was created, so we try to close it!
+//			close = modbus_tcp_close(client_nodes[index].mb_nd);
+//			if (close < 0){
+//				fprintf(stderr, "Modbus plugin: Error closing modbus client node %%s\n", client_nodes[index].location);
+//				// We try to shut down as much as possible, so we do not return noW!
+//			}
+//			client_nodes[index].mb_nd = -1;
+//		}
 		res |= close;
 		client_nodes[index].init_state = 0;
 	}
 
 	/* destroy the mutex of each client request */
-	for (index=0; index < NUMBER_OF_CLIENT_REQTS; index ++) {
-
+//	for (index=0; index < NUMBER_OF_CLIENT_REQTS; index ++) {
 //		if (CloseHandle(&(client_requests[index].coms_buf_mutex))) {
 //			fprintf(stderr, "Modbus plugin: Error destroying request for modbus client node %%s\n", client_nodes[client_requests[index].client_node_id].location);
 //			// We try to shut down as much as possible, so we do not return noW!
 //			res |= -1;
 //		}
-	}
+//	}
 
 	/* modbus library close */
 
 	////fprintf(stderr, "Shutting down modbus library...\n");
-	//fprintf(stderr, "Shutting down modbus library...\n");
-	if (mb_slave_and_master_done()<0) {
-		fprintf(stderr, "Modbus plugin: Error shutting down modbus library\n");
-		res |= -1;
-	}
+//    fprintf(stderr, "Shutting down modbus library...\n");
+//	if (mb_slave_and_master_done()<0) {
+//		fprintf(stderr, "Modbus plugin: Error shutting down modbus library\n");
+//		res |= -1;
+//	}
 
 	return res;
 }
