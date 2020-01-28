@@ -238,7 +238,7 @@ int init_custom_socket_new(client_node_t* CustomSocket)
 	struct addrinfo* result = NULL, * ptr = NULL, hints;
 
 	WSADATA wsaData;
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	iResult = WSAStartup(MAKEWORD(2, 2), &CustomSocket->wsa);
 	if (iResult != 0) {
 		CustomSocket->Connected = false;
 		CustomSocket->Stopped = true;
@@ -524,45 +524,21 @@ DWORD WINAPI run_accept_and_stream_custom_socket2(CONST LPVOID lpParam) {
 int __cleanup_%(locstr)s ();
 int __init_%(locstr)s (int argc, char **argv){
 
-	TCHAR szMessage[256];
-	DWORD dwTemp, i;
-
-	//CONST HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	//CONST HANDLE hMutex = CreateMutex(NULL, FALSE, NULL);
-
-
-
-//	struct timeval st, et;
-//	getTick(&st);
-
-
-
-	//struct custom_socket CustomSocket = { NULL, NULL, 0,0,0 };
-	uint16_t Port = 501;
-
-	// Setup the TCP listening socket
-	SetUpSocket(client_nodes[0].node_address); // 172.16.13.142
-
-	uint16_t deelay_ = client_nodes[0].comm_period;
-	int count = 0;
-
-
+int temp_data = 0;
 	char* bufTxt;
-	uint16_t tab_reg[2];
+	int index;
+	uint16_t deelay_;
 
-	//int mbRead = 8000;
-	//int mbWrite = 8400;
-	int count_registers = 1;
-	uint16_t  reg = 0;
-	u16  data = 5;
-	int request_id = 0;
+	CONST HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
+	fprintf(stderr,"modbus connection - Starting ...\r\n") ;
 
+	SetUpSocket(client_nodes[0].node_address); // 172.16.13.142  ..  192.168.253.250
+
+	deelay_ = client_nodes[0].comm_period;
 	client_requests[1].coms_buffer[0] = 0;
 
 	Sleep(deelay_);
-
-	int index;
 
 	for (index = 0; index < NUMBER_OF_CLIENT_NODES; index++)
 	{
