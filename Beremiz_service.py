@@ -34,6 +34,7 @@ from threading import Thread, currentThread, Semaphore
 import traceback
 import __builtin__
 import Pyro.core as pyro
+import wx
 
 from runtime import PLCObject, ServicePublisher
 import util.paths as paths
@@ -121,11 +122,205 @@ elif len(argv) == 1:
     WorkingDir = argv[0]
     os.chdir(WorkingDir)
 elif len(argv) == 0:
-    WorkingDir = os.getcwd()
+    WorkingDir = 'c:\\OSSY-NG\\Vplc\\'
+    #WorkingDir = os.getcwd()
     argv = [WorkingDir]
 
-if __name__ == '__main__':
-    __builtin__.__dict__['_'] = lambda x: x
+class MyCustomTextCtrl(wx.TextCtrl):
+
+    def __init__(self, *args, **kwargs):
+        """
+        Инициируем текстовый контроль
+        """
+        wx.TextCtrl.__init__(self, *args, **kwargs)
+
+    def write(self, text):
+        self.WriteText(text)
+
+    def flush(self ):
+        self.WriteText('')
+
+
+class MyFrame(wx.Frame):
+    """ We simply derive a new class of Frame. """
+    def __init__(self, parent, title):
+        no_caption = wx.RESIZE_BORDER
+        #wx.Frame.__init__(self, parent, title=title, style=no_caption)
+        wx.Frame.__init__(self, parent, title=title, pos=(150, 150), size=(600, 400) )
+
+        #self.control = wx.TextCtrl(self, pos=(300,20), size=(200,300), style=wx.TE_MULTILINE | wx.TE_READONLY) # wx.TextCtrl(self, style=wx.TE_MULTILINE)
+      #   self.Show(True)
+
+
+        toolbar = self.CreateToolBar(style=wx.HORIZONTAL) # wx.TB_DOCKABLE
+        quittool1 = toolbar.AddLabelTool(wx.ID_ANY, 'Quit', wx.Bitmap(Bpath("images", "brz.png")))
+        self.Bind(wx.EVT_TOOL, self.OnClose, quittool1)
+        self.Show()
+
+        menubar = wx.MenuBar()
+        first = wx.Menu()
+        second = wx.Menu()
+        #first.Append(1, "New Window", "This is a new window")
+        m_open = first.Append(1, "Open...", "Open A New Window")
+        #self.Bind(wx.EVT_MENU,  m_open)
+
+        m_exit = first.Append(wx.ID_EXIT, "E&xit\tAlt-X", "Close window and exit program.")
+        self.Bind(wx.EVT_MENU, self.OnClose, m_exit)
+        menubar.Append(first, "File")
+
+        m_s_workdir = second.Append(wx.NewId(),  "Change working directory")
+        self.Bind(wx.EVT_MENU, self.OnTaskBarChangeWorkingDir, m_s_workdir)
+        m_settings = second.Append(wx.NewId(), "Change Port Number")  #
+        self.Bind(wx.EVT_MENU, self.OnTaskBarChangePort, m_settings)
+        menubar.Append(second, "Settings")
+
+        menu = wx.Menu()
+        m_about = menu.Append(wx.ID_ABOUT, "&About", "Information about this program")
+        self.Bind(wx.EVT_MENU, self.OnAbout, m_about)
+        menubar.Append(menu, "&Help")
+
+        self.SetMenuBar(menubar)
+
+        self.m_statusBar1 = self.CreateStatusBar(1,   wx.ID_ANY)
+        bSizer1 = wx.BoxSizer(wx.VERTICAL)
+        bSizerButtons = wx.BoxSizer(wx.VERTICAL)
+        bSizerLabels = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Project", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText1.Wrap(-1)
+        bSizerLabels.Add(self.m_staticText1, 0, wx.ALL, 5)
+        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"_", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText2.Wrap(-1)
+
+        bSizerLabels.Add(self.m_staticText2, 0, wx.ALL, 5)
+        bSizerButtons.Add(bSizerLabels, 1, wx.EXPAND, 5)
+
+        bSizerLabels2 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode:", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText1.Wrap(-1)
+        bSizerLabels2.Add(self.m_staticText1, 0, wx.ALL, 5)
+        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"true", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText2.Wrap(-1)
+
+        bSizerLabels2.Add(self.m_staticText2, 0, wx.ALL, 5)
+        bSizerButtons.Add(bSizerLabels2, 1, wx.EXPAND, 5)
+
+        self.m_button1 = wx.Button(self, wx.ID_ANY, u"Start", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button1.Bind(wx.EVT_BUTTON,  self.OnTaskBarStartPLC)
+        bSizerButtons.Add(self.m_button1, 0, wx.ALL, 5)
+
+        self.m_button2 = wx.Button(self, wx.ID_ANY, u"Stop", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button2.Bind(wx.EVT_BUTTON, self.OnTaskBarStopPLC  )
+        bSizerButtons.Add(self.m_button2, 0, wx.ALL, 5)
+
+        bSizer1.Add(bSizerButtons, 1, wx.EXPAND, 5)
+        sbSizer1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Log"), wx.VERTICAL)
+
+       # self.log = MyCustomTextCtrl(self, wx.ID_ANY,   style=  wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+        self.log = wx.TextCtrl(self,wx.ID_ANY,  style= wx.TE_MULTILINE | wx.TE_READONLY)
+
+       # sbSizer1.Add(self.m_staticText3, 0, wx.ALL, 5)
+        sbSizer1.Add(self.log, 1, wx.EXPAND, 0)
+
+        bSizer1.Add(sbSizer1, 2, wx.EXPAND, 0)
+
+        self.SetSizer(bSizer1)
+        self.Layout()
+
+        self.Centre(wx.BOTH)
+        #log = MyCustomTextCtrl(self, wx.ID_ANY, size=(50, 100), style= wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+        sys.stdout = self.log
+        sys.stderr = self.log
+
+    def OnTaskBarStartPLC(self, evt):
+        if pyroserver.plcobj is not None:
+            plcstatus = pyroserver.plcobj.GetPLCstatus()[0]
+            if plcstatus is "Stopped":
+                 self.log.AppendText("PLC Start.")
+                 pyroserver.plcobj.StartPLC()
+            else:
+                print(_("PLC is empty or already started."))
+                self.log.AppendText(_("PLC is empty or already started."))
+
+    def OnTaskBarStopPLC(self, evt):
+        if pyroserver.plcobj is not None:
+            if pyroserver.plcobj.GetPLCstatus()[0] == "Started":
+                #self.log.AppendText("PLC stop.")
+                print(_("PLC stopping."))
+                Thread(target= pyroserver.plcobj.StopPLC).start()
+            else:
+                print(_("PLC is not started."))
+                #self.log.AppendText(print(_("PLC is not started.")))
+
+    def OnAbout(self, e):
+        # A message dialog box with an OK button. wx.OK is a standard ID in wxWidgets.
+        dlg = wx.MessageDialog(self, "A small text editor", "About Sample Editor", wx.OK)
+        dlg.ShowModal()  # Show it
+        dlg.Destroy()  # finally destroy it when finished.
+
+    def OnTaskBarChangeWorkingDir(self, evt):
+        dlg = wx.DirDialog(None)
+        if dlg.ShowModal() == wx.ID_OK:
+            #self.workdir = dlg.GetPath()
+           # WorkingDir = dlg.GetPath()
+            Server.workdir = dlg.GetPath()
+            pyroserver.Restart()
+          #  self.log.AppendText("Изменена папка на" )
+          #  print("Изменена папка на" + WorkingDir)
+            # self.pyroserver.plcobj.StartPLC()
+
+    def OnTaskBarChangePort(self, evt):
+        dlg = ParamsEntryDialog(None, _("Enter a port number "), defaultValue=str(pyroserver.port))
+        dlg.SetTests([(UnicodeType.isdigit, _("Port number must be an integer!")),
+                      (lambda port: 0 <= int(port) <= 65535, _("Port number must be 0 <= port <= 65535!"))])
+        if dlg.ShowModal() == wx.ID_OK:
+            pyroserver.port = int(dlg.GetValue())
+            #pyroserver.Stop()
+            pyroserver.Restart()
+
+    def OnClose(self, event):
+        dlg = wx.MessageDialog(self,
+                               "Do you really want to close this application?",
+                               "Confirm Exit", wx.OK | wx.CANCEL | wx.ICON_QUESTION)
+        result = dlg.ShowModal()
+        dlg.Destroy()
+        if result == wx.ID_OK:
+            self.Destroy()
+
+class ToolbarFrame(wx.Frame):
+    def __init__(self, parent, id):
+        wx.Frame.__init__(self, parent, id, 'Toolbars', size=(300, 200))
+        panel = wx.Panel(self)
+        panel.SetBackgroundColour('White')
+        # (1) Creating the status bar
+        statusBar = self.CreateStatusBar()
+        # (2) Creating the toolbar
+        toolbar = self.CreateToolBar()
+
+        # (3) Adding a tool to the bar
+        # toolbar.AddSimpleTool(wx.NewId(),  "New", "Long help for 'New'")
+
+        # (4) Preparing the toolbar for display
+        toolbar.Realize()
+        # Creating a menubar
+        menuBar = wx.MenuBar()
+        # (5) Creating two individual menus
+        menu1 = wx.Menu()
+        menuBar.Append(menu1, "&File")
+        menu2 = wx.Menu()
+        # (6) Creating individual menu items
+        menu2.Append(wx.NewId(), "&Copy", "Copy in status bar")
+        menu2.Append(wx.NewId(), "C&ut", "")
+        menu2.Append(wx.NewId(), "Paste", "")
+        menu2.AppendSeparator()
+        menu2.Append(wx.NewId(), "&Options...", "Display Options")
+        # Attaching the menu to the menubar
+        menuBar.Append(menu2, "&Edit")
+        # Attaching the menubar to the frame
+        self.SetMenuBar(menuBar)
+
+
 
 
 def Bpath(*args):
@@ -276,8 +471,8 @@ if enablewx:
                     menu.Append(self.TBMENU_CHANGE_PORT, _("Change Port Number"))
                     menu.Append(self.TBMENU_CHANGE_WD, _("Change working directory"))
                     menu.AppendSeparator()
-                    menu.Append(self.TBMENU_LIVE_SHELL, _("Launch a live Python shell"))
-                    menu.Append(self.TBMENU_WXINSPECTOR, _("Launch WX GUI inspector"))
+                  #  menu.Append(self.TBMENU_LIVE_SHELL, _("Launch a live Python shell"))
+                   # menu.Append(self.TBMENU_WXINSPECTOR, _("Launch WX GUI inspector"))
                 menu.AppendSeparator()
                 menu.Append(self.TBMENU_QUIT, _("Quit"))
                 return menu
@@ -333,6 +528,7 @@ if enablewx:
                 if dlg.ShowModal() == wx.ID_OK:
                     self.pyroserver.workdir = dlg.GetPath()
                     self.pyroserver.Stop()
+                    #self.pyroserver.plcobj.StartPLC()
 
             def OnTaskBarChangeName(self, evt):
                 servicename = self.pyroserver.servicename
@@ -416,6 +612,7 @@ class Server(object):
 
     def Restart(self):
         self.Stop()
+        self.Start()
 
     def Quit(self):
         self.continueloop = False
@@ -432,8 +629,8 @@ class Server(object):
                                 self.pyruntimevars)
         uri = self.daemon.connect(self.plcobj, "PLCObject")
 
-        print(_("Pyro port :"), self.port)
-        print(_("Pyro object's uri :"), uri)
+        print(_("Server port :"), self.port)
+        print(_("Server object's uri :"), uri)
 
         # Beremiz IDE detects daemon start by looking
         # for self.workdir in the daemon's stdout.
@@ -570,12 +767,12 @@ if havetwisted:
             webport = None
         NS.WorkingDir = WorkingDir
 
-    if wampconf is not None:
-        try:
-            import runtime.WampClient as WC  # pylint: disable=ungrouped-imports
-        except Exception, e:
-            print(_("WAMP import failed :"), e)
-            wampconf = None
+    # if wampconf is not None:
+    #     try:
+    #         import runtime.WampClient as WC  # pylint: disable=ungrouped-imports
+    #     except Exception, e:
+    #         print(_("WAMP import failed :"), e)
+        wampconf = None
 
 # Load extensions
 for extfilename in extensions:
@@ -592,13 +789,36 @@ if havetwisted:
         except Exception, e:
             print(_("Nevow Web service failed. "), e)
 
-    if wampconf is not None:
+    # if wampconf is not None:
+    #     try:
+    #         WC.RegisterWampClient(wampconf)
+    #         pyruntimevars["wampsession"] = WC.GetSession
+    #         WC.SetServer(pyroserver)
+    #     except Exception, e:
+    #         print(_("WAMP client startup failed. "), e)
+
+if __name__ == '__main__':
+    app = wx.App(redirect=True)
+    frame = MyFrame(None, 'Project Beremiz') # ToolbarFrame(parent=None, id=-1)
+    frame.Show()
+
+    __builtin__.__dict__['_'] = lambda x: x
+    if havetwisted or havewx:
+        pyro_thread = Thread(target=pyroserver.Loop)
+        pyro_thread.start()
+
+        if havetwisted:
+            reactor.run()
+        elif havewx:
+            app.MainLoop()
+    else:
         try:
-            WC.RegisterWampClient(wampconf)
-            pyruntimevars["wampsession"] = WC.GetSession
-            WC.SetServer(pyroserver)
-        except Exception, e:
-            print(_("WAMP client startup failed. "), e)
+            pyroserver.Loop()
+        except KeyboardInterrupt, e:
+            pass
+
+    app.MainLoop()
+
 
 
 if havetwisted or havewx:
@@ -616,3 +836,4 @@ else:
         pass
 pyroserver.Quit()
 sys.exit(0)
+
