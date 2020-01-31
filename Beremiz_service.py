@@ -224,7 +224,7 @@ class MyFrame(wx.Frame):
 
         mode = parseScadaConfig()
 
-        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode:" +mode , wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode:" + mode, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         bSizerLabels2.Add(self.m_staticText1, 0, wx.ALL, 5)
         # self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"true", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -294,7 +294,7 @@ class MyFrame(wx.Frame):
             pyroserver.workdir = dlg.GetPath()
            # pyroserver.evaluator
             #Server.workdir = dlg.GetPath()
-            pyroserver.Restart()
+            pyroserver.Stop()
             self.log.AppendText("Изменена папка на" )
            # print("Изменена папка на" + WorkingDir)
             # self.pyroserver.plcobj.StartPLC()
@@ -305,8 +305,8 @@ class MyFrame(wx.Frame):
                       (lambda port: 0 <= int(port) <= 65535, _("Port number must be 0 <= port <= 65535!"))])
         if dlg.ShowModal() == wx.ID_OK:
             pyroserver.port = int(dlg.GetValue())
-            #pyroserver.Stop()
-            pyroserver.Restart()
+            pyroserver.Stop()
+            #pyroserver.Restart()
 
     def OnClose(self, event):
         self.Hide()
