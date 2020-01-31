@@ -35,6 +35,7 @@ import traceback
 import __builtin__
 import Pyro.core as pyro
 import wx
+from lxml import etree, objectify
 
 from runtime import PLCObject, ServicePublisher
 import util.paths as paths
@@ -68,6 +69,11 @@ except getopt.GetoptError, err:
     sys.exit(2)
 
 # default values
+scadaPath = 'c:\\OSSY-NG\\'
+scadaVplc = scadaPath + 'Vplc\\'
+scadaConfig = scadaPath + 'Runtime\\ASU.config.xml'
+
+
 given_ip = None
 port = 3000
 webport = 8009
@@ -78,7 +84,7 @@ enablewx = True
 havewx = False
 enabletwisted = True
 havetwisted = False
-
+WorkingDir = ""
 extensions = []
 
 for o, a in opts:
@@ -100,8 +106,8 @@ for o, a in opts:
         enablewx = int(a)
     elif o == "-t":
         enabletwisted = int(a)
-    elif o == "-a":
-        autostart = int(a)
+    # elif o == "-a":
+    #     autostart = int(a)
     elif o == "-w":
         webport = None if a == "off" else int(a)
     elif o == "-c":
@@ -122,22 +128,41 @@ elif len(argv) == 1:
     WorkingDir = argv[0]
     os.chdir(WorkingDir)
 elif len(argv) == 0:
-    WorkingDir = 'c:\\OSSY-NG\\Vplc\\'
+    WorkingDir = scadaPath
     #WorkingDir = os.getcwd()
     argv = [WorkingDir]
+
+
+def parseScadaConfig():
+    debug_p = ''
+    with open(scadaConfig) as f:
+         xml = f.read()
+
+    tst = objectify.fromstring(xml).appSettings
+
+    for appt in tst.getchildren():
+       configItems = appt.attrib.items()
+       for sss in appt.attrib.items():
+           zxv = sss[1]
+           if zxv == 'Debug':
+                debug_p = configItems[1][1]
+                #print('Debug: ' + debug_p)
+    return debug_p
+
+if parseScadaConfig() == 'true':
+    autostart = False
+else:
+    autostart = True
 
 class MyCustomTextCtrl(wx.TextCtrl):
 
     def __init__(self, *args, **kwargs):
-        """
-        Инициируем текстовый контроль
-        """
         wx.TextCtrl.__init__(self, *args, **kwargs)
 
     def write(self, text):
         self.WriteText(text)
 
-    def flush(self ):
+    def flush(self):
         self.WriteText('')
 
 
@@ -197,11 +222,13 @@ class MyFrame(wx.Frame):
 
         bSizerLabels2 = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode:", wx.DefaultPosition, wx.DefaultSize, 0)
+        mode = parseScadaConfig()
+
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode:" +mode , wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         bSizerLabels2.Add(self.m_staticText1, 0, wx.ALL, 5)
-        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"true", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText2.Wrap(-1)
+        # self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"true", wx.DefaultPosition, wx.DefaultSize, 0)
+        # self.m_staticText2.Wrap(-1)
 
         bSizerLabels2.Add(self.m_staticText2, 0, wx.ALL, 5)
         bSizerButtons.Add(bSizerLabels2, 1, wx.EXPAND, 5)
@@ -217,8 +244,8 @@ class MyFrame(wx.Frame):
         bSizer1.Add(bSizerButtons, 1, wx.EXPAND, 5)
         sbSizer1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Log"), wx.VERTICAL)
 
-       # self.log = MyCustomTextCtrl(self, wx.ID_ANY,   style=  wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
-        self.log = wx.TextCtrl(self,wx.ID_ANY,  style= wx.TE_MULTILINE | wx.TE_READONLY)
+        self.log = MyCustomTextCtrl(self, wx.ID_ANY,   style=  wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+        #self.log = wx.TextCtrl(self,wx.ID_ANY,  style= wx.TE_MULTILINE | wx.TE_READONLY)
 
        # sbSizer1.Add(self.m_staticText3, 0, wx.ALL, 5)
         sbSizer1.Add(self.log, 1, wx.EXPAND, 0)
@@ -263,11 +290,13 @@ class MyFrame(wx.Frame):
         dlg = wx.DirDialog(None)
         if dlg.ShowModal() == wx.ID_OK:
             #self.workdir = dlg.GetPath()
-           # WorkingDir = dlg.GetPath()
-            Server.workdir = dlg.GetPath()
+           # global WorkingDir
+            pyroserver.workdir = dlg.GetPath()
+           # pyroserver.evaluator
+            #Server.workdir = dlg.GetPath()
             pyroserver.Restart()
-          #  self.log.AppendText("Изменена папка на" )
-          #  print("Изменена папка на" + WorkingDir)
+            self.log.AppendText("Изменена папка на" )
+           # print("Изменена папка на" + WorkingDir)
             # self.pyroserver.plcobj.StartPLC()
 
     def OnTaskBarChangePort(self, evt):
@@ -280,13 +309,14 @@ class MyFrame(wx.Frame):
             pyroserver.Restart()
 
     def OnClose(self, event):
-        dlg = wx.MessageDialog(self,
-                               "Do you really want to close this application?",
-                               "Confirm Exit", wx.OK | wx.CANCEL | wx.ICON_QUESTION)
-        result = dlg.ShowModal()
-        dlg.Destroy()
-        if result == wx.ID_OK:
-            self.Destroy()
+        self.Hide()
+        # dlg = wx.MessageDialog(self,
+        #                        "Do you really want to close this application?",
+        #                        "Confirm Exit", wx.OK | wx.CANCEL | wx.ICON_QUESTION)
+        # result = dlg.ShowModal()
+        # dlg.Destroy()
+        # if result == wx.ID_OK:
+        #     self.Destroy()
 
 class ToolbarFrame(wx.Frame):
     def __init__(self, parent, id):
@@ -426,6 +456,7 @@ if enablewx:
                 self.Tests = tests
 
         class BeremizTaskBarIcon(wx.TaskBarIcon):
+            TBMENU_SHOW = wx.NewId()
             TBMENU_START = wx.NewId()
             TBMENU_STOP = wx.NewId()
             TBMENU_CHANGE_NAME = wx.NewId()
@@ -444,6 +475,7 @@ if enablewx:
                 self.level = level
 
                 # bind some events
+                self.Bind(wx.EVT_MENU, self.OnTaskBarShow, id=self.TBMENU_SHOW)
                 self.Bind(wx.EVT_MENU, self.OnTaskBarStartPLC, id=self.TBMENU_START)
                 self.Bind(wx.EVT_MENU, self.OnTaskBarStopPLC, id=self.TBMENU_STOP)
                 self.Bind(wx.EVT_MENU, self.OnTaskBarChangeName, id=self.TBMENU_CHANGE_NAME)
@@ -462,18 +494,19 @@ if enablewx:
                 the base class takes care of the rest.
                 """
                 menu = wx.Menu()
+                menu.Append(self.TBMENU_SHOW, _("Show"))
                 menu.Append(self.TBMENU_START, _("Start PLC"))
                 menu.Append(self.TBMENU_STOP, _("Stop PLC"))
                 if self.level == 1:
                     menu.AppendSeparator()
-                    menu.Append(self.TBMENU_CHANGE_NAME, _("Change Name"))
-                    menu.Append(self.TBMENU_CHANGE_INTERFACE, _("Change IP of interface to bind"))
-                    menu.Append(self.TBMENU_CHANGE_PORT, _("Change Port Number"))
-                    menu.Append(self.TBMENU_CHANGE_WD, _("Change working directory"))
-                    menu.AppendSeparator()
+                   # menu.Append(self.TBMENU_CHANGE_NAME, _("Change Name"))
+                   # menu.Append(self.TBMENU_CHANGE_INTERFACE, _("Change IP of interface to bind"))
+                   # menu.Append(self.TBMENU_CHANGE_PORT, _("Change Port Number"))
+                   # menu.Append(self.TBMENU_CHANGE_WD, _("Change working directory"))
+                   # menu.AppendSeparator()
                   #  menu.Append(self.TBMENU_LIVE_SHELL, _("Launch a live Python shell"))
                    # menu.Append(self.TBMENU_WXINSPECTOR, _("Launch WX GUI inspector"))
-                menu.AppendSeparator()
+                #menu.AppendSeparator()
                 menu.Append(self.TBMENU_QUIT, _("Quit"))
                 return menu
 
@@ -490,9 +523,12 @@ if enablewx:
                 icon = wx.IconFromBitmap(img.ConvertToBitmap())
                 return icon
 
+            def OnTaskBarShow(self, evt):
+                frame.Show()
+
             def OnTaskBarStartPLC(self, evt):
                 if self.pyroserver.plcobj is not None:
-                    plcstatus = self.pyroserver.plcobj.GetPLCstatus()[0]
+                    plcstatus = self.pyroserver.plceobj.GetPLCstatus()[0]
                     if plcstatus is "Stopped":
                         self.pyroserver.plcobj.StartPLC()
                     else:
