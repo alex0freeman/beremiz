@@ -211,8 +211,9 @@ class MyFrame(wx.Frame):
 
         self.m_statusBar1 = self.CreateStatusBar(1,   wx.ID_ANY)
         bSizer1 = wx.BoxSizer(wx.VERTICAL)
-        bSizerButtons = wx.BoxSizer(wx.VERTICAL)
+        bSizer3 = wx.BoxSizer(wx.VERTICAL)
         bSizerLabels = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer4 = wx.BoxSizer(wx.HORIZONTAL) #bSizerButtons
 
         self.projectName = self.GetProjectFileName()
         self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Project:" +self.projectName, wx.DefaultPosition, wx.DefaultSize, 0)
@@ -222,7 +223,7 @@ class MyFrame(wx.Frame):
         # self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"_", wx.DefaultPosition, wx.DefaultSize, 0)
         # self.m_staticText2.Wrap(-1)
         #bSizerLabels.Add(self.m_staticText2, 0, wx.ALL, 5)
-        bSizerButtons.Add(bSizerLabels, 1, wx.EXPAND, 5)
+        bSizer3.Add(bSizerLabels, 1, wx.EXPAND, 5)
 
         bSizerLabels2 = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -236,25 +237,31 @@ class MyFrame(wx.Frame):
         # self.m_staticText2.Wrap(-1)
 
        # bSizerLabels2.Add(self.m_staticText2, 0, wx.ALL, 5)
-        bSizerButtons.Add(bSizerLabels2, 1, wx.EXPAND, 5)
+        bSizer3.Add(bSizerLabels2, 1, wx.EXPAND, 5)
 
         self.defaulticon = wx.Image(Bpath("images", "brz.png")).Scale(15, 15).ConvertToBitmap()
         self.starticon = wx.Image(Bpath("images", "icoplay24.png")).Scale(15, 15).ConvertToBitmap()
         self.stopicon = wx.Image(Bpath("images", "icostop24.png")).Scale(15, 15).ConvertToBitmap()
 
         self.ButtonStartStopCaptipn =u"Start"
-        self.m_button1 = buts.GenBitmapTextButton(self, -1, bitmap=self.defaulticon, label=self.ButtonStartStopCaptipn)
+       #self.m_button1 = buts.GenBitmapTextButton(self, -1, bitmap=self.defaulticon, label=self.ButtonStartStopCaptipn)
+        self.m_button1 = wx.Button(self, wx.ID_ANY, u"Start", wx.DefaultPosition, wx.DefaultSize, 0)
+
         self.m_button1.Bind(wx.EVT_BUTTON,  self.OnButtonStartPLC)
        # self.m_button1.SetBitmap(defaulticon, wx.RIGHT)
 
 
-        bSizerButtons.Add(self.m_button1, 0, wx.ALL, 5)
+        bSizer4.Add(self.m_button1, 0, wx.ALL, 5)
         #
-        self.m_button2 = wx.Button(self, wx.ID_ANY, u"Status", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_button2.Bind(wx.EVT_BUTTON, self.onGetStatusPlc)
-        bSizerButtons.Add(self.m_button2, 0, wx.ALL, 5)
+        # self.m_button2 = wx.Button(self, wx.ID_ANY, u"Status", wx.DefaultPosition, wx.DefaultSize, 0)
+        # self.m_button2.Bind(wx.EVT_BUTTON, self.onGetStatusPlc)
+        # bSizerButtons.Add(self.m_button2, 0, wx.ALL, 5)
+        self.m_bitmap1 = wx.StaticBitmap(self, wx.ID_ANY, self.defaulticon, wx.DefaultPosition, wx.DefaultSize, 0)
+        bSizer4.Add(self.m_bitmap1, 0, wx.ALL, 5)
 
-        bSizer1.Add(bSizerButtons, 1, wx.EXPAND, 5)
+        bSizer3.Add(bSizer4, 1, wx.EXPAND, 5)
+
+        bSizer1.Add(bSizer3, 1, wx.EXPAND, 5)
         sbSizer1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Log"), wx.VERTICAL)
 
         self.log = MyCustomTextCtrl(self, wx.ID_ANY,   style=  wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
@@ -291,7 +298,7 @@ class MyFrame(wx.Frame):
                  print(_("PLC Start."))
                  pyroserver.plcobj.StartPLC()
                  self.m_button1.Label = "Stop"
-                 self.m_button1.bmpLabel = self.starticon
+                 self.m_bitmap1.SetBitmap(self.starticon)
                  #self.Refresh(self)
             else:
                 #print(_("PLC is empty or already started."))
@@ -301,7 +308,7 @@ class MyFrame(wx.Frame):
                     print(_("PLC stopping."))
                     Thread(target= pyroserver.plcobj.StopPLC).start()
                     self.m_button1.Label = "Start"
-                    self.m_button1.bmpLabel = self.stopicon
+                    self.m_bitmap1.SetBitmap(self.stopicon)
                 else:
                     print(_("PLC is not started."))
                     #self.log.AppendText(print(_("PLC is not started.")))
