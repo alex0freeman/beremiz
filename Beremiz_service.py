@@ -40,6 +40,41 @@ from lxml import etree, objectify
 from runtime import PLCObject, ServicePublisher
 import util.paths as paths
 
+import logging
+import wx.lib.agw.genericmessagedialog as GMD
+
+logs = logging.getLogger("Service")
+logs.setLevel(logging.INFO)
+
+# создаём logging файловый хендлер/форматер
+log_fh = logging.FileHandler("error.log")
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
+log_fh.setFormatter(formatter)
+logs.addHandler(log_fh)
+
+
+# class ExceptionLogging(object):
+#
+#     def __init__(self, fn):
+#         self.fn = fn
+#
+#         # создаём logging инстанцию
+#         self.logs = logging.getLogger("wxErrors")
+#         self.logs.setLevel(logging.INFO)
+#
+#         # создаём logging файловый хендлер/форматер
+#         log_fh = logging.FileHandler("error.log")
+#         formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
+#         log_fh.setFormatter(formatter)
+#         self.logs.addHandler(log_fh)
+#
+#     def __call__(self, evt):
+#         try:
+#             self.fn(self, evt)
+#         except Exception, e:
+#         #except Exception as e:
+#             self.logs.exception("Exception")
+#
 
 def usage():
     print("""
@@ -72,7 +107,6 @@ except getopt.GetoptError, err:
 scadaPath = 'c:\\OSSY-NG\\'
 scadaVplc = scadaPath + 'Vplc\\'
 scadaConfig = scadaPath + 'Runtime\\ASU.config.xml'
-
 
 given_ip = None
 port = 3000
@@ -118,7 +152,6 @@ for o, a in opts:
         usage()
         sys.exit()
 
-
 beremiz_dir = paths.AbsDir(__file__)
 
 if len(argv) > 1:
@@ -129,30 +162,32 @@ elif len(argv) == 1:
     os.chdir(WorkingDir)
 elif len(argv) == 0:
     WorkingDir = scadaVplc
-    #WorkingDir = os.getcwd()
+    # WorkingDir = os.getcwd()
     argv = [WorkingDir]
 
 
 def config_debug_mode():
     debug_p = ''
     with open(scadaConfig) as f:
-         xml = f.read()
+        xml = f.read()
 
     tst = objectify.fromstring(xml).appSettings
 
     for appt in tst.getchildren():
-       configItems = appt.attrib.items()
-       for sss in appt.attrib.items():
-           zxv = sss[1].lower()
-           if zxv == 'debug':
+        configItems = appt.attrib.items()
+        for sss in appt.attrib.items():
+            zxv = sss[1].lower()
+            if zxv == 'debug':
                 debug_p = configItems[1][1]
-                #print('Debug: ' + debug_p)
+                # print('Debug: ' + debug_p)
     return debug_p
+
 
 if config_debug_mode() == 'true':
     autostart = False
 else:
     autostart = True
+
 
 class MyCustomTextCtrl(wx.TextCtrl):
 
@@ -171,14 +206,13 @@ import wx.lib.buttons as buts
 
 class MyFrame(wx.Frame):
     def __init__(self, parent, title):
-        #no_caption = wx.RESIZE_BORDER
-        #wx.Frame.__init__(self, parent, title=title, style=no_caption)
+        # no_caption = wx.RESIZE_BORDER
+        # wx.Frame.__init__(self, parent, title=title, style=no_caption)
         wx.Frame.__init__(self, parent, title=title, pos=(150, 150), size=(600, 400))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-        #self.control = wx.TextCtrl(self, pos=(300,20), size=(200,300), style=wx.TE_MULTILINE | wx.TE_READONLY) # wx.TextCtrl(self, style=wx.TE_MULTILINE)
-      #   self.Show(True)
-
+        # self.control = wx.TextCtrl(self, pos=(300,20), size=(200,300), style=wx.TE_MULTILINE | wx.TE_READONLY) # wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        #   self.Show(True)
 
         # toolbar = self.CreateToolBar(style=wx.HORIZONTAL) # wx.TB_DOCKABLE
         # quittool1 = toolbar.AddLabelTool(wx.ID_ANY, 'Quit', wx.Bitmap(Bpath("images", "brz.png")))
@@ -189,14 +223,14 @@ class MyFrame(wx.Frame):
         first = wx.Menu()
         second = wx.Menu()
 
-        m_open = first.Append(1, "Hide" )
+        m_open = first.Append(1, "Hide")
         self.Bind(wx.EVT_MENU, self.OnHide, m_open)
 
         m_exit = first.Append(wx.ID_EXIT, "E&xit\tAlt-X", "Close window and exit program.")
         self.Bind(wx.EVT_MENU, self.OnClose, m_exit)
         menubar.Append(first, "File")
 
-        m_s_workdir = second.Append(wx.NewId(),  "Change working directory")
+        m_s_workdir = second.Append(wx.NewId(), "Change working directory")
         self.Bind(wx.EVT_MENU, self.OnTaskBarChangeWorkingDir, m_s_workdir)
         m_settings = second.Append(wx.NewId(), "Change Port Number")  #
         self.Bind(wx.EVT_MENU, self.OnTaskBarChangePort, m_settings)
@@ -209,47 +243,48 @@ class MyFrame(wx.Frame):
 
         self.SetMenuBar(menubar)
 
-        self.m_statusBar1 = self.CreateStatusBar(1,   wx.ID_ANY)
+        self.m_statusBar1 = self.CreateStatusBar(1, wx.ID_ANY)
         bSizer1 = wx.BoxSizer(wx.VERTICAL)
         bSizer3 = wx.BoxSizer(wx.VERTICAL)
         bSizerLabels = wx.BoxSizer(wx.HORIZONTAL)
-        bSizer4 = wx.BoxSizer(wx.HORIZONTAL) #bSizerButtons
+        bSizer4 = wx.BoxSizer(wx.HORIZONTAL)  # bSizerButtons
 
         self.projectName = self.GetProjectFileName()
-        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Project:" +self.projectName, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Project:" + self.projectName, wx.DefaultPosition,
+                                           wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         bSizerLabels.Add(self.m_staticText1, 0, wx.ALL, 5)
 
         # self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"_", wx.DefaultPosition, wx.DefaultSize, 0)
         # self.m_staticText2.Wrap(-1)
-        #bSizerLabels.Add(self.m_staticText2, 0, wx.ALL, 5)
+        # bSizerLabels.Add(self.m_staticText2, 0, wx.ALL, 5)
         bSizer3.Add(bSizerLabels, 1, wx.EXPAND, 5)
 
         bSizerLabels2 = wx.BoxSizer(wx.HORIZONTAL)
 
         self.mode = config_debug_mode()
-        #self.mode = 'false'
+        # self.mode = 'false'
 
-        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode:" + self.mode, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode:" + self.mode, wx.DefaultPosition,
+                                           wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         bSizerLabels2.Add(self.m_staticText1, 0, wx.ALL, 5)
         # self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"true", wx.DefaultPosition, wx.DefaultSize, 0)
         # self.m_staticText2.Wrap(-1)
 
-       # bSizerLabels2.Add(self.m_staticText2, 0, wx.ALL, 5)
+        # bSizerLabels2.Add(self.m_staticText2, 0, wx.ALL, 5)
         bSizer3.Add(bSizerLabels2, 1, wx.EXPAND, 5)
 
         self.defaulticon = wx.Image(Bpath("images", "brz.png")).Scale(15, 15).ConvertToBitmap()
         self.starticon = wx.Image(Bpath("images", "icoplay24.png")).Scale(15, 15).ConvertToBitmap()
         self.stopicon = wx.Image(Bpath("images", "icostop24.png")).Scale(15, 15).ConvertToBitmap()
 
-        self.ButtonStartStopCaptipn =u"Start"
-       #self.m_button1 = buts.GenBitmapTextButton(self, -1, bitmap=self.defaulticon, label=self.ButtonStartStopCaptipn)
-        self.m_button1 = wx.Button(self, wx.ID_ANY, u"Start", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.ButtonStartStopCaptipn = u"Start"
+        # self.m_button1 = buts.GenBitmapTextButton(self, -1, bitmap=self.defaulticon, label=self.ButtonStartStopCaptipn)
+        self.m_button1 = wx.Button(self, wx.ID_ANY, self.ButtonStartStopCaptipn, wx.DefaultPosition, wx.DefaultSize, 0)
 
-        self.m_button1.Bind(wx.EVT_BUTTON,  self.OnButtonStartPLC)
-       # self.m_button1.SetBitmap(defaulticon, wx.RIGHT)
-
+        self.m_button1.Bind(wx.EVT_BUTTON, self.OnButtonStartPLC)
+        # self.m_button1.SetBitmap(defaulticon, wx.RIGHT)
 
         bSizer4.Add(self.m_button1, 0, wx.ALL, 5)
         #
@@ -264,7 +299,7 @@ class MyFrame(wx.Frame):
         bSizer1.Add(bSizer3, 1, wx.EXPAND, 5)
         sbSizer1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Log"), wx.VERTICAL)
 
-        self.log = MyCustomTextCtrl(self, wx.ID_ANY,   style=  wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+        self.log = MyCustomTextCtrl(self, wx.ID_ANY, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
         sbSizer1.Add(self.log, 1, wx.EXPAND, 0)
 
         bSizer1.Add(sbSizer1, 2, wx.EXPAND, 0)
@@ -278,53 +313,60 @@ class MyFrame(wx.Frame):
 
         if self.mode == 'false':
             self.m_button1.Disable()
-            #self.OnButtonStartPLC(self) # !!! обьект еще не создан, поэтому не запустится
+            # self.OnButtonStartPLC(self) # !!! обьект еще не создан, поэтому не запустится
             menubar.Hide()
-
+            self.Extract_info("Start programm in production mode")
+        else:
+            self.Extract_info("Start programm in debug mode")
 
     def GetProjectFileName(self):
-        fileName =''
+        fileName = ''
         for file in os.listdir(scadaVplc):
             if file.endswith(".dll"):
-                #print(os.path.join(scadaVplc, file))
+                # print(os.path.join(scadaVplc, file))
                 fileName = file
         return fileName
 
     def OnButtonStartPLC(self, evt):
-        if pyroserver.plcobj is not None:
-            plcstatus = pyroserver.plcobj.GetPLCstatus()[0]
-            if plcstatus is "Stopped":
-                 #self.log.AppendText("PLC Start.")
-                 print(_("PLC Start."))
-                 pyroserver.plcobj.StartPLC()
-                 self.m_button1.Label = "Stop"
-                 self.m_bitmap1.SetBitmap(self.starticon)
-                 #self.Refresh(self)
-            else:
-                #print(_("PLC is empty or already started."))
-                #self.log.AppendText(_("PLC is empty or already started."))
-                if pyroserver.plcobj.GetPLCstatus()[0] == "Started":
-                    #self.log.AppendText("PLC stop.")
-                    print(_("PLC stopping."))
-                    Thread(target= pyroserver.plcobj.StopPLC).start()
-                    self.m_button1.Label = "Start"
-                    self.m_bitmap1.SetBitmap(self.stopicon)
+        try:
+            if pyroserver.plcobj is not None:
+                plcstatus = pyroserver.plcobj.GetPLCstatus()[0]
+                if plcstatus is "Stopped":
+                    self.Extract_info("PLC Start.")
+                    pyroserver.plcobj.StartPLC()
+                    self.m_button1.SetLabel("Stop")
+                    self.m_bitmap1.SetBitmap(self.starticon)
+                    # self.Refresh(self)
                 else:
-                    print(_("PLC is not started."))
-                    #self.log.AppendText(print(_("PLC is not started.")))
+                    self.Extract_info("PLC is empty or already started.")
+                    if pyroserver.plcobj.GetPLCstatus()[0] == "Started":
+                        self.Extract_info("PLC stopping.")
+                        Thread(target=pyroserver.plcobj.StopPLC).start()
+                        self.m_button1.Label = "Start"
+                        self.m_bitmap1.SetBitmap(self.stopicon)
+                    else:
+                        self.Extract_info("PLC is not started.")
 
+        except Exception, e:
+            print(_("Exception failed :"), e)
 
-    def onGetStatusPlc(self, event ):
+    def Extract_info(self, msg):
+        # self.log.AppendText("PLC stop.")
+        print(_(msg))
+        logs.info(msg)
+
+    def onGetStatusPlc(self, event):
         status = ''
         if pyroserver.plcobj is not None:
             if pyroserver.plcobj.GetPLCstatus()[0] == "Started":
                 status = 'Stop'
-                #ttt = pyroserver.plcobj._GetLogMessage()[0]
+                # ttt = pyroserver.plcobj._GetLogMessage()[0]
                 vvv = pyroserver.plcobj._GetLogCount()[0]
 
             else:
                 status = 'Start'
-       # return status
+
+    # return status
 
     def OnAbout(self, e):
         # A message dialog box with an OK button. wx.OK is a standard ID in wxWidgets.
@@ -335,14 +377,15 @@ class MyFrame(wx.Frame):
     def OnTaskBarChangeWorkingDir(self, evt):
         dlg = wx.DirDialog(None)
         if dlg.ShowModal() == wx.ID_OK:
-            #self.workdir = dlg.GetPath()
-           # global WorkingDir
-            pyroserver.workdir = dlg.GetPath()
-           # pyroserver.evaluator
-            #Server.workdir = dlg.GetPath()
             pyroserver.Stop()
-            self.log.AppendText("Изменена папка на" )
-           # print("Изменена папка на" + WorkingDir)
+            # self.workdir = dlg.GetPath()
+            # global WorkingDir
+            pyroserver.workdir = dlg.GetPath()
+            # pyroserver.evaluator
+           # self.Extract_info("Изменена папка на ")
+            #pyroserver.Stop()
+
+            print("Изменена папка на"  )
             # self.pyroserver.plcobj.StartPLC()
 
     def OnTaskBarChangePort(self, evt):
@@ -352,20 +395,9 @@ class MyFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             pyroserver.port = int(dlg.GetValue())
             pyroserver.Stop()
+            self.Extract_info("service change port to " + str(pyroserver.port))
 
-    def MakeIcon(self, img):
-        """
-        The various platforms have different requirements for the
-        icon size...
-        """
-        # if "wxMSW" in wx.PlatformInfo:
-        #     img = img.Scale(16, 16)
-        # elif "wxGTK" in wx.PlatformInfo:
-        #     img = img.Scale(22, 22)
-        # wxMac can be any size upto 128x128, so leave the source img alone....
-        icon = wx.IconFromBitmap(img.ConvertToBitmap())
-        return icon
-
+    # @ExceptionLogging
     def OnClose(self, event):
         if self.mode == 'false':
             self.Hide()
@@ -380,10 +412,11 @@ class MyFrame(wx.Frame):
                 pyroserver.Stop()
                 if wx.Platform == '__WXMSW__':
                     Thread(target=pyroserver.Quit).start()
-                    #self.RemoveIcon()
+                    # self.RemoveIcon()
                     wx.CallAfter(wx.GetApp().ExitMainLoop)
                     app.Destroy()
-                    #sys.exit(0)
+                    # sys.exit(0)
+                    self.Extract_info("PLC service stop and exit.")
 
     def OnHide(self, event):
         self.Hide()
@@ -464,6 +497,7 @@ def SetupI18n():
 if enablewx:
     try:
         import wx
+
         havewx = True
     except ImportError:
         print("Wx unavailable !")
@@ -486,6 +520,7 @@ if enablewx:
         starticon = wx.Image(Bpath("images", "icoplay24.png"))
         stopicon = wx.Image(Bpath("images", "icostop24.png"))
 
+
         class ParamsEntryDialog(wx.TextEntryDialog):
             if wx.VERSION < (2, 6, 0):
                 def Bind(self, event, function, id=None):
@@ -502,9 +537,12 @@ if enablewx:
                 if wx.VERSION >= (2, 8, 0):
                     self.Bind(wx.EVT_BUTTON, self.OnOK, id=self.GetAffirmativeId())
                 elif wx.VERSION >= (2, 6, 0):
-                    self.Bind(wx.EVT_BUTTON, self.OnOK, id=self.GetSizer().GetItem(3).GetSizer().GetAffirmativeButton().GetId())
+                    self.Bind(wx.EVT_BUTTON, self.OnOK,
+                              id=self.GetSizer().GetItem(3).GetSizer().GetAffirmativeButton().GetId())
                 else:
-                    self.Bind(wx.EVT_BUTTON, self.OnOK, id=self.GetSizer().GetItem(3).GetSizer().GetChildren()[0].GetSizer().GetChildren()[0].GetWindow().GetId())
+                    self.Bind(wx.EVT_BUTTON, self.OnOK,
+                              id=self.GetSizer().GetItem(3).GetSizer().GetChildren()[0].GetSizer().GetChildren()[
+                                  0].GetWindow().GetId())
 
             def OnOK(self, event):
                 value = self.GetValue()
@@ -523,6 +561,7 @@ if enablewx:
 
             def SetTests(self, tests):
                 self.Tests = tests
+
 
         class BeremizTaskBarIcon(wx.TaskBarIcon):
             TBMENU_SHOW = wx.NewId()
@@ -564,19 +603,19 @@ if enablewx:
                 """
                 menu = wx.Menu()
                 menu.Append(self.TBMENU_SHOW, _("Show"))
-                #menu.Append(self.TBMENU_START, _("Start PLC"))
-                #menu.Append(self.TBMENU_STOP, _("Stop PLC"))
+                # menu.Append(self.TBMENU_START, _("Start PLC"))
+                # menu.Append(self.TBMENU_STOP, _("Stop PLC"))
                 if self.level == 1:
                     menu.AppendSeparator()
-                   # menu.Append(self.TBMENU_CHANGE_NAME, _("Change Name"))
-                   # menu.Append(self.TBMENU_CHANGE_INTERFACE, _("Change IP of interface to bind"))
-                   # menu.Append(self.TBMENU_CHANGE_PORT, _("Change Port Number"))
-                   # menu.Append(self.TBMENU_CHANGE_WD, _("Change working directory"))
-                   # menu.AppendSeparator()
-                  #  menu.Append(self.TBMENU_LIVE_SHELL, _("Launch a live Python shell"))
-                   # menu.Append(self.TBMENU_WXINSPECTOR, _("Launch WX GUI inspector"))
-                #menu.AppendSeparator()
-               # menu.Append(self.TBMENU_QUIT, _("Quit"))
+                # menu.Append(self.TBMENU_CHANGE_NAME, _("Change Name"))
+                # menu.Append(self.TBMENU_CHANGE_INTERFACE, _("Change IP of interface to bind"))
+                # menu.Append(self.TBMENU_CHANGE_PORT, _("Change Port Number"))
+                # menu.Append(self.TBMENU_CHANGE_WD, _("Change working directory"))
+                # menu.AppendSeparator()
+                #  menu.Append(self.TBMENU_LIVE_SHELL, _("Launch a live Python shell"))
+                # menu.Append(self.TBMENU_WXINSPECTOR, _("Launch WX GUI inspector"))
+                # menu.AppendSeparator()
+                # menu.Append(self.TBMENU_QUIT, _("Quit"))
                 return menu
 
             def MakeIcon(self, img):
@@ -615,7 +654,7 @@ if enablewx:
                 ip_addr = '' if ip_addr is None else ip_addr
                 dlg = ParamsEntryDialog(None, _("Enter the IP of the interface to bind"), defaultValue=ip_addr)
                 dlg.SetTests([(re.compile('\d{1,3}(?:\.\d{1,3}){3}$').match, _("IP is not valid!")),
-                              (lambda x:len([x for x in x.split(".") if 0 <= int(x) <= 255]) == 4,
+                              (lambda x: len([x for x in x.split(".") if 0 <= int(x) <= 255]) == 4,
                                _("IP is not valid!"))])
                 if dlg.ShowModal() == wx.ID_OK:
                     self.pyroserver.ip_addr = dlg.GetValue()
@@ -623,17 +662,19 @@ if enablewx:
 
             def OnTaskBarChangePort(self, evt):
                 dlg = ParamsEntryDialog(None, _("Enter a port number "), defaultValue=str(self.pyroserver.port))
-                dlg.SetTests([(UnicodeType.isdigit, _("Port number must be an integer!")), (lambda port: 0 <= int(port) <= 65535, _("Port number must be 0 <= port <= 65535!"))])
+                dlg.SetTests([(UnicodeType.isdigit, _("Port number must be an integer!")),
+                              (lambda port: 0 <= int(port) <= 65535, _("Port number must be 0 <= port <= 65535!"))])
                 if dlg.ShowModal() == wx.ID_OK:
                     self.pyroserver.port = int(dlg.GetValue())
                     self.pyroserver.Stop()
 
             def OnTaskBarChangeWorkingDir(self, evt):
-                dlg = wx.DirDialog(None, _("Choose a working directory "), self.pyroserver.workdir, wx.DD_NEW_DIR_BUTTON)
+                dlg = wx.DirDialog(None, _("Choose a working directory "), self.pyroserver.workdir,
+                                   wx.DD_NEW_DIR_BUTTON)
                 if dlg.ShowModal() == wx.ID_OK:
                     self.pyroserver.workdir = dlg.GetPath()
                     self.pyroserver.Stop()
-                    #self.pyroserver.plcobj.StartPLC()
+                    # self.pyroserver.plcobj.StartPLC()
 
             def OnTaskBarChangeName(self, evt):
                 servicename = self.pyroserver.servicename
@@ -678,7 +719,6 @@ if enablewx:
                 else:
                     currenticon = self.MakeIcon(defaulticon)
                 self.SetIcon(currenticon, "PLC Service")
-
 
 if not os.path.isdir(WorkingDir):
     os.mkdir(WorkingDir)
@@ -745,9 +785,9 @@ class Server(object):
         # Configure and publish service
         # Not publish service if localhost in address params
         if self.servicename is not None and \
-           self.ip_addr is not None and \
-           self.ip_addr != "localhost" and \
-           self.ip_addr != "127.0.0.1":
+                self.ip_addr is not None and \
+                self.ip_addr != "localhost" and \
+                self.ip_addr != "127.0.0.1":
             print(_("Publishing service on local network"))
             self.servicepublisher = ServicePublisher.ServicePublisher()
             self.servicepublisher.RegisterService(self.servicename, self.ip_addr, self.port)
@@ -774,11 +814,13 @@ class Server(object):
 
 if enabletwisted:
     import warnings
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         try:
             if havewx:
                 from twisted.internet import wxreactor
+
                 wxreactor.install()
             from twisted.internet import reactor
 
@@ -799,15 +841,19 @@ if havewx:
     wx_eval_lock = Semaphore(0)
     main_thread = currentThread()
 
+
     def statuschangeTskBar(status):
         wx.CallAfter(taskbar_instance.UpdateIcon, status)
 
+
     statuschange.append(statuschangeTskBar)
+
 
     def wx_evaluator(obj, *args, **kwargs):
         tocall, args, kwargs = obj.call
         obj.res = default_evaluator(tocall, *args, **kwargs)
         wx_eval_lock.release()
+
 
     def evaluator(tocall, *args, **kwargs):
         if main_thread == currentThread():
@@ -818,6 +864,7 @@ if havewx:
             wx.CallAfter(wx_evaluator, o)
             wx_eval_lock.acquire()
             return o.res
+
 
     pyroserver = Server(servicename, given_ip, port,
                         WorkingDir, argv, autostart,
@@ -857,7 +904,9 @@ def installThreadExcepthook():
                 raise
             except Exception:
                 sys.excepthook(*sys.exc_info())
+
         self.run = run_with_except_hook
+
     threading.Thread.__init__ = init
 
 
@@ -872,11 +921,11 @@ if havetwisted:
             webport = None
         NS.WorkingDir = WorkingDir
 
-    # if wampconf is not None:
-    #     try:
-    #         import runtime.WampClient as WC  # pylint: disable=ungrouped-imports
-    #     except Exception, e:
-    #         print(_("WAMP import failed :"), e)
+        # if wampconf is not None:
+        #     try:
+        #         import runtime.WampClient as WC  # pylint: disable=ungrouped-imports
+        #     except Exception, e:
+        #         print(_("WAMP import failed :"), e)
         wampconf = None
 
 # Load extensions
@@ -904,7 +953,7 @@ if havetwisted:
 
 if __name__ == '__main__':
     app = wx.App(redirect=True)
-    frame = MyFrame(None, 'Project Beremiz') # ToolbarFrame(parent=None, id=-1)
+    frame = MyFrame(None, 'Project Beremiz')  # ToolbarFrame(parent=None, id=-1)
     frame.Show()
 
     __builtin__.__dict__['_'] = lambda x: x
@@ -924,8 +973,6 @@ if __name__ == '__main__':
 
     app.MainLoop()
 
-
-
 if havetwisted or havewx:
     pyro_thread = Thread(target=pyroserver.Loop)
     pyro_thread.start()
@@ -941,4 +988,3 @@ else:
         pass
 pyroserver.Quit()
 sys.exit(0)
-
