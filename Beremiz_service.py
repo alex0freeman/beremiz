@@ -128,12 +128,12 @@ elif len(argv) == 1:
     WorkingDir = argv[0]
     os.chdir(WorkingDir)
 elif len(argv) == 0:
-    WorkingDir = scadaPath
+    WorkingDir = scadaVplc
     #WorkingDir = os.getcwd()
     argv = [WorkingDir]
 
 
-def parseScadaConfig():
+def config_debug_mode():
     debug_p = ''
     with open(scadaConfig) as f:
          xml = f.read()
@@ -143,13 +143,13 @@ def parseScadaConfig():
     for appt in tst.getchildren():
        configItems = appt.attrib.items()
        for sss in appt.attrib.items():
-           zxv = sss[1]
-           if zxv == 'Debug':
+           zxv = sss[1].lower()
+           if zxv == 'debug':
                 debug_p = configItems[1][1]
                 #print('Debug: ' + debug_p)
     return debug_p
 
-if parseScadaConfig() == 'true':
+if config_debug_mode() == 'true':
     autostart = False
 else:
     autostart = True
@@ -166,28 +166,31 @@ class MyCustomTextCtrl(wx.TextCtrl):
         self.WriteText('')
 
 
+import wx.lib.buttons as buts
+
+
 class MyFrame(wx.Frame):
-    """ We simply derive a new class of Frame. """
     def __init__(self, parent, title):
-        no_caption = wx.RESIZE_BORDER
+        #no_caption = wx.RESIZE_BORDER
         #wx.Frame.__init__(self, parent, title=title, style=no_caption)
-        wx.Frame.__init__(self, parent, title=title, pos=(150, 150), size=(600, 400) )
+        wx.Frame.__init__(self, parent, title=title, pos=(150, 150), size=(600, 400))
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         #self.control = wx.TextCtrl(self, pos=(300,20), size=(200,300), style=wx.TE_MULTILINE | wx.TE_READONLY) # wx.TextCtrl(self, style=wx.TE_MULTILINE)
       #   self.Show(True)
 
 
-        toolbar = self.CreateToolBar(style=wx.HORIZONTAL) # wx.TB_DOCKABLE
-        quittool1 = toolbar.AddLabelTool(wx.ID_ANY, 'Quit', wx.Bitmap(Bpath("images", "brz.png")))
-        self.Bind(wx.EVT_TOOL, self.OnClose, quittool1)
-        self.Show()
+        # toolbar = self.CreateToolBar(style=wx.HORIZONTAL) # wx.TB_DOCKABLE
+        # quittool1 = toolbar.AddLabelTool(wx.ID_ANY, 'Quit', wx.Bitmap(Bpath("images", "brz.png")))
+        # self.Bind(wx.EVT_TOOL, self.OnClose, quittool1)
+        # self.Show()
 
         menubar = wx.MenuBar()
         first = wx.Menu()
         second = wx.Menu()
-        #first.Append(1, "New Window", "This is a new window")
-        m_open = first.Append(1, "Open...", "Open A New Window")
-        #self.Bind(wx.EVT_MENU,  m_open)
+
+        m_open = first.Append(1, "Hide" )
+        self.Bind(wx.EVT_MENU, self.OnHide, m_open)
 
         m_exit = first.Append(wx.ID_EXIT, "E&xit\tAlt-X", "Close window and exit program.")
         self.Bind(wx.EVT_MENU, self.OnClose, m_exit)
@@ -211,78 +214,114 @@ class MyFrame(wx.Frame):
         bSizerButtons = wx.BoxSizer(wx.VERTICAL)
         bSizerLabels = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Project", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.projectName = self.GetProjectFileName()
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Project:" +self.projectName, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         bSizerLabels.Add(self.m_staticText1, 0, wx.ALL, 5)
-        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"_", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_staticText2.Wrap(-1)
 
-        bSizerLabels.Add(self.m_staticText2, 0, wx.ALL, 5)
+        # self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"_", wx.DefaultPosition, wx.DefaultSize, 0)
+        # self.m_staticText2.Wrap(-1)
+        #bSizerLabels.Add(self.m_staticText2, 0, wx.ALL, 5)
         bSizerButtons.Add(bSizerLabels, 1, wx.EXPAND, 5)
 
         bSizerLabels2 = wx.BoxSizer(wx.HORIZONTAL)
 
-        mode = parseScadaConfig()
+        self.mode = config_debug_mode()
+        #self.mode = 'false'
 
-        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode:" + mode, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode:" + self.mode, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         bSizerLabels2.Add(self.m_staticText1, 0, wx.ALL, 5)
         # self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"true", wx.DefaultPosition, wx.DefaultSize, 0)
         # self.m_staticText2.Wrap(-1)
 
-        bSizerLabels2.Add(self.m_staticText2, 0, wx.ALL, 5)
+       # bSizerLabels2.Add(self.m_staticText2, 0, wx.ALL, 5)
         bSizerButtons.Add(bSizerLabels2, 1, wx.EXPAND, 5)
 
-        self.m_button1 = wx.Button(self, wx.ID_ANY, u"Start", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_button1.Bind(wx.EVT_BUTTON,  self.OnTaskBarStartPLC)
-        bSizerButtons.Add(self.m_button1, 0, wx.ALL, 5)
+        self.defaulticon = wx.Image(Bpath("images", "brz.png")).Scale(15, 15).ConvertToBitmap()
+        self.starticon = wx.Image(Bpath("images", "icoplay24.png")).Scale(15, 15).ConvertToBitmap()
+        self.stopicon = wx.Image(Bpath("images", "icostop24.png")).Scale(15, 15).ConvertToBitmap()
 
-        self.m_button2 = wx.Button(self, wx.ID_ANY, u"Stop", wx.DefaultPosition, wx.DefaultSize, 0)
-        self.m_button2.Bind(wx.EVT_BUTTON, self.OnTaskBarStopPLC  )
+        self.ButtonStartStopCaptipn =u"Start"
+        self.m_button1 = buts.GenBitmapTextButton(self, -1, bitmap=self.defaulticon, label=self.ButtonStartStopCaptipn)
+        self.m_button1.Bind(wx.EVT_BUTTON,  self.OnButtonStartPLC)
+       # self.m_button1.SetBitmap(defaulticon, wx.RIGHT)
+
+
+        bSizerButtons.Add(self.m_button1, 0, wx.ALL, 5)
+        #
+        self.m_button2 = wx.Button(self, wx.ID_ANY, u"Status", wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_button2.Bind(wx.EVT_BUTTON, self.onGetStatusPlc)
         bSizerButtons.Add(self.m_button2, 0, wx.ALL, 5)
 
         bSizer1.Add(bSizerButtons, 1, wx.EXPAND, 5)
         sbSizer1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"Log"), wx.VERTICAL)
 
         self.log = MyCustomTextCtrl(self, wx.ID_ANY,   style=  wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
-        #self.log = wx.TextCtrl(self,wx.ID_ANY,  style= wx.TE_MULTILINE | wx.TE_READONLY)
-
-       # sbSizer1.Add(self.m_staticText3, 0, wx.ALL, 5)
         sbSizer1.Add(self.log, 1, wx.EXPAND, 0)
 
         bSizer1.Add(sbSizer1, 2, wx.EXPAND, 0)
-
         self.SetSizer(bSizer1)
         self.Layout()
-
         self.Centre(wx.BOTH)
-        #log = MyCustomTextCtrl(self, wx.ID_ANY, size=(50, 100), style= wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+
+        # перенапраляем вывод лога
         sys.stdout = self.log
         sys.stderr = self.log
 
-    def OnTaskBarStartPLC(self, evt):
+        if self.mode == 'false':
+            self.m_button1.Disable()
+            #self.OnButtonStartPLC(self) # !!! обьект еще не создан, поэтому не запустится
+            menubar.Hide()
+
+
+    def GetProjectFileName(self):
+        fileName =''
+        for file in os.listdir(scadaVplc):
+            if file.endswith(".dll"):
+                #print(os.path.join(scadaVplc, file))
+                fileName = file
+        return fileName
+
+    def OnButtonStartPLC(self, evt):
         if pyroserver.plcobj is not None:
             plcstatus = pyroserver.plcobj.GetPLCstatus()[0]
             if plcstatus is "Stopped":
-                 self.log.AppendText("PLC Start.")
+                 #self.log.AppendText("PLC Start.")
+                 print(_("PLC Start."))
                  pyroserver.plcobj.StartPLC()
+                 self.m_button1.Label = "Stop"
+                 self.m_button1.bmpLabel = self.starticon
+                 #self.Refresh(self)
             else:
-                print(_("PLC is empty or already started."))
-                self.log.AppendText(_("PLC is empty or already started."))
+                #print(_("PLC is empty or already started."))
+                #self.log.AppendText(_("PLC is empty or already started."))
+                if pyroserver.plcobj.GetPLCstatus()[0] == "Started":
+                    #self.log.AppendText("PLC stop.")
+                    print(_("PLC stopping."))
+                    Thread(target= pyroserver.plcobj.StopPLC).start()
+                    self.m_button1.Label = "Start"
+                    self.m_button1.bmpLabel = self.stopicon
+                else:
+                    print(_("PLC is not started."))
+                    #self.log.AppendText(print(_("PLC is not started.")))
 
-    def OnTaskBarStopPLC(self, evt):
+
+    def onGetStatusPlc(self, event ):
+        status = ''
         if pyroserver.plcobj is not None:
             if pyroserver.plcobj.GetPLCstatus()[0] == "Started":
-                #self.log.AppendText("PLC stop.")
-                print(_("PLC stopping."))
-                Thread(target= pyroserver.plcobj.StopPLC).start()
+                status = 'Stop'
+                #ttt = pyroserver.plcobj._GetLogMessage()[0]
+                vvv = pyroserver.plcobj._GetLogCount()[0]
+
             else:
-                print(_("PLC is not started."))
-                #self.log.AppendText(print(_("PLC is not started.")))
+                status = 'Start'
+       # return status
 
     def OnAbout(self, e):
         # A message dialog box with an OK button. wx.OK is a standard ID in wxWidgets.
-        dlg = wx.MessageDialog(self, "A small text editor", "About Sample Editor", wx.OK)
+        dlg = wx.MessageDialog(self, "Valcom Plc Service", "Valcom Plc Service", wx.OK)
         dlg.ShowModal()  # Show it
         dlg.Destroy()  # finally destroy it when finished.
 
@@ -306,17 +345,42 @@ class MyFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             pyroserver.port = int(dlg.GetValue())
             pyroserver.Stop()
-            #pyroserver.Restart()
+
+    def MakeIcon(self, img):
+        """
+        The various platforms have different requirements for the
+        icon size...
+        """
+        # if "wxMSW" in wx.PlatformInfo:
+        #     img = img.Scale(16, 16)
+        # elif "wxGTK" in wx.PlatformInfo:
+        #     img = img.Scale(22, 22)
+        # wxMac can be any size upto 128x128, so leave the source img alone....
+        icon = wx.IconFromBitmap(img.ConvertToBitmap())
+        return icon
 
     def OnClose(self, event):
+        if self.mode == 'false':
+            self.Hide()
+        else:
+            dlg = wx.MessageDialog(self,
+                                   "Do you really want to close this application?",
+                                   "Confirm Exit", wx.OK | wx.CANCEL | wx.ICON_QUESTION)
+            result = dlg.ShowModal()
+            dlg.Destroy()
+            if result == wx.ID_OK:
+                self.Destroy()
+                pyroserver.Stop()
+                if wx.Platform == '__WXMSW__':
+                    Thread(target=pyroserver.Quit).start()
+                    #self.RemoveIcon()
+                    wx.CallAfter(wx.GetApp().ExitMainLoop)
+                    app.Destroy()
+                    #sys.exit(0)
+
+    def OnHide(self, event):
         self.Hide()
-        # dlg = wx.MessageDialog(self,
-        #                        "Do you really want to close this application?",
-        #                        "Confirm Exit", wx.OK | wx.CANCEL | wx.ICON_QUESTION)
-        # result = dlg.ShowModal()
-        # dlg.Destroy()
-        # if result == wx.ID_OK:
-        #     self.Destroy()
+
 
 class ToolbarFrame(wx.Frame):
     def __init__(self, parent, id):
@@ -349,8 +413,6 @@ class ToolbarFrame(wx.Frame):
         menuBar.Append(menu2, "&Edit")
         # Attaching the menubar to the frame
         self.SetMenuBar(menuBar)
-
-
 
 
 def Bpath(*args):
@@ -495,8 +557,8 @@ if enablewx:
                 """
                 menu = wx.Menu()
                 menu.Append(self.TBMENU_SHOW, _("Show"))
-                menu.Append(self.TBMENU_START, _("Start PLC"))
-                menu.Append(self.TBMENU_STOP, _("Stop PLC"))
+                #menu.Append(self.TBMENU_START, _("Start PLC"))
+                #menu.Append(self.TBMENU_STOP, _("Stop PLC"))
                 if self.level == 1:
                     menu.AppendSeparator()
                    # menu.Append(self.TBMENU_CHANGE_NAME, _("Change Name"))
@@ -507,7 +569,7 @@ if enablewx:
                   #  menu.Append(self.TBMENU_LIVE_SHELL, _("Launch a live Python shell"))
                    # menu.Append(self.TBMENU_WXINSPECTOR, _("Launch WX GUI inspector"))
                 #menu.AppendSeparator()
-                menu.Append(self.TBMENU_QUIT, _("Quit"))
+               # menu.Append(self.TBMENU_QUIT, _("Quit"))
                 return menu
 
             def MakeIcon(self, img):
@@ -608,7 +670,7 @@ if enablewx:
                     currenticon = self.MakeIcon(stopicon)
                 else:
                     currenticon = self.MakeIcon(defaulticon)
-                self.SetIcon(currenticon, "Beremiz Service")
+                self.SetIcon(currenticon, "PLC Service")
 
 
 if not os.path.isdir(WorkingDir):
@@ -665,8 +727,8 @@ class Server(object):
                                 self.pyruntimevars)
         uri = self.daemon.connect(self.plcobj, "PLCObject")
 
-        print(_("Server port :"), self.port)
-        print(_("Server object's uri :"), uri)
+        print(_("PLC service port :"), self.port)
+        print(_("PLC service object's uri :"), uri)
 
         # Beremiz IDE detects daemon start by looking
         # for self.workdir in the daemon's stdout.
