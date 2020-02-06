@@ -62,6 +62,8 @@ HANDLE hThreads[NUMBER_OF_CLIENT_NODES];
 #define PAUSE 10 /* ms */
 
 DWORD dwCounter = 0;
+uint16_t deelay_;
+FILE* logfileh;
 
 /*
  * Function to determine next transaction id.
@@ -125,21 +127,6 @@ static int configure_socket(int socket_id) {
 }
 
 
-char* barray2hexstr(const unsigned char* data, size_t datalen) {
-
-	size_t final_len = datalen * 2;
-	char* chrs = (unsigned char*)malloc((final_len + 1) * sizeof(*chrs));
-	unsigned int j = 0;
-	for (j = 0; j < datalen; j++)
-	{
-		chrs[2 * j] = (data[j] >> 4) + 48;
-		chrs[2 * j + 1] = (data[j] & 15) + 48;
-		if (chrs[2 * j] > 57) chrs[2 * j] += 7;
-		if (chrs[2 * j + 1] > 57) chrs[2 * j + 1] += 7;
-	}
-	chrs[2 * j] = '\0';
-	return chrs;
-}
 
 
 /* Get a float from 4 bytes (Modbus) in inversed format (DCBA) */
@@ -230,35 +217,43 @@ static inline void  __unpack_bits(request_registers_t* unpacked_data, u16* packe
 
 int init_custom_socket_new(client_node_t* CustomSocket)
 {
+    //write_log("initialise WSAStartup ");
 	if (!CustomSocket) {
-		printf("CustomSocket cannot be NULL.");
+		printf("-CustomSocket cannot be NULL.");
+		//write_log("-CustomSocket cannot be NULL.");
 		return -1;
 	}
 	int iResult;
-	struct addrinfo* result = NULL, * ptr = NULL, hints;
+	struct addrinfo* result = NULL, * ptr = NULL;
 
-	WSADATA wsaData;
+	//WSADATA wsaData;
 	iResult = WSAStartup(MAKEWORD(2, 2), &CustomSocket->wsa);
 	if (iResult != 0) {
 		CustomSocket->Connected = false;
 		CustomSocket->Stopped = true;
-		printf("WSAStartup failed with error: %%d", iResult);
+		printf("-WSAStartup failed with error: %%d", iResult);
+		//write_log("-WSAStartup failed with error:");
 		return -1;
+	}
+	else
+	{
+		//write_log("+WSAStartup OK.");
 	}
 
 	// Create a SOCKET for connecting to server
 	CustomSocket->ClientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (CustomSocket->ClientSocket == INVALID_SOCKET)
 	{
-		printf("Listening Socket Creation failed");
+		printf("-Listening Socket Creation failed");
+		//write_log("-Listening Socket Creation failed");
 		CustomSocket->Connected = false;
 		CustomSocket->Stopped = true;
 
-
 		WSACleanup();
-
 		return -1;
 	}
+
+	//write_log("+Create SOCKET OK.");
 
 	CustomSocket->Stopped = false;
 	return 0;
@@ -350,19 +345,20 @@ static int execute_mb_request_in(int request_id) {
 
 
 static void __print_structure(request_registers_t *unpacked_data, int request_id ){
-u8    bit_processed, allbits;
-    for(bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)
-  {
-    fprintf(stderr, "bits in structure %%d ---\n", unpacked_data->num_bit[bit_processed]);
-  }
- //fprintf(stderr, "--2 bits  structure %%d in request %%d  ---\n", unpacked_data->num_bit[1], request_id);
+    u8 bit_processed;
+	fprintf(stderr, "bits in register  - ");
 
+	for (bit_processed = 0; bit_processed < BIT_IN_WORD; bit_processed++)
+	{
+		fprintf(stderr, " %%d - ", unpacked_data->num_bit[bit_processed]);
+	}
+	fprintf(stderr, "\n");
 }
 
 static int __execute_mb_request(int request_id){
 int ret = 0;
    // fprintf(stderr, "#_____________________________# \n" );
-    //fprintf(stderr, "request id %%d  \n", request_id);
+    fprintf(stderr, "request id %%d  \n", request_id);
    // fprintf(stderr, "request address %%d  \n", client_requests[request_id].address);
    // fprintf(stderr, "request buffer %%d  \n", client_requests[request_id].plcv_buffer[0]);
 
@@ -390,16 +386,9 @@ int ret = 0;
     	if (client_requests[request_id].mb_function == 3 && client_requests[request_id].count == 1)	{
 		__unpack_bits(&request_registers[request_id], &client_requests[request_id].plcv_buffer[0]);
 	}
-//    if(client_requests[request_id].mb_function == 3)
-//    {
-//        __unpack_bits(&request_registers[request_id] ,  &client_requests[request_id].plcv_buffer[0]);
-//    }
 
 	if (client_requests[request_id].mb_function == 3 && client_requests[request_id].count == 1)
 			__print_structure(&request_registers[request_id], request_id);
-
-   // __print_structure(&request_registers[request_id], request_id);
-  //  fprintf(stderr, "#_____________________________# \n" );
 
 	 return ret;
 }
@@ -417,77 +406,95 @@ int ret = 0;
 int accept_and_stream_custom_socket2(void* _index)
 {
 	int client_node_id = (char*)_index - (char*)NULL; // Use pointer arithmetic (more portable than cast)
-
+	//write_log("+client node id: ");
 
 	do {
 
-			u64 period_sec = client_nodes[client_node_id].comm_period / 1000;          /* comm_period is in ms */
-			int period_nsec = (client_nodes[client_node_id].comm_period %% 1000) * 1000000; /* comm_period is in ms */
+        u64 period_sec = client_nodes[client_node_id].comm_period / 1000;          /* comm_period is in ms */
+        int period_nsec = (client_nodes[client_node_id].comm_period %% 1000) * 1000000; /* comm_period is in ms */
 
-
-	// loop the communication with the client
-	while (1) {
-
-		int req;
-		for (req = 0; req < NUMBER_OF_CLIENT_REQTS; req++) {
-			/*just do the requests belonging to the client */
-			if (client_requests[req].client_node_id != client_node_id)
-				continue;
-			int res_tmp = __execute_mb_request(req);
-			switch (res_tmp) {
-			  case PORT_FAILURE: {
-				if (res_tmp != client_nodes[client_node_id].prev_error)
-					fprintf(stderr, "Modbus plugin: Error connecting Modbus client %%s to remote server.\n", client_nodes[client_node_id].location);
-				client_nodes[client_node_id].prev_error = res_tmp;
-				break;
-			  }
-			  case INVALID_FRAME: {
-				if ((res_tmp != client_requests[req].prev_error) && (0 == client_nodes[client_node_id].prev_error))
-					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s was unsuccesful. Server/slave returned an invalid/corrupted frame.\n", client_requests[req].location);
-				client_requests[req].prev_error = res_tmp;
-				break;
-			  }
-			  case TIMEOUT: {
-				if ((res_tmp != client_requests[req].prev_error) && (0 == client_nodes[client_node_id].prev_error))
-					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s timed out waiting for reply from server.\n", client_requests[req].location);
-				client_requests[req].prev_error = res_tmp;
-				break;
-			  }
-			  case MODBUS_ERROR: {
-				if (client_requests[req].prev_error != client_requests[req].error_code) {
-					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s was unsuccesful. Server/slave returned error code 0x%%2x", client_requests[req].location, client_requests[req].error_code);
-
+        // loop the communication with the client
+        //write_log("+start loop the communication with the client");
+        while (client_nodes[client_node_id].Stopped == false)
+        {
+            int req;
+			for (req = 0; req < NUMBER_OF_CLIENT_REQTS; req++) {
+				/*just do the requests belonging to the client */
+				if (client_requests[req].client_node_id != client_node_id)
+					continue;
+				int res_tmp = __execute_mb_request(req);
+				switch (res_tmp) {
+				case PORT_FAILURE: {
+					if (res_tmp != client_nodes[client_node_id].prev_error) {
+						fprintf(stderr, "Modbus plugin: Error connecting Modbus client %%s to remote server.\n", client_nodes[client_node_id].location);
+						//write_log("-Modbus plugin: Error connecting Modbus client");
+					}
+					client_nodes[client_node_id].prev_error = res_tmp;
+					break;
 				}
-				client_requests[req].prev_error = client_requests[req].error_code;
-				break;
-			  }
-			  default: {
-				if ((res_tmp >= 0) && (client_nodes[client_node_id].prev_error != 0)) {
-					fprintf(stderr, "Modbus plugin: Modbus client %%s has reconnected to server/slave.\n", client_nodes[client_node_id].location);
+				case INVALID_FRAME: {
+					if ((res_tmp != client_requests[req].prev_error) && (0 == client_nodes[client_node_id].prev_error))
+						fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s was unsuccesful. Server/slave returned an invalid/corrupted frame.\n", client_requests[req].location);
+					client_requests[req].prev_error = res_tmp;
+					break;
 				}
-				if ((res_tmp >= 0) && (client_requests[req].prev_error != 0)) {
-					fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s has succesfully resumed comunication.\n", client_requests[req].location);
+				case TIMEOUT: {
+					if ((res_tmp != client_requests[req].prev_error) && (0 == client_nodes[client_node_id].prev_error))
+						fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s timed out waiting for reply from server.\n", client_requests[req].location);
+					client_requests[req].prev_error = res_tmp;
+					break;
 				}
-				client_nodes[client_node_id].prev_error = 0;
-				client_requests[req].prev_error = 0;
-				break;
-			  }
-			}
-		}
-		 Sleep(200);
+				case MODBUS_ERROR: {
+					if (client_requests[req].prev_error != client_requests[req].error_code) {
+						fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s was unsuccesful. Server/slave returned error code 0x%%2x", client_requests[req].location, client_requests[req].error_code);
+						//write_log("-Modbus plugin: Modbus client request configured at location was unsuccesful. Server/slave returned error code");
+					}
+					client_requests[req].prev_error = client_requests[req].error_code;
+					break;
+				}
+				default: {
+					if ((res_tmp >= 0) && (client_nodes[client_node_id].prev_error != 0)) {
+						fprintf(stderr, "Modbus plugin: Modbus client %%s has reconnected to server/slave.\n", client_nodes[client_node_id].location);
+						//write_log("+Modbus plugin: Modbus client has reconnected to server/slave");
+					}
+					if ((res_tmp >= 0) && (client_requests[req].prev_error != 0)) {
+						fprintf(stderr, "Modbus plugin: Modbus client request configured at location %%s has succesfully resumed comunication.\n", client_requests[req].location);
+						//write_log("+Modbus plugin: Modbus client request configured at location  has succesfully resumed comunication");
+					}
+					client_nodes[client_node_id].prev_error = 0;
+					client_requests[req].prev_error = 0;
+					break;
+				}
+				}
 
-		 if (client_nodes[client_node_id].Stopped )
+		 Sleep(deelay_);
+
+		 if (client_nodes[client_node_id].Connected == false && client_nodes[client_node_id].Stopped == false)
 			{
-				return 0;
+				//write_log("Socket connection false, try recconect");
+				//write_log("method accept_and_stream_custom_socket2 - init_custom_socket_new");
+				int initResult = init_custom_socket_new(&client_nodes[client_node_id]);
+				if (initResult != 0) {
+					printf("-Failed to initialise socket.\r\n");
+					//write_log("-Failed to initialise socket.");
+				}
+				else
+				{
+					//write_log("+Socket recconected");
+				}
+				//return 0;
 			}
+		 }
 	}
+	 //write_log("+Stopped loop the communication with the client");
 
 	// humour the compiler.
 	return NULL;
 
 
 
-	} while (1); // while (!CustomSocket->Stopped);
+	}while (client_nodes[client_node_id].Stopped == false); // while (1); // while (!CustomSocket->Stopped);
+    //write_log("+Stopped loop the communication with the client");
 }
 
 int clean_custom_socket(struct custom_socket* CustomSocket) {
@@ -514,24 +521,28 @@ int clean_custom_socket(struct custom_socket* CustomSocket) {
 //}
 
 DWORD WINAPI run_accept_and_stream_custom_socket2(CONST LPVOID lpParam) {
-
+    //write_log("+Method start in thread");
 	struct client_request_t* client_requests = lpParam;
 	int tt = accept_and_stream_custom_socket2(client_requests);
 
 }
 
 
-int __cleanup_%(locstr)s ();
+//int __cleanup_%(locstr)s ();
 int __init_%(locstr)s (int argc, char **argv){
 
 int temp_data = 0;
 	char* bufTxt;
 	int index;
-	uint16_t deelay_;
 
+    logfileh = init_log("");
 	CONST HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	fprintf(stderr,"modbus connection - Starting ...\r\n") ;
+
+	fprintf(logfileh, " ... \n");
+	fprintf(logfileh, " ... \n");
+	fprintf(logfileh, "[%%s - %%s] modbus application - Starting ... \n", __DATE__, __TIME__);
+	//fprintf(stderr,"modbus connection - Starting ...\r\n") ;
 
 	SetUpSocket(client_nodes[0].node_address); // 172.16.13.142  ..  192.168.253.250
 
@@ -543,6 +554,7 @@ int temp_data = 0;
 	for (index = 0; index < NUMBER_OF_CLIENT_NODES; index++)
 	{
 		client_nodes[index].mb_nd = -1;
+		//write_log("create_nodes - init_custom_socket_new");
 		int initResult = init_custom_socket_new(&client_nodes[index]);
 		if (initResult != 0) {
 			fprintf(stderr,   "Failed to initialise socket.\n");
@@ -550,6 +562,7 @@ int temp_data = 0;
 		else
 		{
 			client_nodes[index].mb_nd = 1;
+			//write_log("+Socket initialised.");
 		}
 	}
 
@@ -565,6 +578,7 @@ int temp_data = 0;
 			Sleep(500);
 			if (res != 0) {
 				printf("Modbus plugin: Error starting modbus client thread for node %%s\n", client_nodes[index].location);
+				//write_log("-Modbus plugin: Error starting modbus client thread");
 				return -1;
 			}
 		}
@@ -609,6 +623,7 @@ int temp_data = 0;
 	return 0;
 
 error_exit:
+    //write_log("Main loop - error_exit");
 	__cleanup_%(locstr)s ();
 	return -1;
 }
@@ -655,31 +670,41 @@ void __retrieve_%(locstr)s (){
 
 
 int __cleanup_%(locstr)s (){
-		int index, close;
+	int index, close;
 	int res = 0;
+	//write_log("__cleanup_");
 
-	/* kill thread and close connections of each modbus client node */
-	for (index=0; index < NUMBER_OF_CLIENT_NODES; index++) {
+		/* kill thread and close connections of each modbus client node */
+	//write_log("Kill thread and close connections of each modbus client node");
+
+	for (index = 0; index < NUMBER_OF_CLIENT_NODES; index++) {
 		close = 0;
 		if (client_nodes[index].init_state >= 2) {
 			// thread was launched, so we try to cancel it!
-			close = CloseHandle(hThreads[index]);
-			if (close == false)
-				fprintf(stderr, "Modbus plugin: Error closing thread for modbus client \n" );
-            client_nodes[index].Stopped = true;
+			bool close_result = CloseHandle(hThreads[index]);
+			 if(close_result == true)
+			 {
+				//("+ Thread stopped OK");
+			 }
+			  TerminateThread(hThreads[index], 0);
+			client_nodes[index].Stopped = true;
+			//write_log("+ Client_nodes stopped OK");
 		}
 		res |= close;
 
 		close = 0;
-//		if (client_nodes[index].init_state >= 1) {
-//			// modbus client node was created, so we try to close it!
-//			close = modbus_tcp_close(client_nodes[index].mb_nd);
-//			if (close < 0){
-//				fprintf(stderr, "Modbus plugin: Error closing modbus client node %%s\n", client_nodes[index].location);
-//				// We try to shut down as much as possible, so we do not return noW!
-//			}
-//			client_nodes[index].mb_nd = -1;
-//		}
+		if (client_nodes[index].init_state >= 1) {
+			// modbus client node was created, so we try to close it!
+			//write_log("+ modbus client node was created, so we try to close it!");
+			close = modbus_tcp_close(&client_nodes[index]);
+			if (close < 0) {
+				fprintf(stderr, "Modbus plugin: Error closing modbus client node %%s\n", client_nodes[index].location);
+				//write_log("- Modbus plugin: Error closing modbus client node");
+				// We try to shut down as much as possible, so we do not return noW!
+			}
+			client_nodes[index].mb_nd = -1;
+			//write_log("+ Client nodes modbus tcp close OK");
+		}
 		res |= close;
 		client_nodes[index].init_state = 0;
 	}
@@ -693,14 +718,7 @@ int __cleanup_%(locstr)s (){
 //		}
 //	}
 
-	/* modbus library close */
 
-	////fprintf(stderr, "Shutting down modbus library...\n");
-//    fprintf(stderr, "Shutting down modbus library...\n");
-//	if (mb_slave_and_master_done()<0) {
-//		fprintf(stderr, "Modbus plugin: Error shutting down modbus library\n");
-//		res |= -1;
-//	}
 
 	return res;
 }
