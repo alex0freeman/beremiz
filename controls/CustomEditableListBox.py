@@ -25,6 +25,7 @@
 
 from __future__ import absolute_import
 import wx
+#import wx.adv
 import wx.gizmos
 
 
