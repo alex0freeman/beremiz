@@ -35,7 +35,7 @@ import traceback
 import __builtin__
 import Pyro.core as pyro
 import wx
-import wx.adv
+#import wx.adv
 from lxml import etree, objectify
 
 from runtime import PLCObject, ServicePublisher
@@ -214,7 +214,7 @@ class MyFrame(wx.Frame):
     def __init__(self, parent, title):
         # no_caption = wx.RESIZE_BORDER
         # wx.Frame.__init__(self, parent, title=title, style=no_caption)
-        wx.Frame.__init__(self, parent, title=title, pos=(150, 150), size=(700, 450))
+        wx.Frame.__init__(self, parent, title=title, pos=(150, 150), size=(500, 450))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         # self.control = wx.TextCtrl(self, pos=(300,20), size=(200,300), style=wx.TE_MULTILINE | wx.TE_READONLY) # wx.TextCtrl(self, style=wx.TE_MULTILINE)
@@ -414,6 +414,7 @@ class MyFrame(wx.Frame):
             dlg.Destroy()
             if result == wx.ID_OK:
                 self.Destroy()
+                #pyroserver.Stop()
                 exitTskBar()
 
     def OnHide(self, event):
@@ -561,7 +562,7 @@ if enablewx:
                 self.Tests = tests
 
 
-        class BeremizTaskBarIcon(wx.adv.TaskBarIcon):
+        class BeremizTaskBarIcon(wx.TaskBarIcon):
             TBMENU_SHOW = wx.NewId()
             TBMENU_START = wx.NewId()
             TBMENU_STOP = wx.NewId()
@@ -574,7 +575,7 @@ if enablewx:
             TBMENU_QUIT = wx.NewId()
 
             def __init__(self, pyroserver, level):
-                wx.adv.TaskBarIcon.__init__(self)
+                wx.TaskBarIcon.__init__(self)
                 self.pyroserver = pyroserver
                 # Set the image
                 self.UpdateIcon(None)
@@ -629,7 +630,7 @@ if enablewx:
                     elif "wxGTK" in wx.PlatformInfo:
                         img = img.Scale(22, 22)
                     # wxMac can be any size upto 128x128, so leave the source img alone....
-                    icon = wx.Icon(img.ConvertToBitmap())
+                    icon = wx.IconFromBitmap(img.ConvertToBitmap()) # wx.Icon(img.ConvertToBitmap())
                 except Exception:
                     print("exeption")
                 return icon
@@ -723,6 +724,7 @@ if enablewx:
                     currenticon = self.MakeIcon(defaulticon)
                 self.SetIcon(currenticon, "PLC Service")
             def TaskBarQuit(self ):
+                pyroserver.Stop()
                 if wx.Platform == '__WXMSW__':
                     Thread(target=self.pyroserver.Quit).start()
                 self.RemoveIcon()
