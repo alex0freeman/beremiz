@@ -1,31 +1,22 @@
-/**
- * @file plc_debug.c
- * @brief Debugger code
- *
- * On "publish", when buffer is free, debugger stores arbitrary variables
+/*
+ * DEBUGGER code
+ * 
+ * On "publish", when buffer is free, debugger stores arbitrary variables 
  * content into, and mark this buffer as filled
- * Buffer content is read asynchronously, (from non real time part),
+ * 
+ * 
+ * Buffer content is read asynchronously, (from non real time part), 
  * and then buffer marked free again.
- */
-
-#ifdef TARGET_DEBUG_DISABLE
-
-void __init_debug    (void){}
-void __cleanup_debug (void){}
-void __retrieve_debug(void){}
-void __publish_debug (void){}
-
-#else
-
+ *  
+ * 
+ * */
 #include "iec_types_all.h"
 #include "POUS.h"
 /*for memcpy*/
 #include <string.h>
 #include <stdio.h>
 
-#ifndef DOXYGEN_SKIP
 #define BUFFER_SIZE %(buffer_size)d
-#endif /* DOXYGEN_SKIP */
 
 /* Atomically accessed variable for buffer state */
 #define BUFFER_FREE 0
@@ -38,16 +29,15 @@ char debug_buffer[BUFFER_SIZE];
 /* Buffer's cursor*/
 static char* buffer_cursor = debug_buffer;
 static unsigned int retain_offset = 0;
-
-/* Declare programs */
-#ifndef DOXYGEN_SKIP
+/***
+ * Declare programs 
+ **/
 %(programs_declarations)s
-#endif /* DOXYGEN_SKIP */
 
-/* Declare global variables from resources and conf */
-#ifndef DOXYGEN_SKIP
+/***
+ * Declare global variables from resources and conf 
+ **/
 %(extern_variables_declarations)s
-#endif /* DOXYGEN_SKIP */
 
 typedef const struct {
     void *ptr;
@@ -55,9 +45,7 @@ typedef const struct {
 } dbgvardsc_t;
 
 static dbgvardsc_t dbgvardsc[] = {
-#ifndef DOXYGEN_SKIP
 %(variable_decl_array)s
-#endif /* DOXYGEN_SKIP */
 };
 
 typedef void(*__for_each_variable_do_fp)(dbgvardsc_t*);
@@ -177,9 +165,7 @@ static inline void BufferIterator(dbgvardsc_t *dsc, int do_debug)
                 /* compute next cursor positon.
                    No need to check overflow, as BUFFER_SIZE
                    is computed large enough */
-		if((dsc->type == STRING_ENUM)   ||
-		   (dsc->type == STRING_P_ENUM) ||
-		   (dsc->type == STRING_O_ENUM)){
+                if(dsc->type == STRING_ENUM){
                     /* optimization for strings */
                     size = ((STRING*)visible_value_p)->len + 1;
                 }
@@ -232,7 +218,7 @@ void __publish_debug(void)
             &buffer_state,
             BUFFER_FREE,
             BUFFER_BUSY);
-
+            
         /* If buffer was free */
         if(latest_state == BUFFER_FREE)
         {
@@ -240,9 +226,9 @@ void __publish_debug(void)
             buffer_cursor = debug_buffer;
             /* Iterate over all variables to fill debug buffer */
             __for_each_variable_do(DebugIterator);
-
+            
             /* Leave debug section,
-             * Trigger asynchronous transmission
+             * Trigger asynchronous transmission 
              * (returns immediately) */
             InitiateDebugTransfer(); /* size */
         }else{
@@ -339,6 +325,4 @@ int GetDebugData(unsigned long *tick, unsigned long *size, void **buffer){
     }
     return wait_error;
 }
-
-#endif
 

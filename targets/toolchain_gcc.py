@@ -5,7 +5,6 @@
 # programming IEC 61131-3 automates supporting plcopen standard and CanFestival.
 #
 # Copyright (C) 2007: Edouard TISSERANT and Laurent BESSARD
-# Copyright (C) 2017: Paul Beltyukov
 #
 # See COPYING file for copyrights details.
 #
@@ -23,20 +22,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-
-from __future__ import absolute_import
-import os
-import re
-import operator
+import os, re, operator
+from util.ProcessLogger import ProcessLogger
 import hashlib
 
-from util.ProcessLogger import ProcessLogger
+includes_re =  re.compile('\s*#include\s*["<]([^">]*)[">].*')
 
-
-includes_re = re.compile('\s*#include\s*["<]([^">]*)[">].*')
-
-
-class toolchain_gcc(object):
+class toolchain_gcc():
     """
     This abstract class contains GCC specific code.
     It cannot be used as this and should be inherited in a target specific
@@ -46,7 +38,7 @@ class toolchain_gcc(object):
         self.CTRInstance = CTRInstance
         self.buildpath = None
         self.SetBuildPath(self.CTRInstance._getBuildPath())
-
+    
     def getBuilderCFLAGS(self):
         """
         Returns list of builder specific CFLAGS
@@ -58,26 +50,14 @@ class toolchain_gcc(object):
         Returns list of builder specific LDFLAGS
         """
         return self.CTRInstance.LDFLAGS + \
-            [self.CTRInstance.GetTarget().getcontent().getLDFLAGS()]
-
-    def getCompiler(self):
-        """
-        Returns compiler
-        """
-        return self.CTRInstance.GetTarget().getcontent().getCompiler()
-
-    def getLinker(self):
-        """
-        Returns linker
-        """
-        return self.CTRInstance.GetTarget().getcontent().getLinker()
+               [self.CTRInstance.GetTarget().getcontent().getLDFLAGS()]
 
     def GetBinaryCode(self):
         try:
             return open(self.exe_path, "rb").read()
-        except Exception:
+        except Exception, e:
             return None
-
+        
     def _GetMD5FileName(self):
         return os.path.join(self.buildpath, "lastbuildPLC.md5")
 
@@ -85,18 +65,18 @@ class toolchain_gcc(object):
         self.md5key = None
         try:
             os.remove(self._GetMD5FileName())
-        except Exception:
+        except Exception, e:
             pass
-
+    
     def GetBinaryCodeMD5(self):
         if self.md5key is not None:
             return self.md5key
         else:
             try:
                 return open(self._GetMD5FileName(), "r").read()
-            except Exception:
+            except Exception, e:
                 return None
-
+    
     def SetBuildPath(self, buildpath):
         if self.buildpath != buildpath:
             self.buildpath = buildpath
@@ -104,28 +84,10 @@ class toolchain_gcc(object):
             self.exe_path = os.path.join(self.buildpath, self.exe)
             self.md5key = None
             self.srcmd5 = {}
-
-    def append_cfile_deps(self, src, deps):
-        for l in src.splitlines():
-            res = includes_re.match(l)
-            if res is not None:
-                depfn = res.groups()[0]
-                if os.path.exists(os.path.join(self.buildpath, depfn)):
-                    deps.append(depfn)
-
-    def concat_deps(self, bn):
-        # read source
-        src = open(os.path.join(self.buildpath, bn), "r").read()
-        # update direct dependencies
-        deps = []
-        self.append_cfile_deps(src, deps)
-        # recurse through deps
-        # TODO detect cicular deps.
-        return reduce(operator.concat, map(self.concat_deps, deps), src)
-
+    
     def check_and_update_hash_and_deps(self, bn):
         # Get latest computed hash and deps
-        oldhash, deps = self.srcmd5.get(bn, (None, []))
+        oldhash, deps = self.srcmd5.get(bn,(None,[]))
         # read source
         src = open(os.path.join(self.buildpath, bn)).read()
         # compute new hash
@@ -136,43 +98,38 @@ class toolchain_gcc(object):
             # file have changed
             # update direct dependencies
             deps = []
-            self.append_cfile_deps(src, deps)
+            for l in src.splitlines():
+                res = includes_re.match(l)
+                if res is not None:
+                    depfn = res.groups()[0]
+                    if os.path.exists(os.path.join(self.buildpath, depfn)):
+                        #print bn + " depends on "+depfn
+                        deps.append(depfn)
             # store that hashand deps
             self.srcmd5[bn] = (newhash, deps)
         # recurse through deps
         # TODO detect cicular deps.
         return reduce(operator.and_, map(self.check_and_update_hash_and_deps, deps), match)
-
-    def calc_source_md5(self):
-        wholesrcdata = ""
-        for _Location, CFilesAndCFLAGS, _DoCalls in self.CTRInstance.LocationCFilesAndCFLAGS:
-            # Get CFiles list to give it to makefile
-            for CFile, _CFLAGS in CFilesAndCFLAGS:
-                CFileName = os.path.basename(CFile)
-                wholesrcdata += self.concat_deps(CFileName)
-        return hashlib.md5(wholesrcdata).hexdigest()
-
-    def calc_md5(self):
-        return hashlib.md5(self.GetBinaryCode()).hexdigest()
-
+                
     def build(self):
-        # Retrieve compiler and linker
-        self.compiler = self.getCompiler()
-        self.linker = self.getLinker()
+        # Retrieve toolchain user parameters
+        toolchain_params = self.CTRInstance.GetTarget().getcontent()
+        self.compiler = toolchain_params.getCompiler()
+        self.linker = toolchain_params.getLinker()
 
         Builder_CFLAGS = ' '.join(self.getBuilderCFLAGS())
 
-        # ----------------- GENERATE OBJECT FILES ------------------------
+        ######### GENERATE OBJECT FILES ########################################
         obns = []
         objs = []
         relink = self.GetBinaryCode() is None
-        for Location, CFilesAndCFLAGS, _DoCalls in self.CTRInstance.LocationCFilesAndCFLAGS:
+        for Location, CFilesAndCFLAGS, DoCalls in self.CTRInstance.LocationCFilesAndCFLAGS:
             if CFilesAndCFLAGS:
-                if Location:
-                    self.CTRInstance.logger.write(".".join(map(str, Location))+" :\n")
+                if Location :
+                    self.CTRInstance.logger.write(".".join(map(str,Location))+" :\n")
                 else:
                     self.CTRInstance.logger.write(_("PLC :\n"))
-
+                
             for CFile, CFLAGS in CFilesAndCFLAGS:
                 if CFile.endswith(".c"):
                     bn = os.path.basename(CFile)
@@ -180,23 +137,23 @@ class toolchain_gcc(object):
                     objectfilename = os.path.splitext(CFile)[0]+".o"
 
                     match = self.check_and_update_hash_and_deps(bn)
-
+                    
                     if match:
                         self.CTRInstance.logger.write("   [pass]  "+bn+" -> "+obn+"\n")
                     else:
                         relink = True
 
                         self.CTRInstance.logger.write("   [CC]  "+bn+" -> "+obn+"\n")
+                        
+                        status, result, err_result = ProcessLogger(
+                               self.CTRInstance.logger,
+                               "\"%s\" -c \"%s\" -o \"%s\" %s %s"%
+                                   (self.compiler, CFile, objectfilename, Builder_CFLAGS, CFLAGS)
+                               ).spin()
 
-                        status, _result, _err_result = ProcessLogger(
-                            self.CTRInstance.logger,
-                            "\"%s\" -c \"%s\" -o \"%s\" %s %s" %
-                            (self.compiler, CFile, objectfilename, Builder_CFLAGS, CFLAGS)
-                        ).spin()
-
-                        if status:
+                        if status :
                             self.srcmd5.pop(bn)
-                            self.CTRInstance.logger.write_error(_("C compilation of %s failed.\n") % bn)
+                            self.CTRInstance.logger.write_error(_("C compilation of %s failed.\n")%bn)
                             return False
                     obns.append(obn)
                     objs.append(objectfilename)
@@ -204,38 +161,42 @@ class toolchain_gcc(object):
                     obns.append(os.path.basename(CFile))
                     objs.append(CFile)
 
-        # ---------------- GENERATE OUTPUT FILE --------------------------
+        ######### GENERATE library FILE ########################################
         # Link all the object files into one binary file
         self.CTRInstance.logger.write(_("Linking :\n"))
         if relink:
+            objstring = []
+    
             # Generate list .o files
             listobjstring = '"' + '"  "'.join(objs) + '"'
-
+    
             ALLldflags = ' '.join(self.getBuilderLDFLAGS())
-
+    
             self.CTRInstance.logger.write("   [CC]  " + ' '.join(obns)+" -> " + self.exe + "\n")
-
-            status, _result, _err_result = ProcessLogger(
-                self.CTRInstance.logger,
-                "\"%s\" %s -o \"%s\" %s" %
-                (self.linker,
-                 listobjstring,
-                 self.exe_path,
-                 ALLldflags)
-            ).spin()
-
-            if status:
+    
+            status, result, err_result = ProcessLogger(
+                   self.CTRInstance.logger,
+                   "\"%s\" %s -o \"%s\" %s"%
+                       (self.linker,
+                        listobjstring,
+                        self.exe_path,
+                        ALLldflags)
+                   ).spin()
+            
+            if status :
                 return False
-
+                
         else:
             self.CTRInstance.logger.write("   [pass]  " + ' '.join(obns)+" -> " + self.exe + "\n")
-
+        
         # Calculate md5 key and get data for the new created PLC
-        self.md5key = self.calc_md5()
+        data=self.GetBinaryCode()
+        self.md5key = hashlib.md5(data).hexdigest()
 
         # Store new PLC filename based on md5 key
         f = open(self._GetMD5FileName(), "w")
         f.write(self.md5key)
         f.close()
-
+        
         return True
+

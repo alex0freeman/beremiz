@@ -5,7 +5,6 @@
 /** 
  * LOGGING
  **/
-#ifndef TARGET_LOGGING_DISABLE
 
 #ifndef LOG_BUFFER_SIZE
 #define LOG_BUFFER_SIZE (1<<14) /*16Ko*/
@@ -135,10 +134,6 @@ uint32_t GetLogMessage(uint8_t level, uint32_t msgidx, char* buf, uint32_t max_s
     return 0;
 }
 
-#endif
-
-#ifndef TARGET_EXT_SYNC_DISABLE
-
 #define CALIBRATED -2
 #define NOT_CALIBRATED -1
 static int calibration_count = NOT_CALIBRATED;
@@ -224,5 +219,3 @@ void align_tick(int sync_align_ratio)
 		}
 	}
 }
-
-#endif

@@ -18,11 +18,3 @@ void Retain(unsigned int offset, unsigned int count, void *p)
 void Remind(unsigned int offset, unsigned int count, void *p)
 {
 }
-
-void CleanupRetain(void)
-{
-}
-
-void InitRetain(void)
-{
-}
