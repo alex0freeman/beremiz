@@ -37,6 +37,7 @@ import Pyro.core as pyro
 import wx
 #import wx.adv
 from lxml import etree, objectify
+import time
 
 from runtime import PLCObject, ServicePublisher
 import util.paths as paths
@@ -47,6 +48,8 @@ import wx.lib.agw.genericmessagedialog as GMD
 scadaPath = 'c:\\OSSY-NG\\'
 scadaVplc = scadaPath + 'Vplc\\'
 scadaConfig = scadaPath + 'Runtime\\ASU.config.xml'
+scada_vplc_config = scadaVplc + 'project.txt'
+
 
 logs = logging.getLogger("Service")
 logs.setLevel(logging.INFO)
@@ -212,10 +215,12 @@ import wx.lib.buttons as buts
 
 class MyFrame(wx.Frame):
     def __init__(self, parent, title):
+        self.dict = dict()
         # no_caption = wx.RESIZE_BORDER
         # wx.Frame.__init__(self, parent, title=title, style=no_caption)
         wx.Frame.__init__(self, parent, title=title, pos=(150, 150), size=(500, 450))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+        #self.Bind(wx.EVT_CLOSE, taskbar_instance.OnTaskBarQuit )
 
         # self.control = wx.TextCtrl(self, pos=(300,20), size=(200,300), style=wx.TE_MULTILINE | wx.TE_READONLY) # wx.TextCtrl(self, style=wx.TE_MULTILINE)
         #   self.Show(True)
@@ -255,15 +260,33 @@ class MyFrame(wx.Frame):
         bSizerLabels = wx.BoxSizer(wx.HORIZONTAL)
         bSizer4 = wx.BoxSizer(wx.HORIZONTAL)  # bSizerButtons
 
-        self.projectName = self.GetProjectFileName()
-        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Project:" + self.projectName, wx.DefaultPosition,
-                                           wx.DefaultSize, 0)
+        self.config_load_result = self.get_config()
+        if  self.config_load_result == -1:
+            self.projectName = 'not loaded'
+            self.address = '-'
+            self.port = '-'
+        else:
+            self.projectName = self.dict['project']
+            self.address = self.dict['address']
+            self.port = self.dict['port']
+
+
+
+
+        #self.projectName = self.GetProjectFileName()
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Project: " + self.projectName, wx.DefaultPosition, wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         bSizerLabels.Add(self.m_staticText1, 0, wx.ALL, 5)
 
-        # self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"_", wx.DefaultPosition, wx.DefaultSize, 0)
-        # self.m_staticText2.Wrap(-1)
-        # bSizerLabels.Add(self.m_staticText2, 0, wx.ALL, 5)
+        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"Address: " + self.address, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText2.Wrap(-1)
+        bSizerLabels.Add(self.m_staticText2, 0, wx.ALL, 5)
+
+        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"Port: " + self.port, wx.DefaultPosition,
+                                           wx.DefaultSize, 0)
+        self.m_staticText2.Wrap(-1)
+        bSizerLabels.Add(self.m_staticText2, 0, wx.ALL, 5)
+
         bSizer3.Add(bSizerLabels, 1, wx.EXPAND, 5)
 
         bSizerLabels2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -271,7 +294,7 @@ class MyFrame(wx.Frame):
         self.mode = config_debug_mode()
         # self.mode = 'false'
 
-        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode:" + self.mode, wx.DefaultPosition,
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Debug mode: " + self.mode, wx.DefaultPosition,
                                            wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         bSizerLabels2.Add(self.m_staticText1, 0, wx.ALL, 5)
@@ -313,6 +336,8 @@ class MyFrame(wx.Frame):
         self.Layout()
         self.Centre(wx.BOTH)
 
+
+
         # перенапраляем вывод лога
         sys.stdout = self.log
         sys.stderr = self.log
@@ -328,12 +353,28 @@ class MyFrame(wx.Frame):
         #Extract_info)
 
     def GetProjectFileName(self):
-        fileName = ''
+        file_name = 'no project files'
         for file in os.listdir(scadaVplc):
             if file.endswith(".dll"):
                 # print(os.path.join(scadaVplc, file))
-                fileName = file
-        return fileName
+                file_name = file
+                break
+
+        return file_name
+
+    def get_config(self):
+        if not os.path.exists(scada_vplc_config):
+            return -1
+
+        with open(scada_vplc_config) as file:
+            for item in file:
+                key = item.split(":")[0]
+                value = item.split(":")[1]
+                self.dict[key] = value
+
+            file.close()
+        return 0
+
 
     def OnButtonStartPLC(self, evt):
         try:
@@ -407,19 +448,38 @@ class MyFrame(wx.Frame):
         if self.mode == 'false':
             self.Hide()
         else:
+
             dlg = wx.MessageDialog(self,
                                    "Do you really want to close this application?",
                                    "Confirm Exit", wx.OK | wx.CANCEL | wx.ICON_QUESTION)
             result = dlg.ShowModal()
             dlg.Destroy()
+           # wx.CallAfter(taskbar_instance.TaskBarQuit())
+
             if result == wx.ID_OK:
-                self.Destroy()
-                #pyroserver.Stop()
                 exitTskBar()
+
+                #app.Destroy() # тут вызывает краш приложение, на 10-ке не видно, на семерке аварийно завершает
+
+    def Exit(self):
+        self.Destroy()
+        Extract_info("PLC servise stop end exit.")
+        os._exit(os.F_OK)
+
 
     def OnHide(self, event):
         self.Hide()
 
+# class MyEvent(wx.PyCommandEvent):
+#     def __init__(self, evtType, id):
+#         wx.PyCommandEvent.__init__(self, evtType, id)
+#         myVal = None
+#
+#     def SetMyVal(self, val):
+#         self.myVal = val
+#
+#     def GetMyVal(self):
+#         return self.myVal
 
 class ToolbarFrame(wx.Frame):
     def __init__(self, parent, id):
@@ -711,9 +771,11 @@ if enablewx:
 
             def OnTaskBarQuit(self, evt):
                 if wx.Platform == '__WXMSW__':
+                    Thread(target=self.pyroserver.Stop).start()
                     Thread(target=self.pyroserver.Quit).start()
                 self.RemoveIcon()
                 wx.CallAfter(wx.GetApp().ExitMainLoop)
+                wx.CallAfter(frame.Exit)
 
             def UpdateIcon(self, plcstatus):
                 if plcstatus is "Started":
@@ -726,9 +788,11 @@ if enablewx:
             def TaskBarQuit(self ):
                 pyroserver.Stop()
                 if wx.Platform == '__WXMSW__':
+                    Thread(target=self.pyroserver.Stop).start()
                     Thread(target=self.pyroserver.Quit).start()
                 self.RemoveIcon()
                 wx.CallAfter(wx.GetApp().ExitMainLoop)
+                wx.CallAfter(frame.Exit)
 
 if not os.path.isdir(WorkingDir):
     os.mkdir(WorkingDir)
@@ -861,7 +925,7 @@ if havewx:
         wx.CallAfter(taskbar_instance.UpdateIcon, status)
 
     def exitTskBar( ):
-        wx.CallAfter(taskbar_instance.TaskBarQuit() )
+        wx.CallAfter(taskbar_instance.TaskBarQuit())
 
     statuschange.append(statuschangeTskBar)
 
