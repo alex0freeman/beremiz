@@ -328,10 +328,7 @@ static int execute_mb_request_in(int request_id) {
 	case 12: break; /* function not yet supported */
 	case 13: break; /* function not yet supported */
 	case 14: break; /* function not yet supported */
-
-	case 15: break;
-	case 16: break;
-
+	case 15: break; /* function not yet supported */
 
 	case 16: /* write multiple registers */
 		return write_output_words(
