@@ -286,7 +286,22 @@ static int execute_mb_request_in(int request_id) {
 
 		);
 
-	case  4:break;
+
+	case  4: /* read input registers */
+		return read_input_words(client_requests[request_id].slave_id,
+			client_requests[request_id].address,
+			client_requests[request_id].count,
+			client_requests[request_id].coms_buffer,
+			(int)client_requests[request_id].count,
+			client_nodes[client_requests[request_id].client_node_id].mb_nd,
+			client_requests[request_id].retries,
+			&(client_requests[request_id].error_code),
+			//&(client_requests[request_id].resp_timeout),
+			&(client_requests[request_id].coms_buf_mutex),
+			&client_nodes[client_requests[request_id].client_node_id],
+			&(client_requests[request_id].plcv_buffer)
+
+		);
 
 	case  5:break;
 
@@ -318,22 +333,22 @@ static int execute_mb_request_in(int request_id) {
 	case 16: break;
 
 
-//	case 16: /* write multiple registers */
-//		return write_output_words(
-//			client_requests[request_id].slave_id,
-//			client_requests[request_id].address,
-//			client_requests[request_id].count,
-//			client_requests[request_id].coms_buffer,
-//
-//			client_nodes[client_requests[request_id].client_node_id].mb_nd,
-//			client_requests[request_id].retries,
-//			&(client_requests[request_id].error_code),
-//			//&(client_requests[request_id].resp_timeout),
-//			&(client_requests[request_id].coms_buf_mutex),
-//			& client_nodes[client_requests[request_id].client_node_id],
-//			& (client_requests[request_id].plcv_buffer)
-//
-//		);
+	case 16: /* write multiple registers */
+		return write_output_words(
+			client_requests[request_id].slave_id,
+			client_requests[request_id].address,
+			client_requests[request_id].count,
+			client_requests[request_id].coms_buffer,
+
+			client_nodes[client_requests[request_id].client_node_id].mb_nd,
+			client_requests[request_id].retries,
+			&(client_requests[request_id].error_code),
+			//&(client_requests[request_id].resp_timeout),
+			&(client_requests[request_id].coms_buf_mutex),
+			& client_nodes[client_requests[request_id].client_node_id],
+			& (client_requests[request_id].plcv_buffer)
+
+		);
 
 
 	default: break;  /* should never occur, if file generation is correct */
