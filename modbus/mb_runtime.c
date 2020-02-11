@@ -391,15 +391,15 @@ int ret = 0;
     ret = execute_mb_request_in(request_id);
 
     // unpack analogs
-	if (client_requests[request_id].mb_function == 3 && client_requests[request_id].count > 1)
+	if ((client_requests[request_id].mb_function == 3 || client_requests[request_id].mb_function == 4) && client_requests[request_id].count > 1)
 		 __unpack_analog(&client_requests[request_id], &client_requests[request_id].analog_buffer[0]);
 
     // получаем биты - сигналы
-    	if (client_requests[request_id].mb_function == 3 && client_requests[request_id].count == 1)	{
+    	if ((client_requests[request_id].mb_function == 3 || client_requests[request_id].mb_function == 4) && client_requests[request_id].count == 1)	{
 		__unpack_bits(&request_registers[request_id], &client_requests[request_id].plcv_buffer[0]);
 	}
 
-	if (client_requests[request_id].mb_function == 3 && client_requests[request_id].count == 1)
+	if((client_requests[request_id].mb_function == 3 || client_requests[request_id].mb_function == 4) && client_requests[request_id].count == 1)
 			__print_structure(&request_registers[request_id], request_id);
 
 	 return ret;
