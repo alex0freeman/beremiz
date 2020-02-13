@@ -35,7 +35,7 @@ import traceback
 import __builtin__
 import Pyro.core as pyro
 import wx
-#import wx.adv
+# import wx.adv
 from lxml import etree, objectify
 import time
 
@@ -50,12 +50,11 @@ scadaVplc = scadaPath + 'Vplc\\'
 scadaConfig = scadaPath + 'Runtime\\ASU.config.xml'
 scada_vplc_config = scadaVplc + 'project.txt'
 
-
 logs = logging.getLogger("Service")
 logs.setLevel(logging.INFO)
 
 # создаём logging файловый хендлер/форматер
-log_fh = logging.FileHandler(scadaVplc +"PLCservice.log")
+log_fh = logging.FileHandler(scadaVplc + "PLCservice.log")
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(message)s")
 log_fh.setFormatter(formatter)
 logs.addHandler(log_fh)
@@ -205,10 +204,12 @@ class MyCustomTextCtrl(wx.TextCtrl):
     def flush(self):
         self.WriteText('')
 
-def Extract_info(  msg):
-        # self.log.AppendText("PLC stop.")
-        print(_(msg))
-        logs.info(msg)
+
+def Extract_info(msg):
+    # self.log.AppendText("PLC stop.")
+    print(_(msg))
+    logs.info(msg)
+
 
 import wx.lib.buttons as buts
 
@@ -220,7 +221,7 @@ class MyFrame(wx.Frame):
         # wx.Frame.__init__(self, parent, title=title, style=no_caption)
         wx.Frame.__init__(self, parent, title=title, pos=(150, 150), size=(500, 450))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-        #self.Bind(wx.EVT_CLOSE, taskbar_instance.OnTaskBarQuit )
+        # self.Bind(wx.EVT_CLOSE, taskbar_instance.OnTaskBarQuit )
 
         # self.control = wx.TextCtrl(self, pos=(300,20), size=(200,300), style=wx.TE_MULTILINE | wx.TE_READONLY) # wx.TextCtrl(self, style=wx.TE_MULTILINE)
         #   self.Show(True)
@@ -254,14 +255,14 @@ class MyFrame(wx.Frame):
 
         self.SetMenuBar(menubar)
 
-       # self.m_statusBar1 = self.CreateStatusBar(1, wx.ID_ANY)
+        # self.m_statusBar1 = self.CreateStatusBar(1, wx.ID_ANY)
         bSizer1 = wx.BoxSizer(wx.VERTICAL)
         bSizer3 = wx.BoxSizer(wx.VERTICAL)
         bSizerLabels = wx.BoxSizer(wx.HORIZONTAL)
         bSizer4 = wx.BoxSizer(wx.HORIZONTAL)  # bSizerButtons
 
         self.config_load_result = self.get_config()
-        if  self.config_load_result == -1:
+        if self.config_load_result == -1:
             self.projectName = 'not loaded'
             self.address = '-'
             self.port = '-'
@@ -270,15 +271,14 @@ class MyFrame(wx.Frame):
             self.address = self.dict['address']
             self.port = self.dict['port']
 
-
-
-
-        #self.projectName = self.GetProjectFileName()
-        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Project: " + self.projectName, wx.DefaultPosition, wx.DefaultSize, 0)
+        # self.projectName = self.GetProjectFileName()
+        self.m_staticText1 = wx.StaticText(self, wx.ID_ANY, u"Project: " + self.projectName, wx.DefaultPosition,
+                                           wx.DefaultSize, 0)
         self.m_staticText1.Wrap(-1)
         bSizerLabels.Add(self.m_staticText1, 0, wx.ALL, 5)
 
-        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"Address: " + self.address, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.m_staticText2 = wx.StaticText(self, wx.ID_ANY, u"Address: " + self.address, wx.DefaultPosition,
+                                           wx.DefaultSize, 0)
         self.m_staticText2.Wrap(-1)
         bSizerLabels.Add(self.m_staticText2, 0, wx.ALL, 5)
 
@@ -304,7 +304,7 @@ class MyFrame(wx.Frame):
         # bSizerLabels2.Add(self.m_staticText2, 0, wx.ALL, 5)
         bSizer3.Add(bSizerLabels2, 1, wx.EXPAND, 5)
 
-        self.defaulticon = wx.Image(Bpath("images", "brz.png")).ConvertToBitmap() #.Scale(15, 15)
+        self.defaulticon = wx.Image(Bpath("images", "brz.png")).ConvertToBitmap()  # .Scale(15, 15)
         self.starticon = wx.Image(Bpath("images", "icoplay24.png")).ConvertToBitmap()
         self.stopicon = wx.Image(Bpath("images", "icostop24.png")).ConvertToBitmap()
 
@@ -336,8 +336,6 @@ class MyFrame(wx.Frame):
         self.Layout()
         self.Centre(wx.BOTH)
 
-
-
         # перенапраляем вывод лога
         sys.stdout = self.log
         sys.stderr = self.log
@@ -350,7 +348,7 @@ class MyFrame(wx.Frame):
         else:
             Extract_info("Start programm in debug mode")
 
-        #Extract_info)
+        # Extract_info)
 
     def GetProjectFileName(self):
         file_name = 'no project files'
@@ -375,29 +373,44 @@ class MyFrame(wx.Frame):
             file.close()
         return 0
 
-
     def OnButtonStartPLC(self, evt):
         try:
-            if pyroserver.plcobj is not None:
-                plcstatus = pyroserver.plcobj.GetPLCstatus()[0]
-                if plcstatus is "Stopped":
-                    Extract_info("PLC Start.")
-                    pyroserver.plcobj.StartPLC()
-                    self.m_button1.SetLabel("Stop")
-                    self.m_bitmap1.SetBitmap(self.starticon)
-                    # self.Refresh(self)
-                else:
-                    Extract_info("PLC is empty or already started.")
-                    if pyroserver.plcobj.GetPLCstatus()[0] == "Started":
-                        Extract_info("PLC stopping.")
-                        Thread(target=pyroserver.plcobj.StopPLC).start()
-                        self.m_button1.SetLabel("Start")
-                        self.m_bitmap1.SetBitmap(self.stopicon)
-                    else:
-                        Extract_info("PLC is not started.")
+            self.chage_server_state()
+
+            #self.ChangeButtonIcon()
 
         except Exception, e:
-            print(_("Exception failed :"), e)
+            print(_("Exception - failed pyroserver.plcobj:"), e)
+
+    def chage_server_state(self):
+        if pyroserver.plcobj is not None:
+            plcstatus = pyroserver.plcobj.GetPLCstatus()[0]
+            if plcstatus is "Stopped":
+                #Extract_info("PLC Start.")
+                pyroserver.plcobj.StartPLC()
+            else:
+                #Extract_info("PLC is already started.") 
+                if pyroserver.plcobj.GetPLCstatus()[0] == "Started":
+                    #Extract_info("PLC stopping.")
+                    Thread(target=pyroserver.plcobj.StopPLC).start()
+                else:
+                    Extract_info("PLC is empty.")
+
+    def ChangeButtonIcon(self):
+        if pyroserver.plcobj is not None and self is not None:
+            plcstatus = pyroserver.plcobj.GetPLCstatus()[0]
+            if plcstatus is "Stopped":
+                #a=1
+                Extract_info("PLC stopped.")
+                self.m_button1.SetLabel("Start")
+                self.m_bitmap1.SetBitmap(self.stopicon)
+            else:
+                if pyroserver.plcobj.GetPLCstatus()[0] == "Started":
+                    #b=2
+                    Extract_info("PLC started.")
+
+                    self.m_button1.SetLabel("Stop")
+                    self.m_bitmap1.SetBitmap(self.starticon)
 
 
 
@@ -428,10 +441,10 @@ class MyFrame(wx.Frame):
             # global WorkingDir
             pyroserver.workdir = dlg.GetPath()
             # pyroserver.evaluator
-           # self.Extract_info("Изменена папка на ")
-            #pyroserver.Stop()
+            # self.Extract_info("Изменена папка на ")
+            # pyroserver.Stop()
 
-            print("Изменена папка на"  )
+            print("Изменена папка на")
             # self.pyroserver.plcobj.StartPLC()
 
     def OnTaskBarChangePort(self, evt):
@@ -454,21 +467,21 @@ class MyFrame(wx.Frame):
                                    "Confirm Exit", wx.OK | wx.CANCEL | wx.ICON_QUESTION)
             result = dlg.ShowModal()
             dlg.Destroy()
-           # wx.CallAfter(taskbar_instance.TaskBarQuit())
+            # wx.CallAfter(taskbar_instance.TaskBarQuit())
 
             if result == wx.ID_OK:
                 exitTskBar()
 
-                #app.Destroy() # тут вызывает краш приложение, на 10-ке не видно, на семерке аварийно завершает
+                # app.Destroy() # тут вызывает краш приложение, на 10-ке не видно, на семерке аварийно завершает
 
     def Exit(self):
         self.Destroy()
         Extract_info("PLC servise stop end exit.")
         os._exit(os.F_OK)
 
-
     def OnHide(self, event):
         self.Hide()
+
 
 # class MyEvent(wx.PyCommandEvent):
 #     def __init__(self, evtType, id):
@@ -682,7 +695,7 @@ if enablewx:
                 The various platforms have different requirements for the
                 icon size...
                 """
-                icon=None
+                icon = None
                 try:
 
                     if "wxMSW" in wx.PlatformInfo:
@@ -690,7 +703,7 @@ if enablewx:
                     elif "wxGTK" in wx.PlatformInfo:
                         img = img.Scale(22, 22)
                     # wxMac can be any size upto 128x128, so leave the source img alone....
-                    icon = wx.IconFromBitmap(img.ConvertToBitmap()) # wx.Icon(img.ConvertToBitmap())
+                    icon = wx.IconFromBitmap(img.ConvertToBitmap())  # wx.Icon(img.ConvertToBitmap())
                 except Exception:
                     print("exeption")
                 return icon
@@ -785,7 +798,8 @@ if enablewx:
                 else:
                     currenticon = self.MakeIcon(defaulticon)
                 self.SetIcon(currenticon, "PLC Service")
-            def TaskBarQuit(self ):
+
+            def TaskBarQuit(self):
                 pyroserver.Stop()
                 if wx.Platform == '__WXMSW__':
                     Thread(target=self.pyroserver.Stop).start()
@@ -800,7 +814,8 @@ if not os.path.isdir(WorkingDir):
 if not os.path.isdir(scadaVplc):
     os.mkdir(scadaVplc)
 
-#TODO разобрать что это
+
+# TODO разобрать что это
 def default_evaluator(tocall, *args, **kwargs):
     try:
         res = (tocall(*args, **kwargs), None)
@@ -909,8 +924,6 @@ if enabletwisted:
 pyruntimevars = {}
 statuschange = []
 
-
-
 if havetwisted:
 
     if havewx:
@@ -923,9 +936,13 @@ if havewx:
 
     def statuschangeTskBar(status):
         wx.CallAfter(taskbar_instance.UpdateIcon, status)
+        frame.ChangeButtonIcon()
+        #wx.CallAfter(frame.ChangeButtonIcon())
 
-    def exitTskBar( ):
+
+    def exitTskBar():
         wx.CallAfter(taskbar_instance.TaskBarQuit())
+
 
     statuschange.append(statuschangeTskBar)
 
@@ -966,7 +983,7 @@ def LogException(*exp):
         pyroserver.plcobj.LogMessage(0, '\n'.join(traceback.format_exception(*exp)))
     else:
         traceback.print_exception(*exp)
-    Extract_info("exception." )
+    Extract_info('\n'.join(traceback.format_exception(*exp)))
 
 
 sys.excepthook = LogException
@@ -994,7 +1011,7 @@ def installThreadExcepthook():
 
 installThreadExcepthook()
 
-#запуск WEB-сервиса
+# запуск WEB-сервиса
 # ВЫКЛЮчАЕМ
 # if havetwisted:
 #     if webport is not None:
@@ -1027,19 +1044,19 @@ for extfilename in extensions:
 #         except Exception, e:
 #             print(_("Nevow Web service failed. "), e)
 
-    # if wampconf is not None:
-    #     try:
-    #         WC.RegisterWampClient(wampconf)
-    #         pyruntimevars["wampsession"] = WC.GetSession
-    #         WC.SetServer(pyroserver)
-    #     except Exception, e:
-    #         print(_("WAMP client startup failed. "), e)
+# if wampconf is not None:
+#     try:
+#         WC.RegisterWampClient(wampconf)
+#         pyruntimevars["wampsession"] = WC.GetSession
+#         WC.SetServer(pyroserver)
+#     except Exception, e:
+#         print(_("WAMP client startup failed. "), e)
 
 if __name__ == '__main__':
-   # app = wx.App(redirect=True)
+    # app = wx.App(redirect=True)
     frame = MyFrame(None, 'PLC service')  # ToolbarFrame(parent=None, id=-1)
     if config_debug_mode() == 'true':
-       frame.Show()
+        frame.Show()
 
     __builtin__.__dict__['_'] = lambda x: x
     if havetwisted or havewx:
